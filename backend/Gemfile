@@ -1,0 +1,65 @@
+source "https://rubygems.org"
+
+ruby "3.2.9"
+
+# Rails
+gem "cgi", "~> 0.4.0" # Pin to 0.4.x for compatibility with globalid
+gem "rails", "~> 7.2.0"
+
+# Database
+gem "pg", "~> 1.5"
+
+# JSON
+gem "jbuilder"
+
+# Reduces boot times through caching
+gem "bootsnap", require: false
+
+# Security: Fix WEBrick vulnerability (CVE-2024-47220)
+gem "webrick", ">= 1.8.2"
+
+# Security: Fix Thor vulnerability
+gem "thor", ">= 1.4.0"
+
+# Security: Fix REXML ReDoS vulnerability
+gem "rexml", ">= 3.3.9"
+
+# Security: Fix indirect dependency vulnerabilities
+gem "net-imap", ">= 0.5.7"
+gem "nokogiri", ">= 1.18.9"
+gem "puma", ">= 6.4.3"
+gem "rack", ">= 3.2.3"
+gem "rack-cors", ">= 2.0.2"
+gem "rack-session", ">= 2.1.1"
+gem "rails-html-sanitizer", ">= 1.6.1"
+
+group :development, :test do
+  # Debugging
+  gem "debug", platforms: %i[mri windows]
+
+  # Testing
+  gem "factory_bot_rails", "~> 6.4"
+  gem "faker", "~> 3.2"
+  gem "rspec-rails", "~> 6.1"
+
+  # Linting
+  gem "rubocop", "~> 1.59", require: false
+  gem "rubocop-rails", "~> 2.23", require: false
+  gem "rubocop-rspec", "~> 2.26", require: false
+end
+
+group :development do
+  # Code reloading
+  gem "spring"
+  gem "spring-commands-rspec"
+
+  # Security auditing
+  gem "brakeman", require: false
+  gem "bundler-audit", require: false
+end
+
+group :test do
+  gem "database_cleaner-active_record", "~> 2.1"
+  gem "shoulda-matchers", "~> 6.0"
+  gem "simplecov", require: false
+end

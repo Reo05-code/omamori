@@ -1,0 +1,37 @@
+# Rails
+backend/.bundle
+backend/log/*
+backend/tmp/*
+backend/storage/*
+backend/public/uploads
+backend/public/packs
+backend/public/packs-test
+backend/node_modules
+backend/yarn-error.log
+backend/coverage/
+backend/.byebug_history
+backend/config/master.key
+backend/config/credentials/*.key
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Docker
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
