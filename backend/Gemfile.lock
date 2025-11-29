@@ -172,13 +172,12 @@ GEM
     psych (5.2.6)
       date
       stringio
-    puma (7.1.0)
+    puma (6.6.1)
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (3.2.4)
-    rack-cors (3.0.0)
-      logger
-      rack (>= 3.0.14)
+    rack-cors (2.0.2)
+      rack (>= 2.0.0)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -300,7 +299,6 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
     useragent (0.16.11)
-    webrick (1.9.1)
     websocket-driver (0.8.0)
       base64
       websocket-extensions (>= 0.1.0)
@@ -322,17 +320,15 @@ DEPENDENCIES
   debug
   factory_bot_rails (~> 6.4)
   faker (~> 3.2)
-  jbuilder
-  net-imap (>= 0.5.7)
-  nokogiri (>= 1.18.9)
+  jbuilder (~> 2.12)
+  nokogiri (~> 1.18)
   pg (~> 1.5)
-  puma (>= 6.4.3)
-  rack (>= 3.2.3)
-  rack-cors (>= 2.0.2)
-  rack-session (>= 2.1.1)
+  puma (~> 6.4)
+  rack (~> 3.2)
+  rack-cors (~> 2.0)
   rails (~> 7.2.0)
-  rails-html-sanitizer (>= 1.6.1)
-  rexml (>= 3.3.9)
+  rails-html-sanitizer (~> 1.6)
+  rexml (~> 3.3)
   rspec-rails (~> 6.1)
   rubocop (~> 1.59)
   rubocop-rails (~> 2.23)
@@ -341,8 +337,6 @@ DEPENDENCIES
   simplecov
   spring
   spring-commands-rspec
-  thor (>= 1.4.0)
-  webrick (>= 1.8.2)
 
 RUBY VERSION
    ruby 3.2.9p0
