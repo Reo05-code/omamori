@@ -15,11 +15,12 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
         methods: [:get, :post, :put, :patch, :delete, :options, :head],
         credentials: false
     else
-      origins ENV.fetch("FRONTEND_URL", "*")
+      frontend_url = ENV.fetch("FRONTEND_URL", "https://localhost:3000")
+      origins frontend_url
       resource "*",
         headers: :any,
         methods: [:get, :post, :put, :patch, :delete, :options, :head],
-        credentials: true
+        credentials: frontend_url != "*"
     end
   end
 end
