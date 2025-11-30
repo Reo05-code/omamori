@@ -3,9 +3,9 @@ source "https://rubygems.org"
 ruby "3.2.9"
 
 # ===== Rails Core =====
-gem "rails", "~> 7.2.0"
 gem "pg", "~> 1.5"
 gem "puma", "~> 6.4"
+gem "rails", "~> 7.2.0"
 
 # HTML / JSON
 gem "jbuilder", "~> 2.12"
@@ -14,20 +14,20 @@ gem "jbuilder", "~> 2.12"
 gem "bootsnap", require: false
 
 # Security patches for indirect dependencies
-gem "rexml", "~> 3.3"
 gem "nokogiri", "~> 1.18"
 gem "rack", "~> 3.2"
 gem "rack-cors", "~> 2.0"
 gem "rails-html-sanitizer", "~> 1.6"
+gem "rexml", "~> 3.3"
 
 gem "cgi", "~> 0.4.0"
 
 # ===== Development & Test =====
 group :development, :test do
   gem "debug", platforms: %i[mri windows]
-  gem "rspec-rails", "~> 6.1"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.2"
+  gem "rspec-rails", "~> 6.1"
 
   # Linting
   gem "rubocop", "~> 1.59", require: false
