@@ -14,8 +14,9 @@ test:
   <<: *default
   database: app_test
 
+# 本番環境では APP_DATABASE_PASSWORD 環境変数の設定が必須。今回はデフォルト値を空文字にしているが、実際の運用では適切なパスワードを設定すること。
 production:
   <<: *default
   database: app_production
   username: <%= ENV.fetch("APP_DATABASE_USER", "app") %>
-  password: <%= ENV.fetch("APP_DATABASE_PASSWORD") %>
+  password: <%= ENV.fetch("APP_DATABASE_PASSWORD", "") %>
