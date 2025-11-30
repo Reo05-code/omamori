@@ -1,22 +1,22 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: <%= ENV.fetch("POSTGRES_HOST") { "db" } %>
-  username: <%= ENV.fetch("POSTGRES_USER") { "postgres" } %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD") { "postgres" } %>
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-
-development:
-  <<: *default
-  database: <%= ENV.fetch("POSTGRES_DB") { "app_development" } %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
 
 test:
   <<: *default
-  database: app_test
+  database: <%= ENV.fetch("POSTGRES_DB", "app_test") %>
 
-# 本番環境では APP_DATABASE_PASSWORD 環境変数の設定が必須。今回はデフォルト値を空文字にしているが、実際の運用では適切なパスワードを設定すること。
+development:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB", "app_development") %>
+
 production:
   <<: *default
-  database: app_production
-  username: <%= ENV.fetch("APP_DATABASE_USER", "app") %>
-  password: <%= ENV.fetch("APP_DATABASE_PASSWORD", "") %>
+  database: <%= ENV.fetch("POSTGRES_DB", "app_production") %>
+  username: <%= ENV.fetch("DATABASE_USERNAME", "app") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "") %>
