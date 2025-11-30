@@ -21,6 +21,7 @@ jobs:
       postgres:
         image: postgres:15-alpine
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: app_test
         ports:
@@ -33,7 +34,11 @@ jobs:
 
     env:
       RAILS_ENV: test
-      DATABASE_URL: postgresql://postgres:password@localhost:5432/app_test
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_test
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/app_test
 
     steps:
       - name: Checkout code

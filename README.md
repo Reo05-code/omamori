@@ -98,11 +98,8 @@ docker-compose exec frontend npm run build
 # すべての CI チェックを実行
 ./scripts/run-ci-locally.sh all
 
-# Backend のみ
-./scripts/run-ci-locally.sh backend
 
-# Frontend のみ
-./scripts/run-ci-locally.sh frontend
+scriptsを参照
 
 # 統合テストのみ
 ./scripts/run-ci-locally.sh integration
