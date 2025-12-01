@@ -22,6 +22,10 @@ gem "rexml", "~> 3.3"
 
 gem "cgi", "~> 0.4.0"
 
+# Authentication
+gem "devise"
+gem "devise_token_auth"
+
 # ===== Development & Test =====
 group :development, :test do
   gem "debug", platforms: %i[mri windows]
