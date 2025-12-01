@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   # Root path for Render health check
-  root to: proc { [200, {}, ['OK']] }
+  root "health#index"
   # Health check endpoint
   get "health", to: "health#index"
 
