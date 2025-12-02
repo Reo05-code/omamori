@@ -43,9 +43,5 @@ module App
 
     # Allow all hosts in test and development environments
     config.hosts.clear if Rails.env.test? || Rails.env.development?
-
-    # Exclude vendor directory from Zeitwerk autoloading
-    config.autoload_paths.delete("#{root}/vendor")
-    config.eager_load_paths.delete("#{root}/vendor")
   end
 end

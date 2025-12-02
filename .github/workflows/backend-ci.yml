@@ -48,15 +48,24 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.9
-          bundler-cache: false
           working-directory: backend
+
+      - name: Configure Bundler
+        working-directory: backend
+        run: |
+          bundle config set --local without 'production'
+
+      - name: Cache gems
+        uses: actions/cache@v4
+        with:
+          path: ~/.bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('backend/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
 
       - name: Install dependencies
         working-directory: backend
-        run: |
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local without 'production'
-          bundle install --jobs 4 --retry 3
+        run: bundle install --jobs 4 --retry 3
 
       - name: Setup Database
         working-directory: backend
