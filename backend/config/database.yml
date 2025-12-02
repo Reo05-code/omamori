@@ -10,6 +10,9 @@ default: &default
 test:
   <<: *default
   database: <%= ENV.fetch("POSTGRES_DB", "app_test") %>
+  username: <%= ENV["CI"] ? "postgres" : ENV.fetch("POSTGRES_USER", "postgres") %>
+  password: <%= ENV["CI"] ? "password" : ENV.fetch("POSTGRES_PASSWORD", "") %>
+  host: <%= ENV["CI"] ? "localhost" : ENV.fetch("POSTGRES_HOST", "localhost") %>
 
 development:
   <<: *default

@@ -2,14 +2,15 @@
 require "spec_helper"
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
-# Prevent database truncation if the environment is production
+
+# 本番環境で実行されないようにガード
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 
-# Require support files
+# spec/support 配下のファイルを自動読み込み（設定ファイル分割用）
 Rails.root.glob("spec/support/**/*.rb").each { |f| require f }
 
-# Checks for pending migrations and applies them before tests are run.
+# 保留中のマイグレーションがあればテスト実行前に適用する
 begin
   ActiveRecord::Migration.maintain_test_schema!
 rescue ActiveRecord::PendingMigrationError => e
@@ -17,20 +18,26 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
+  # Fixtureのパス設定（FactoryBotを使うなら不要だが、一応残しておく）
   config.fixture_paths = [Rails.root.join("spec/fixtures")]
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
+  # テスト毎にトランザクションを張り、終了後にロールバックする（DBをクリーンに保つ）
   config.use_transactional_fixtures = true
 
-  # Filter lines from Rails gems in backtraces.
+  # Rails gem内部のバックトレースを除外して、エラーログを見やすくする
   config.filter_rails_from_backtrace!
 
-  # Include FactoryBot methods
+  # -----------------------------------------------------------
+  # ▼ ここから追加・修正した設定 ▼
+  # -----------------------------------------------------------
+
+  # FactoryBotのメソッド（create, build等）をクラス名なしで使えるようにする
   config.include FactoryBot::Syntax::Methods
 
-  # Infer spec type from file location
+  # 【推奨】Deviseのテストヘルパー（sign_in 等）を使えるようにする
+  # 今後の Request Spec で役立ちます
+  config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # ファイルの配置場所からスペックのタイプ（model, request等）を自動推論する
   config.infer_spec_type_from_file_location!
 end

@@ -38,7 +38,7 @@ jobs:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: app_test
-      DATABASE_URL: postgresql://postgres:password@localhost:5432/app_test
+      BUNDLE_WITHOUT: production
 
     steps:
       - name: Checkout code
@@ -53,8 +53,7 @@ jobs:
 
       - name: Setup Database
         working-directory: backend
-        run: |
-          bundle exec rails db:prepare
+        run: bundle exec rails db:prepare
 
     #bundle exec rails db:create
     # bundle exec rails db:schema:load

@@ -1,19 +1,33 @@
+#!/bin/bash
 #./scripts/local-ci-backend.sh
 # 上記のコマンドで実行されるスクリプト
 set -e
 
-echo "Running backend CI checks..."
+echo "========================================"
+echo "Running backend CI checks (local)"
+echo "========================================"
 
+echo ""
 echo "--- Installing dependencies ---"
 docker compose exec backend bundle install
 
+echo ""
 echo "--- Running RuboCop ---"
-docker compose exec backend rubocop
+docker compose exec backend bundle exec rubocop
 
+echo ""
 echo "--- Running Brakeman ---"
-docker compose exec backend brakeman --no-pager --except EOLRails
+docker compose exec backend bundle exec brakeman --no-pager -q -w2
 
-echo "--- Running RSpec ---"
-docker compose exec backend rspec
+echo ""
+echo "--- Running Bundler Audit ---"
+docker compose exec backend bundle exec bundler-audit check --update
 
+echo ""
+echo "--- Running RSpec (with CI=true for eager_load) ---"
+docker compose exec -e CI=true backend bundle exec rspec
+
+echo ""
+echo "========================================"
 echo "Backend CI checks passed!"
+echo "========================================"
