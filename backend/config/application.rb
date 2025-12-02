@@ -26,7 +26,7 @@ module App
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
+    config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -43,5 +43,9 @@ module App
 
     # Allow all hosts in test and development environments
     config.hosts.clear if Rails.env.test? || Rails.env.development?
+
+    # Exclude vendor directory from Zeitwerk autoloading
+    config.autoload_paths.delete("#{root}/vendor")
+    config.eager_load_paths.delete("#{root}/vendor")
   end
 end
