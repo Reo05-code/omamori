@@ -26,13 +26,13 @@ FactoryBot.define do
 
     # アバター付きユーザー用
     trait :with_avatar do
-      avatar_url { Faker::Internet.url(
-        host: "example.com",
-        path: "/avatars/#{SecureRandom.hex(8)}.jpg",
-        scheme: "https"
-      )}
+      avatar_url do
+        Faker::Internet.url(
+          host: "example.com",
+          path: "/avatars/#{SecureRandom.hex(8)}.jpg",
+          scheme: "https"
+        )
+      end
     end
   end
 end
-
-

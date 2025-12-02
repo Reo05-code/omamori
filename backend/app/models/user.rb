@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
-class User < ApplicationRecord #ActiveRecord::Base から変更
+# ActiveRecord::Base から変更
+class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  # API トークンベースの認証を扱うためのモジュール　
+  # API トークンベースの認証を扱うためのモジュール
   # モバイルアプリや SPA との連携で使う
   include DeviseTokenAuth::Concerns::User
 
   # Roleの定義 (0: worker, 1: admin)
-  enum role: { worker: 0, admin: 1 }
+  enum :role, { worker: 0, admin: 1 }
 
   # store_accessor は JSON カラムに保存されているキーを「モデルの普通の属性」として扱える機能
   # 例: user.notification_enabled, user.dark_mode
@@ -25,11 +26,9 @@ class User < ApplicationRecord #ActiveRecord::Base から変更
   validates :notification_enabled, inclusion: { in: [true, false], allow_nil: true }
   validates :dark_mode, inclusion: { in: %w[on off], allow_nil: true }
 
+  # 3. email
+  # Devise の validatable により自動で presence と format と uniqueness のバリデーションが入るので不要。
 
-# 3. email
-# Devise の validatable により自動で presence と format と uniqueness のバリデーションが入るので不要。
-
-# 4. encrypted_password
-# Devise が管理するので自前でバリデーション不要。
-
+  # 4. encrypted_password
+  # Devise が管理するので自前でバリデーション不要。
 end

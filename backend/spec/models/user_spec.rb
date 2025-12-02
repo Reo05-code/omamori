@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe User, type: :model do
+RSpec.describe User do
   subject(:user) { build(:user) }
 
   # ============================================
@@ -120,7 +120,7 @@ RSpec.describe User, type: :model do
   describe "Devise modules" do
     %i[database_authenticatable registerable recoverable rememberable validatable].each do |mod|
       it "#{mod} が有効であること" do
-        expect(User.devise_modules).to include(mod)
+        expect(described_class.devise_modules).to include(mod)
       end
     end
   end
@@ -130,7 +130,7 @@ RSpec.describe User, type: :model do
   # ============================================
   describe "DeviseTokenAuth" do
     it "DeviseTokenAuth::Concerns::User が include されていること" do
-      expect(User.ancestors).to include(DeviseTokenAuth::Concerns::User)
+      expect(described_class.ancestors).to include(DeviseTokenAuth::Concerns::User)
     end
   end
 
@@ -148,7 +148,7 @@ RSpec.describe User, type: :model do
       expect(u.notification_enabled).to be_nil
       u.notification_enabled = true
       u.dark_mode = "on"
-      expect(u.notification_enabled).to eq(true)
+      expect(u.notification_enabled).to be(true)
       expect(u.dark_mode).to eq("on")
     end
 
@@ -157,7 +157,7 @@ RSpec.describe User, type: :model do
       u.notification_enabled = false
       u.dark_mode = "off"
       u.save!
-      expect(u.reload.notification_enabled).to eq(false)
+      expect(u.reload.notification_enabled).to be(false)
       expect(u.reload.dark_mode).to eq("off")
     end
   end

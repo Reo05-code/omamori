@@ -1,10 +1,15 @@
-require:
+plugins:
   - rubocop-rails
+  - rubocop-factory_bot
+
+require:
   - rubocop-rspec
+  - rubocop-rspec_rails
 
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
+  SuggestExtensions: false
   Exclude:
     - 'bin/**/*'
     - 'db/schema.rb'
@@ -48,6 +53,10 @@ Metrics/MethodLength:
 # Rails
 Rails/I18nLocaleTexts:
   Enabled: false
+
+Rails/Exit:
+  Exclude:
+    - 'spec/rails_helper.rb'
 
 # RSpec
 RSpec/ExampleLength:
