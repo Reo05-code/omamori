@@ -10,7 +10,6 @@ default: &default
 test:
   <<: *default
   database: <%= ENV.fetch("POSTGRES_DB", "app_test") %>
-  url: <%= ENV.fetch("DATABASE_URL", nil) %>
 
 development:
   <<: *default
