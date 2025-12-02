@@ -28,6 +28,9 @@ module App
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Exclude vendor directory from Zeitwerk autoloading (for CI bundler cache)
+    Rails.autoloaders.main.ignore(Rails.root.join("vendor"))
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
