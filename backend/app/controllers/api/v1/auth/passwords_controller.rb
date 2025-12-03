@@ -9,7 +9,7 @@ module Api
       class PasswordsController < DeviseTokenAuth::PasswordsController
         respond_to :json
 
-        before_action :authenticate_user!, only: [:update]
+        before_action :authenticate_api_v1_user!, only: [:update]
 
         # パスワードリセットメール送信成功時のレスポンス
         def render_create_success

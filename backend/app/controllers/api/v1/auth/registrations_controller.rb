@@ -10,7 +10,7 @@ module Api
       class RegistrationsController < DeviseTokenAuth::RegistrationsController
         respond_to :json
 
-        before_action :authenticate_user!, only: [:update, :destroy]
+        before_action :authenticate_api_v1_user!, only: [:update, :destroy]
 
         private
 

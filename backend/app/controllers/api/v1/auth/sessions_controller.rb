@@ -9,7 +9,7 @@ module Api
       class SessionsController < DeviseTokenAuth::SessionsController
         respond_to :json
 
-        before_action :authenticate_user!, only: [:destroy]
+        before_action :authenticate_api_v1_user!, only: [:destroy]
 
         private
 
