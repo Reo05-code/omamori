@@ -46,5 +46,8 @@ module App
 
     # Allow all hosts in test and development environments
     config.hosts.clear if Rails.env.test? || Rails.env.development?
+
+    config.i18n.default_locale = :ja
+
   end
 end

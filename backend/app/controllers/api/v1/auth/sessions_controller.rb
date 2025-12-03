@@ -10,7 +10,7 @@ module Api
         respond_to :json
 
         before_action :authenticate_user!, only: [:destroy]
-        
+
         private
 
         # ログイン成功時のレスポンス
@@ -25,25 +25,25 @@ module Api
         def render_create_error_bad_credentials
           render json: {
             status: "error",
-            errors: [I18n.t('devise.failure.invalid', authentication_keys: 'メールアドレス')]
+            errors: [I18n.t('api.v1.auth.error.sessions.invalid_credentials')]
           }, status: :unauthorized
         end
 
         # ログアウト成功時のレスポンス
-        def render_destroy_success
-          render json: {
-            status: "success",
-            message: I18n.t('devise.sessions.signed_out')
-          }, status: :ok
-        end
+          def render_destroy_success
+            render json: {
+              status: "success",
+              message: I18n.t('api.v1.auth.sessions.signed_out')
+            }, status: :ok
+          end
 
         # ログアウト失敗時のレスポンス
-        def render_destroy_error
-          render json: {
-            status: "error",
-            errors: [I18n.t('devise.sessions.not_signed_out')]
-          }, status: :bad_request
-        end
+          def render_destroy_error
+            render json: {
+              status: "error",
+              errors: [I18n.t('api.v1.auth.sessions.not_signed_out')]
+            }, status: :bad_request
+          end
 
         # ユーザー情報を返すJSONを最小化
         def user_data(user)

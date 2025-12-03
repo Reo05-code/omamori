@@ -15,7 +15,7 @@ module Api
         def render_create_success
           render json: {
             status: "success",
-            message: "パスワード再設定用のメールを送信しました"
+            message: I18n.t('api.v1.auth.passwords.create_success')
           }
         end
 
@@ -23,7 +23,7 @@ module Api
         def render_create_error
           render json: {
             status: "error",
-            errors: resource_errors[:full_messages]
+            errors: resource_errors[:full_messages].presence || [I18n.t('api.v1.auth.error.passwords.create')]
           }, status: :unprocessable_entity
         end
 
@@ -31,7 +31,7 @@ module Api
         def render_update_success
           render json: {
             status: "success",
-            message: "パスワードを変更しました",
+            message: I18n.t('api.v1.auth.passwords.update_success'),
             data: resource_data
           }
         end
@@ -40,7 +40,7 @@ module Api
         def render_update_error
           render json: {
             status: "error",
-            errors: resource_errors[:full_messages]
+            errors: resource_errors[:full_messages].presence || [I18n.t('api.v1.auth.error.passwords.update')]
           }, status: :unprocessable_entity
         end
       end

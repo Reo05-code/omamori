@@ -30,7 +30,7 @@ module Api
         def render_create_success
           render json: {
             status: "success",
-            message: "ユーザー登録が完了しました",
+            message: I18n.t('api.v1.auth.registrations.create_success'),
             data: resource_data(resource_json: @resource.as_json)
           }
         end
@@ -39,7 +39,7 @@ module Api
         def render_create_error
           render json: {
             status: "error",
-            errors: resource_errors[:full_messages]
+            errors: resource_errors[:full_messages].presence || [I18n.t('api.v1.auth.error.registrations.create')]
           }, status: :unprocessable_entity
         end
 
@@ -47,7 +47,7 @@ module Api
         def render_update_success
           render json: {
             status: "success",
-            message: "ユーザー情報を更新しました",
+            message: I18n.t('api.v1.auth.registrations.update_success'),
             data: resource_data
           }
         end
@@ -64,7 +64,7 @@ module Api
         def render_destroy_success
           render json: {
             status: "success",
-            message: "アカウントを削除しました"
+            message: I18n.t('api.v1.auth.registrations.destroy_success')
           }
         end
 
@@ -72,7 +72,7 @@ module Api
         def render_destroy_error
           render json: {
             status: "error",
-            errors: ["アカウントの削除に失敗しました"]
+            errors: [I18n.t('api.v1.auth.registrations.destroy_error')]
           }, status: :unprocessable_entity
         end
       end
