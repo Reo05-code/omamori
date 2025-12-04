@@ -31,6 +31,7 @@ Rails.application.configure do
   config.action_controller.allow_forgery_protection = false
 
   # Configure mailer for test environment
+  config.action_mailer.delivery_method = :test
   config.action_mailer.default_url_options = { host: "localhost", port: 3001 }
 
   # Disable host authorization in test environment
