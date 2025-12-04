@@ -1,0 +1,38 @@
+ja:
+  # Devise 標準メッセージ（必要に応じて Devise 側で参照されます）
+  devise:
+    failure:
+      invalid: "%{authentication_keys}またはパスワードが違います"
+    sessions:
+      signed_out: "ログアウトしました"
+
+  api:
+    v1:
+      auth:
+        authentication_keys:
+          email: "メールアドレス"
+        success:
+          sessions:
+            signed_out: "ログアウトしました"
+          registrations:
+            create: "ユーザー登録が完了しました"
+            update: "ユーザー情報を更新しました"
+            destroy: "アカウントを削除しました"
+          passwords:
+            create: "パスワード再設定用のメールを送信しました"
+            update: "パスワードを変更しました"
+          token_validations:
+            valid_token: "トークンは有効です"
+        error:
+          sessions:
+            invalid_credentials: "メールアドレスまたはパスワードが違います"
+            not_signed_out: "ログアウトに失敗しました"
+          registrations:
+            create: "ユーザー登録に失敗しました"
+            update: "ユーザー情報の更新に失敗しました"
+            destroy: "アカウントの削除に失敗しました"
+          passwords:
+            create: "パスワード再設定メールの送信に失敗しました"
+            update: "パスワードの更新に失敗しました"
+          token_validations:
+            invalid_token: "トークンが無効です"

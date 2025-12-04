@@ -50,4 +50,14 @@ Rails.application.configure do
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
+
+  # メール設定（必須）
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+  # 開発環境ではメールを実際には送らず、テスト用にメモリに保存する
+  # ログで内容を確認したい場合は logger を使うか letter_opener gem を導入
+  config.action_mailer.delivery_method = :test
+  config.action_mailer.perform_deliveries = true
+
+  config.action_mailer.raise_delivery_errors = true
 end

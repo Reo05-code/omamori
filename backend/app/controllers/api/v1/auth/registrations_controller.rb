@@ -1,0 +1,86 @@
+# frozen_string_literal: true
+
+module Api
+  module V1
+    module Auth
+      # ユーザー登録を処理するコントローラー
+      # POST /api/v1/auth - ユーザー登録
+      # PUT /api/v1/auth - ユーザー情報更新
+      # DELETE /api/v1/auth - アカウント削除
+      class RegistrationsController < DeviseTokenAuth::RegistrationsController
+        respond_to :json
+
+        # `update`/`destroy` は DeviseTokenAuth のスーパークラスで定義されるため
+        # RuboCop の LexicallyScopedActionFilter が誤検知する。
+        # 明示的に抑制する。
+        # rubocop:disable Rails/LexicallyScopedActionFilter
+        before_action :authenticate_api_v1_user!, only: %i[update destroy]
+        # rubocop:enable Rails/LexicallyScopedActionFilter
+
+        private
+
+        # 登録時に許可するパラメータ
+        def sign_up_params
+          params.permit(:email, :password, :password_confirmation, :name, :phone_number)
+        end
+
+        # 更新時に許可するパラメータ
+        def account_update_params
+          params.permit(:email, :password, :password_confirmation, :name, :phone_number, :avatar_url)
+        end
+
+        protected
+
+        # 登録成功時のレスポンス
+        def render_create_success
+          render json: {
+            status: "success",
+            message: I18n.t("api.v1.auth.registrations.create_success"),
+            data: resource_data(resource_json: @resource.as_json)
+          }
+        end
+
+        # 登録失敗時のレスポンス
+        def render_create_error
+          render json: {
+            status: "error",
+            errors: resource_errors[:full_messages].presence || [I18n.t("api.v1.auth.error.registrations.create")]
+          }, status: :unprocessable_content
+        end
+
+        # 更新成功時のレスポンス
+        def render_update_success
+          render json: {
+            status: "success",
+            message: I18n.t("api.v1.auth.registrations.update_success"),
+            data: resource_data
+          }
+        end
+
+        # 更新失敗時のレスポンス
+        def render_update_error
+          render json: {
+            status: "error",
+            errors: resource_errors[:full_messages]
+          }, status: :unprocessable_content
+        end
+
+        # アカウント削除成功時のレスポンス
+        def render_destroy_success
+          render json: {
+            status: "success",
+            message: I18n.t("api.v1.auth.registrations.destroy_success")
+          }
+        end
+
+        # アカウント削除失敗時のレスポンス
+        def render_destroy_error
+          render json: {
+            status: "error",
+            errors: [I18n.t("api.v1.auth.registrations.destroy_error")]
+          }, status: :unprocessable_content
+        end
+      end
+    end
+  end
+end
