@@ -11,7 +11,7 @@ const mPlusRounded = M_PLUS_Rounded_1c({
 
 export const metadata: Metadata = {
   title: 'Omamori',
-  description: '見守りアプリケーション',
+  description: '高齢者・一人作業者見守りアプリケーション',
 }
 
 export default function RootLayout({
