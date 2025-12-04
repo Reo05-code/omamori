@@ -10,7 +10,12 @@ module Api
       class RegistrationsController < DeviseTokenAuth::RegistrationsController
         respond_to :json
 
-        before_action :authenticate_api_v1_user!, only: [:update, :destroy]
+        # `update`/`destroy` は DeviseTokenAuth のスーパークラスで定義されるため
+        # RuboCop の LexicallyScopedActionFilter が誤検知する。
+        # 明示的に抑制する。
+        # rubocop:disable Rails/LexicallyScopedActionFilter
+        before_action :authenticate_api_v1_user!, only: %i[update destroy]
+        # rubocop:enable Rails/LexicallyScopedActionFilter
 
         private
 
@@ -30,7 +35,7 @@ module Api
         def render_create_success
           render json: {
             status: "success",
-            message: I18n.t('api.v1.auth.registrations.create_success'),
+            message: I18n.t("api.v1.auth.registrations.create_success"),
             data: resource_data(resource_json: @resource.as_json)
           }
         end
@@ -39,15 +44,15 @@ module Api
         def render_create_error
           render json: {
             status: "error",
-            errors: resource_errors[:full_messages].presence || [I18n.t('api.v1.auth.error.registrations.create')]
-          }, status: :unprocessable_entity
+            errors: resource_errors[:full_messages].presence || [I18n.t("api.v1.auth.error.registrations.create")]
+          }, status: :unprocessable_content
         end
 
         # 更新成功時のレスポンス
         def render_update_success
           render json: {
             status: "success",
-            message: I18n.t('api.v1.auth.registrations.update_success'),
+            message: I18n.t("api.v1.auth.registrations.update_success"),
             data: resource_data
           }
         end
@@ -57,14 +62,14 @@ module Api
           render json: {
             status: "error",
             errors: resource_errors[:full_messages]
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
 
         # アカウント削除成功時のレスポンス
         def render_destroy_success
           render json: {
             status: "success",
-            message: I18n.t('api.v1.auth.registrations.destroy_success')
+            message: I18n.t("api.v1.auth.registrations.destroy_success")
           }
         end
 
@@ -72,8 +77,8 @@ module Api
         def render_destroy_error
           render json: {
             status: "error",
-            errors: [I18n.t('api.v1.auth.registrations.destroy_error')]
-          }, status: :unprocessable_entity
+            errors: [I18n.t("api.v1.auth.registrations.destroy_error")]
+          }, status: :unprocessable_content
         end
       end
     end

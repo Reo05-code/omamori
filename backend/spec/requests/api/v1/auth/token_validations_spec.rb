@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/ContextWording
 require "rails_helper"
 
-RSpec.describe "Api::V1::Auth::TokenValidations", type: :request do
+RSpec.describe "Api::V1::Auth::TokenValidations" do
   let(:user) { create(:user) }
 
   describe "GET /api/v1/auth/validate_token (トークン有効性確認)" do
@@ -49,3 +50,5 @@ RSpec.describe "Api::V1::Auth::TokenValidations", type: :request do
     end
   end
 end
+
+# rubocop:enable RSpec/ContextWording

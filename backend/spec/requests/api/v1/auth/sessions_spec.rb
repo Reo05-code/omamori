@@ -2,7 +2,8 @@
 
 require "rails_helper"
 
-RSpec.describe "Api::V1::Auth::Sessions", type: :request do
+RSpec.describe "Api::V1::Auth::Sessions" do
+  # rubocop:disable RSpec/ContextWording
   let(:user) { create(:user, email: "test@example.com", password: "password123") }
 
   describe "POST /api/v1/auth/sign_in (ログイン)" do
@@ -77,3 +78,5 @@ RSpec.describe "Api::V1::Auth::Sessions", type: :request do
     end
   end
 end
+
+# rubocop:enable RSpec/ContextWording

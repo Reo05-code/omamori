@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/ContextWording
 require "rails_helper"
 
-RSpec.describe "Api::V1::Auth::Registrations", type: :request do
+RSpec.describe "Api::V1::Auth::Registrations" do
   let(:valid_attributes) do
     {
       email: "newuser@example.com",
@@ -26,9 +27,9 @@ RSpec.describe "Api::V1::Auth::Registrations", type: :request do
   describe "POST /api/v1/auth (ユーザー登録)" do
     context "有効なパラメータの場合" do
       it "新しいユーザーを作成する" do
-        expect {
+        expect do
           post "/api/v1/auth", params: valid_attributes, as: :json
-        }.to change(User, :count).by(1)
+        end.to change(User, :count).by(1)
       end
 
       it "成功レスポンスを返す" do
@@ -51,9 +52,9 @@ RSpec.describe "Api::V1::Auth::Registrations", type: :request do
 
     context "無効なパラメータの場合" do
       it "ユーザーを作成しない" do
-        expect {
+        expect do
           post "/api/v1/auth", params: invalid_attributes, as: :json
-        }.not_to change(User, :count)
+        end.not_to change(User, :count)
       end
 
       it "エラーレスポンスを返す" do
@@ -109,9 +110,9 @@ RSpec.describe "Api::V1::Auth::Registrations", type: :request do
 
     context "認証済みの場合" do
       it "アカウントを削除する" do
-        expect {
+        expect do
           delete "/api/v1/auth", headers: auth_headers, as: :json
-        }.to change(User, :count).by(-1)
+        end.to change(User, :count).by(-1)
       end
 
       it "成功レスポンスを返す" do
@@ -132,3 +133,5 @@ RSpec.describe "Api::V1::Auth::Registrations", type: :request do
     end
   end
 end
+
+# rubocop:enable RSpec/ContextWording

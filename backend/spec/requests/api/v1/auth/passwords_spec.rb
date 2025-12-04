@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/ContextWording
 require "rails_helper"
 
-RSpec.describe "Api::V1::Auth::Passwords", type: :request do
+RSpec.describe "Api::V1::Auth::Passwords" do
   let(:user) { create(:user, email: "test@example.com") }
 
   before do
@@ -26,21 +27,21 @@ RSpec.describe "Api::V1::Auth::Passwords", type: :request do
       end
 
       it "パスワードリセットトークンを生成する" do
-        expect {
+        expect do
           post "/api/v1/auth/password", params: valid_params, as: :json
-        }.to change { user.reload.reset_password_token }.from(nil)
+        end.to change { user.reload.reset_password_token }.from(nil)
       end
 
       it "reset_password_sent_at が更新される" do
-        expect {
+        expect do
           post "/api/v1/auth/password", params: valid_params, as: :json
-        }.to change { user.reload.reset_password_sent_at }.from(nil)
+        end.to change { user.reload.reset_password_sent_at }.from(nil)
       end
 
       it "メール送信がトリガーされる" do
-        expect {
+        expect do
           post "/api/v1/auth/password", params: valid_params, as: :json
-        }.to change { ActionMailer::Base.deliveries.size }.by(1)
+        end.to change { ActionMailer::Base.deliveries.size }.by(1)
 
         mail = ActionMailer::Base.deliveries.last
         expect(mail.to).to eq([user.email])
@@ -125,3 +126,5 @@ RSpec.describe "Api::V1::Auth::Passwords", type: :request do
     end
   end
 end
+
+# rubocop:enable RSpec/ContextWording
