@@ -24,6 +24,8 @@ frontend/yarn-error.log*
 
 # Docker
 .env
+.env.local
+.env.production
 
 # IDE
 .vscode/
@@ -39,3 +41,5 @@ Thumbs.db
 # Others
 commit
 .vscode
+docs
+front-import/
