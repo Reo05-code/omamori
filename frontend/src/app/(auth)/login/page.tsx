@@ -1,9 +1,14 @@
 "use client"
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import LoginForm from './LoginForm'
+import { useAuthContext } from '@/context/AuthContext'
 
 export default function Page() {
+	const router = useRouter()
+	const { login } = useAuthContext()
+
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
@@ -14,10 +19,19 @@ export default function Page() {
 		setError(null)
 		setLoading(true)
 		try {
-			// TODO: call API here. For now just log the values.
-			console.log('login attempt', { email, password })
-		} catch (err) {
-			setError('通信エラーが発生しました')
+			const res = await login(email, password)
+
+			// lib/api/auth.login の戻り値設計に応じてエラーチェック
+			if (res && (res as any).error) {
+				setError((res as any).error || '認証に失敗しました')
+				return
+			}
+
+			// ログイン成功: トップへリダイレクト
+			router.push('/')
+		} catch (err: any) {
+			console.error('login error', err)
+			setError(err?.message || '通信エラーが発生しました')
 		} finally {
 			setLoading(false)
 		}
