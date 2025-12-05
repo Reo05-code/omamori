@@ -1,17 +1,40 @@
-'use client'
+ 'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { login, ApiErrorPayload } from '@/lib/api'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    // フォーム送信後にページがリロードされて state がリセット されるのを防ぐ
     e.preventDefault()
-    // TODO: API連携実装
-    console.log('Login attempt:', { email, password })
+    setError(null)
+    setLoading(true)
+    try {
+      await login(email, password)
+      router.push('/')
+    } catch (err: unknown) {
+      // payload 存在で ApiError 判定（instanceof より安定）
+      const payload = (err as { payload?: ApiErrorPayload }).payload
+      if (payload) {
+        const msg = payload.errors
+          ? Array.isArray(payload.errors)
+            ? payload.errors.join(', ')
+            : payload.errors
+          : payload.error
+        setError(msg || '認証に失敗しました')
+      } else {
+        setError((err as Error)?.message || '通信エラーが発生しました')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,6 +70,11 @@ export default function LoginPage() {
         {/* フォーム */}
         <div className="rounded-xl bg-warm-surface/80 backdrop-blur-sm p-8 shadow-soft ring-1 ring-warm-brown-200/50">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="text-sm text-red-600 mb-2" role="alert">
+                {error}
+              </div>
+            )}
             <div>
               <label
                 htmlFor="email"
@@ -103,9 +131,10 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-lg border border-transparent bg-warm-orange py-3 px-4 text-sm font-bold text-white shadow-md shadow-warm-orange/30 hover:bg-warm-orange-light focus:outline-none focus:ring-2 focus:ring-warm-orange focus:ring-offset-2 focus:ring-offset-warm-surface transition-all duration-200"
+                disabled={loading}
+                className="flex w-full justify-center rounded-lg border border-transparent bg-warm-orange py-3 px-4 text-sm font-bold text-white shadow-md shadow-warm-orange/30 hover:bg-warm-orange-light focus:outline-none focus:ring-2 focus:ring-warm-orange focus:ring-offset-2 focus:ring-offset-warm-surface transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                ログイン
+                {loading ? '処理中...' : 'ログイン'}
               </button>
             </div>
           </form>
