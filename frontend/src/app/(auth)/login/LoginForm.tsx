@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import type { LoginFormProps } from '@/types'
 import ErrorView from '@/components/common/ErrorView'
-import LockIcon from '@/components/ui/LockIcon'
+import OmamoriIcon from '@/components/ui/OmamoriIcon'
 
 export default function LoginForm({ email, password, setEmail, setPassword, onSubmit, loading = false, error = null }: LoginFormProps) {
 	return (
@@ -13,7 +13,7 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 				<div>
 				<div className="flex justify-center mb-4">
 					<div className="h-16 w-16 rounded-full bg-warm-orange-light flex items-center justify-center">
-						<LockIcon />
+						<OmamoriIcon />
 					</div>
 				</div>
 					<h1 className="text-center text-3xl font-bold text-warm-brown-800">Omamoriログイン</h1>
