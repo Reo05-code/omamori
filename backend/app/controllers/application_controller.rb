@@ -6,7 +6,11 @@ class ApplicationController < ActionController::API
   prepend_before_action :copy_auth_cookies_to_headers
 
   # レスポンスを返す前に、ヘッダーからクッキーへ転記
-  after_action :set_auth_cookies_from_headers
+  #今までヘッダー付与される前にコピーされてた。これを修正
+  # NOTE: DeviseTokenAuth は内部で after_action(:update_auth_header) を使って
+  # レスポンスヘッダーにトークンを書き込みます。after_action の実行順序は逆になるため、ここでは prepend してチェーンの先頭に差し込み、
+  # 結果的に DeviseTokenAuth の after_action の後に実行されるようにします。
+  prepend_after_action :set_auth_cookies_from_headers
 
   private
 
