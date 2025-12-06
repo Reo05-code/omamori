@@ -32,7 +32,8 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }, as: :json
         expect(response).to have_http_status(:ok)
 
-        expect(response.cookies["access_token"]).to be_present expect(response.cookies["client"]).to be_present
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
       end
 
       it "クッキー送信でトークン検証に成功する" do
