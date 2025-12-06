@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   include DeviseTokenAuth::Concerns::SetUserByToken
+  include ActionController::Cookies
 
   # リクエストが来たら、クッキーからヘッダーへ転記
   prepend_before_action :copy_auth_cookies_to_headers
