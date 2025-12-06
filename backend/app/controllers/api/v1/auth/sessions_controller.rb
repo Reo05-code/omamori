@@ -21,8 +21,10 @@ module Api
         # ログイン成功時のレスポンス
         def render_create_success
           # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
-          # ApplicationController の after_action でヘッダからクッキーへ転記されるため
-          # ここでは明示的な処理は不要です。
+          # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
+          # ApplicationController の after_action が動くことに依存するのは脆弱なので、
+          # サインイン成功時はここで明示的にクッキーへ書き込みます。
+          set_auth_cookies_from_headers
 
           render json: {
             status: "success",
