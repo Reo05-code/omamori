@@ -28,12 +28,11 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       it "httpOnly クッキーにトークンを設定する" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
 
-        set_cookie = response.headers['Set-Cookie']
-        expect(set_cookie).to be_present
-        # クッキー文字列に各トークン名が含まれることを確認
-        expect(set_cookie).to include('access_token=')
-        expect(set_cookie).to include('client=')
-        expect(set_cookie).to include('uid=')
+        # Rack::Test の cookie jar によって同一セッション内でクッキーが維持されるはず
+        # まずレスポンスの cookie を確認
+        expect(response.cookies['access_token']).to be_present
+        expect(response.cookies['client']).to be_present
+        expect(response.cookies['uid']).to be_present
       end
 
       it "ユーザー情報を返す" do

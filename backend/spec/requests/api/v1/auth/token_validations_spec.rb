@@ -29,16 +29,16 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
 
     context "クッキー送信による検証" do
       it "クッキー送信でトークン検証に成功する" do
-        # サインインして Set-Cookie を取得
+        # 同一セッション内でサインインして cookie が保持されることを確認
         post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }, as: :json
         expect(response).to have_http_status(:ok)
 
-        set_cookie = response.headers['Set-Cookie']
-        expect(set_cookie).to be_present
+        # response.cookies を使ってクッキーが設定されたことを検証
+        expect(response.cookies['access_token']).to be_present
+        expect(response.cookies['client']).to be_present
 
-        cookie_header = set_cookie.split("\n").map { |c| c[/^[^;]+/] }.join('; ')
-
-        get "/api/v1/auth/validate_token", headers: { 'Cookie' => cookie_header }, as: :json
+        # そのまま同一セッションで validate_token を呼べば cookie が送信されるはず
+        get "/api/v1/auth/validate_token", as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
