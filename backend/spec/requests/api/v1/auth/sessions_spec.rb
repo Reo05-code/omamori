@@ -29,16 +29,6 @@ RSpec.describe "Api::V1::Auth::Sessions" do
         expect(response.cookies["uid"]).to be_present
       end
 
-      it "httpOnly クッキーにトークンを設定する" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
-
-        # Rack::Test の cookie jar によって同一セッション内でクッキーが維持されるはず
-        # まずレスポンスの cookie を確認
-        expect(response.cookies["access_token"]).to be_present
-        expect(response.cookies["client"]).to be_present
-        expect(response.cookies["uid"]).to be_present
-      end
-
       it "ユーザー情報を返す" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
 
