@@ -46,9 +46,9 @@ RSpec.describe "Api::V1::Auth::Registrations" do
 
         # ヘッダーはクッキーへ移し、レスポンスヘッダーを露出しない設計のため
         # ここでは httpOnly クッキーが設定されていることのみ検証する
-        expect(response.cookies['access_token']).to be_present
-        expect(response.cookies['client']).to be_present
-        expect(response.cookies['uid']).to be_present
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
+        expect(response.cookies["uid"]).to be_present
       end
     end
 

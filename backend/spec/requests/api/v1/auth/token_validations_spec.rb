@@ -34,8 +34,8 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
         expect(response).to have_http_status(:ok)
 
         # response.cookies を使ってクッキーが設定されたことを検証
-        expect(response.cookies['access_token']).to be_present
-        expect(response.cookies['client']).to be_present
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
 
         # そのまま同一セッションで validate_token を呼べば cookie が送信されるはず
         get "/api/v1/auth/validate_token", as: :json

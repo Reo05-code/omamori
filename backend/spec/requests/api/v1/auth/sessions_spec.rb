@@ -22,11 +22,11 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
         # サーバ側でヘッダーはクッキーへ移し、ヘッダー露出を消しているため
         # テストでは httpOnly クッキーが設定されていることを確認する
-        expect(response.cookies['access_token']).to be_present
-        expect(response.cookies['client']).to be_present
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
         # uid はサーバで暗号化しているため、レスポンスの cookie は暗号化済みの文字列
         # そのためここでは存在のみ確認する
-        expect(response.cookies['uid']).to be_present
+        expect(response.cookies["uid"]).to be_present
       end
 
       it "httpOnly クッキーにトークンを設定する" do
@@ -34,9 +34,9 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
         # Rack::Test の cookie jar によって同一セッション内でクッキーが維持されるはず
         # まずレスポンスの cookie を確認
-        expect(response.cookies['access_token']).to be_present
-        expect(response.cookies['client']).to be_present
-        expect(response.cookies['uid']).to be_present
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
+        expect(response.cookies["uid"]).to be_present
       end
 
       it "ユーザー情報を返す" do
