@@ -19,9 +19,15 @@ class ApplicationController < ActionController::API
     return unless cookies.encrypted[:access_token]
 
     # request.headers[...] を使うのがより確実
-    request.headers["access-token"] ||= cookies.encrypted[:access_token]
-    request.headers["client"] ||= cookies.encrypted[:client]
-    request.headers["uid"] ||= cookies.encrypted[:uid]
+    mapping = {
+      "access-token" => :access_token,
+      "client" => :client,
+      "uid" => :uid
+    }
+
+    mapping.each do |header_name, cookie_key|
+      request.headers[header_name] ||= cookies.encrypted[cookie_key]
+    end
   rescue StandardError => e
     Rails.logger.warn("Failed to copy auth cookies to headers: #{e.message}")
   end
@@ -29,35 +35,42 @@ class ApplicationController < ActionController::API
   # リクエスト処理後: Response Headers -> Cookie
   # トークンがローテーションされた場合、新しいトークンをクッキーに保存し直す
   def set_auth_cookies_from_headers
-    # Debug: after_action で実行されるか確認するログ
-    # 目的: devise_token_auth がレスポンスヘッダーに access-token を書き込んでいるかを検証する
+    return if response.headers["access-token"].blank?
+
+    write_and_cleanup_auth_cookies
+  end
+
+  def write_and_cleanup_auth_cookies
     Rails.logger.debug("[ApplicationController] set_auth_cookies_from_headers: start")
     Rails.logger.debug do
       "[ApplicationController] response.headers['access-token']: #{response.headers['access-token']}"
     end
-    return if response.headers["access-token"].blank?
-
-    # SessionsControllerと同じ設定にする必要があります
-    cookie_options = {
-      httponly: true,
-      secure: Rails.env.production?,
-      same_site: :lax
-      # 必要であれば expires も設定
-    }
-
-    # 新しいトークン情報をクッキーに上書き
-    # Debug: 実際に cookies.encrypted に書き込む前後をログで確認
     Rails.logger.debug("[ApplicationController] writing encrypted cookies...")
-    cookies.encrypted[:access_token] = cookie_options.merge(value: response.headers["access-token"])
-    cookies.encrypted[:client] = cookie_options.merge(value: response.headers["client"])
-    cookies.encrypted[:uid] = cookie_options.merge(value: response.headers["uid"])
+    write_encrypted_cookies_from_headers
     Rails.logger.debug("[ApplicationController] cookies written")
 
     # セキュリティのため、レスポンスヘッダーからは削除してクライアントに見せない
-    response.headers.delete("access-token")
-    response.headers.delete("client")
-    response.headers.delete("uid")
-    response.headers.delete("expiry")
+    %w[access-token client uid expiry].each { |h| response.headers.delete(h) }
+  end
+
+  def cookie_options
+    {
+      httponly: true,
+      secure: Rails.env.production?,
+      same_site: :lax
+    }
+  end
+
+  def write_encrypted_cookies_from_headers
+    mapping = {
+      access_token: "access-token",
+      client: "client",
+      uid: "uid"
+    }
+
+    mapping.each do |cookie_key, header_name|
+      cookies.encrypted[cookie_key] = cookie_options.merge(value: response.headers[header_name])
+    end
   end
 
   # サインアウトやセッション破棄時にクッキーを削除するユーティリティ
