@@ -20,11 +20,18 @@ module Api
 
         # ログイン成功時のレスポンス
         def render_create_success
+          # Debug: このコントローラの処理が呼ばれたことを確認するためのログ
+          # テスト実行中に render_create_success が実行されるかを追跡します
+          Rails.logger.debug("[SessionsController] render_create_success: start")
           # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
           # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
           # ApplicationController の after_action が動くことに依存するのは脆弱なので、
           # サインイン成功時はここで明示的にクッキーへ書き込みます。
+          # Debug: レスポンスヘッダーからクッキーへの書き込み処理を呼び出す直前/直後の状態を記録
+          # （devise_token_auth のヘッダー書き込みタイミング確認用）
+          Rails.logger.debug("[SessionsController] calling set_auth_cookies_from_headers")
           set_auth_cookies_from_headers
+          Rails.logger.debug("[SessionsController] after set_auth_cookies_from_headers")
 
           render json: {
             status: "success",

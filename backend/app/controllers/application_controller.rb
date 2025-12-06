@@ -25,6 +25,10 @@ class ApplicationController < ActionController::API
   # リクエスト処理後: Response Headers -> Cookie
   # トークンがローテーションされた場合、新しいトークンをクッキーに保存し直す
   def set_auth_cookies_from_headers
+    # Debug: after_action で実行されるか確認するログ
+    # 目的: devise_token_auth がレスポンスヘッダーに access-token を書き込んでいるかを検証する
+    Rails.logger.debug("[ApplicationController] set_auth_cookies_from_headers: start")
+    Rails.logger.debug("[ApplicationController] response.headers['access-token']: #{response.headers['access-token']}")
     return unless response.headers['access-token'].present?
 
     # SessionsControllerと同じ設定にする必要があります
@@ -36,9 +40,12 @@ class ApplicationController < ActionController::API
     }
 
     # 新しいトークン情報をクッキーに上書き
+    # Debug: 実際に cookies.encrypted に書き込む前後をログで確認
+    Rails.logger.debug("[ApplicationController] writing encrypted cookies...")
     cookies.encrypted[:access_token] = cookie_options.merge(value: response.headers['access-token'])
     cookies.encrypted[:client] = cookie_options.merge(value: response.headers['client'])
     cookies.encrypted[:uid] = cookie_options.merge(value: response.headers['uid'])
+    Rails.logger.debug("[ApplicationController] cookies written")
 
     # セキュリティのため、レスポンスヘッダーからは削除してクライアントに見せない
     response.headers.delete('access-token')
