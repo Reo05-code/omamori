@@ -25,6 +25,17 @@ RSpec.describe "Api::V1::Auth::Sessions" do
         expect(response.headers["uid"]).to eq(user.email)
       end
 
+      it "httpOnly クッキーにトークンを設定する" do
+        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+
+        set_cookie = response.headers['Set-Cookie']
+        expect(set_cookie).to be_present
+        # クッキー文字列に各トークン名が含まれることを確認
+        expect(set_cookie).to include('access_token=')
+        expect(set_cookie).to include('client=')
+        expect(set_cookie).to include('uid=')
+      end
+
       it "ユーザー情報を返す" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
 
@@ -80,3 +91,30 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 end
 
 # rubocop:enable RSpec/ContextWording
+
+RSpec.describe "Api::V1::Auth::TokenValidations" do
+  let(:user) { create(:user, email: "test@example.com", password: "password123") }
+
+  describe "GET /api/v1/auth/validate_token (トークン検証)" do
+    it "クッキー送信でトークン検証に成功する" do
+      # まずサインインして Set-Cookie を取得
+      post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      set_cookie = response.headers['Set-Cookie']
+      expect(set_cookie).to be_present
+
+      # Cookie ヘッダー用に安全に name=value のみを抜き出して組み立てる
+      cookie_header = set_cookie.split("\n")
+            .map { |c| c[/^[^;]+/] }
+            .join('; ')
+
+      get "/api/v1/auth/validate_token", headers: { 'Cookie' => cookie_header }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["status"]).to eq("success")
+      expect(json["data"]["email"]).to eq(user.email)
+    end
+  end
+end
