@@ -20,6 +20,16 @@ module Api
 
         # ログイン成功時のレスポンス
         def render_create_success
+          # Debug: このコントローラの処理が呼ばれたことを確認するためのログ
+          # テスト実行中に render_create_success が実行されるかを追跡します
+          Rails.logger.debug("[SessionsController] render_create_success: start")
+          # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
+          # ApplicationController の after_action が動くことに依存するのは脆弱なので、
+          # サインイン成功時はここで明示的にクッキーへ書き込みます。
+          # Cookie 設定は devise_token_auth がレスポンスヘッダーを書き込む after_action に
+          # 依存するため、ここで明示的に呼び出すのはやめて after_action に任せます。
+          Rails.logger.debug("[SessionsController] render_create_success: relying on after_action for cookie write")
+
           render json: {
             status: "success",
             data: user_data(@resource)
@@ -36,6 +46,8 @@ module Api
 
         # ログアウト成功時のレスポンス
         def render_destroy_success
+          clear_auth_cookies
+
           render json: {
             status: "success",
             message: I18n.t("api.v1.auth.sessions.signed_out")
@@ -59,6 +71,8 @@ module Api
             role: user.role
           }
         end
+
+        # クリア処理は ApplicationController に移動しました（中央集約）
       end
     end
   end

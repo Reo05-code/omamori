@@ -17,12 +17,16 @@ RSpec.describe "Api::V1::Auth::Sessions" do
         expect(json["data"]["email"]).to eq(user.email)
       end
 
-      it "認証ヘッダーを返す" do
+      it "認証情報を返す（ヘッダーは公開せずクッキーに設定する）" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
 
-        expect(response.headers["access-token"]).to be_present
-        expect(response.headers["client"]).to be_present
-        expect(response.headers["uid"]).to eq(user.email)
+        # サーバ側でヘッダーはクッキーへ移し、ヘッダー露出を消しているため
+        # テストでは httpOnly クッキーが設定されていることを確認する
+        expect(response.cookies["access_token"]).to be_present
+        expect(response.cookies["client"]).to be_present
+        # uid はサーバで暗号化しているため、レスポンスの cookie は暗号化済みの文字列
+        # そのためここでは存在のみ確認する
+        expect(response.cookies["uid"]).to be_present
       end
 
       it "ユーザー情報を返す" do
@@ -80,3 +84,5 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 end
 
 # rubocop:enable RSpec/ContextWording
+
+# TokenValidations のクッキー検証は `token_validations_spec.rb` に移動しました。
