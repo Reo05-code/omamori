@@ -41,12 +41,14 @@ RSpec.describe "Api::V1::Auth::Registrations" do
         expect(json["data"]).to be_present
       end
 
-      it "認証ヘッダーを返す" do
+      it "認証情報を返す（ヘッダーは公開せずクッキーに設定する）" do
         post "/api/v1/auth", params: valid_attributes, as: :json
 
-        expect(response.headers["access-token"]).to be_present
-        expect(response.headers["client"]).to be_present
-        expect(response.headers["uid"]).to eq("newuser@example.com")
+        # ヘッダーはクッキーへ移し、レスポンスヘッダーを露出しない設計のため
+        # ここでは httpOnly クッキーが設定されていることのみ検証する
+        expect(response.cookies['access_token']).to be_present
+        expect(response.cookies['client']).to be_present
+        expect(response.cookies['uid']).to be_present
       end
     end
 
