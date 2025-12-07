@@ -34,7 +34,6 @@ module Api
         # 登録成功時のレスポンス
         def render_create_success
           issue_encrypted_auth_cookies_for(@resource)
-          issue_xsrf_cookie_if_enabled
 
           render json: {
             status: "success",
