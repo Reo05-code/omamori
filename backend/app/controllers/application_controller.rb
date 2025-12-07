@@ -66,4 +66,21 @@ class ApplicationController < ActionController::API
     cookies.delete(:client)
     cookies.delete(:uid)
   end
+
+  protected
+
+  # API controllers don't include the full flash middleware by default.
+  # Rails' default `handle_unverified_request` may attempt to write to
+  # `request.flash=` which can raise `NoMethodError` in API mode.
+  #
+  # Override to avoid touching `request.flash` and provide a clear JSON
+  # response in non-production environments. In production, raise the
+  # standard InvalidAuthenticityToken to preserve safety.
+  def handle_unverified_request
+    if Rails.env.production?
+      raise ActionController::InvalidAuthenticityToken
+    else
+      render json: { error: "Invalid authenticity token" }, status: :unauthorized
+    end
+  end
 end
