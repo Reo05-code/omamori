@@ -6,6 +6,11 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
+// fetch の credentials を環境変数で制御（デフォルトは 'include'）
+const FETCH_CREDENTIALS =
+  (process.env.NEXT_PUBLIC_FETCH_CREDENTIALS as RequestCredentials) ||
+  ("include" as RequestCredentials);
+
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
@@ -55,6 +60,15 @@ function saveAuthHeaders(headers: Headers): void {
 }
 
 /**
+ * Cookie から CSRF トークンを読み取る（`XSRF-TOKEN` を使う）
+ */
+function getCsrfTokenFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
  * 認証情報をクリア
  */
 export function clearAuthHeaders(): void {
@@ -80,9 +94,20 @@ export async function apiRequest<T>(
   };
 
   try {
+    // リクエスト前に CSRF トークンをヘッダへ注入（GET 以外）
+    const headersWithCsrf = { ...headers };
+    if (method !== "GET") {
+      const csrf = getCsrfTokenFromCookie();
+      if (csrf) {
+        headersWithCsrf["X-CSRF-Token"] = csrf;
+      }
+    }
+
     const response = await fetch(url, {
       method,
-      headers,
+      headers: headersWithCsrf,
+      // credentials を付けてサーバー発行の httpOnly クッキーを送受信できるようにする
+      credentials: FETCH_CREDENTIALS,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
 
