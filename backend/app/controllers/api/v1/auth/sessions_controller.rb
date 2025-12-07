@@ -13,7 +13,9 @@ module Api
         # 現在のフローではクライアント側で CSRF トークンを提供しないため、
         # サインイン作業だけは CSRF 検証をスキップして受け付ける。
         # 注意: 開発用の限定的な対応。将来的にはフロント側で CSRF トークンを取得して送信する。
+        # rubocop:disable Rails/LexicallyScopedActionFilter
         skip_before_action :verify_authenticity_token, only: [:create]
+        # rubocop:enable Rails/LexicallyScopedActionFilter
 
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。

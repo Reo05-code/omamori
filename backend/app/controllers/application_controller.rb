@@ -69,18 +69,14 @@ class ApplicationController < ActionController::API
 
   protected
 
-  # API controllers don't include the full flash middleware by default.
-  # Rails' default `handle_unverified_request` may attempt to write to
-  # `request.flash=` which can raise `NoMethodError` in API mode.
-  #
-  # Override to avoid touching `request.flash` and provide a clear JSON
-  # response in non-production environments. In production, raise the
-  # standard InvalidAuthenticityToken to preserve safety.
+  # APIモードでは flash が存在しないため、通常の handle_unverified_request を使うと
+  # request.flash= で NoMethodError が発生する可能性があります。
+  # そこでオーバーライドし、APIでは flash を触らずに JSON 401 を返すようにしています。
+  # 本番環境では通常通り InvalidAuthenticityToken を発生させ、安全性を確保します。
+
   def handle_unverified_request
-    if Rails.env.production?
-      raise ActionController::InvalidAuthenticityToken
-    else
-      render json: { error: "Invalid authenticity token" }, status: :unauthorized
-    end
+    raise ActionController::InvalidAuthenticityToken if Rails.env.production?
+
+    render json: { error: "Invalid authenticity token" }, status: :unauthorized
   end
 end
