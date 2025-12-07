@@ -8,13 +8,6 @@ module Api
       # DELETE /api/v1/auth/sign_out - ログアウト
       class SessionsController < DeviseTokenAuth::SessionsController
         respond_to :json
-
-        # テスト環境では RSpec の制約上 CSRF トークンを送らないため、テスト時のみスキップします。
-        # 本番/開発では CSRF 保護を有効にしてください。
-        if Rails.env.test?
-          skip_before_action :verify_authenticity_token, only: %i[create destroy]
-        end
-
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
