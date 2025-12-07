@@ -84,5 +84,3 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 end
 
 # rubocop:enable RSpec/ContextWording
-
-
