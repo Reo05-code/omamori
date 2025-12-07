@@ -30,7 +30,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       end
 
       it "ユーザー情報を返す" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+        post_with_csrf "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
 
         json = response.parsed_body
         expect(json["data"]["id"]).to eq(user.id)
@@ -42,7 +42,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
     context "無効な認証情報の場合" do
       it "パスワードが間違っている場合、401エラーを返す" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "wrongpassword" }, as: :json
+        post_with_csrf "/api/v1/auth/sign_in", params: { email: user.email, password: "wrongpassword" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
         json = response.parsed_body
@@ -51,7 +51,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       end
 
       it "メールアドレスが存在しない場合、401エラーを返す" do
-        post "/api/v1/auth/sign_in", params: { email: "nonexistent@example.com", password: "password123" }, as: :json
+        post_with_csrf "/api/v1/auth/sign_in", params: { email: "nonexistent@example.com", password: "password123" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
         json = response.parsed_body
@@ -65,7 +65,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
     context "認証済みの場合" do
       it "ログアウトに成功する" do
-        delete "/api/v1/auth/sign_out", headers: auth_headers, as: :json
+        delete_with_csrf "/api/v1/auth/sign_out", headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -75,7 +75,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
     context "未認証の場合" do
       it "401エラーを返す" do
-        delete "/api/v1/auth/sign_out", as: :json
+        delete_with_csrf "/api/v1/auth/sign_out", as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end
