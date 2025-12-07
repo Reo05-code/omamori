@@ -12,16 +12,6 @@ module Api
         def render_validate_token_success
           # SPA用にCSRFトークンをCookieに発行（フロントがヘッダーにセットして送信）
 
-          if ENV["ENABLE_STAGE2_CSRF"] == "true"
-            # フロントで読み取れるよう httponly: false に設定し、有効期限を合わせる
-            cookies["XSRF-TOKEN"] = {
-              value: form_authenticity_token,
-              httponly: false,
-              secure: Rails.env.production?,
-              same_site: :lax,
-              expires: 2.weeks.from_now
-            }
-          end
 
           render json: {
             status: "success",
