@@ -22,46 +22,9 @@ interface ApiResponse<T> {
 /**
  * 認証ヘッダーを取得
  */
-function getAuthHeaders(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-
-  const accessToken = localStorage.getItem("access-token");
-  const client = localStorage.getItem("client");
-  const uid = localStorage.getItem("uid");
-
-  if (accessToken && client && uid) {
-    return {
-      "access-token": accessToken,
-      client: client,
-      uid: uid,
-    };
-  }
-  return {};
-}
-
-/**
- * 認証情報をレスポンスヘッダーから保存
- */
-function saveAuthHeaders(headers: Headers): void {
-  const accessToken = headers.get("access-token");
-  const client = headers.get("client");
-  const uid = headers.get("uid");
-
-  if (accessToken && client && uid) {
-    localStorage.setItem("access-token", accessToken);
-    localStorage.setItem("client", client);
-    localStorage.setItem("uid", uid);
-  }
-}
-
-/**
- * 認証情報をクリア
- */
-export function clearAuthHeaders(): void {
-  localStorage.removeItem("access-token");
-  localStorage.removeItem("client");
-  localStorage.removeItem("uid");
-}
+//  フロントでの localStorage によるトークン保持や
+// レスポンスヘッダからのヘッダ保存は廃止。認証はブラウザの Cookie 自動送信
+// (`credentials: 'include'`) のみを利用する。
 
 /**
  * APIリクエストを実行
@@ -75,7 +38,6 @@ export async function apiRequest<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getAuthHeaders(),
     ...options.headers,
   };
 
@@ -84,10 +46,9 @@ export async function apiRequest<T>(
       method,
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      // ブラウザに Cookie を自動送信させる
+      credentials: "include",
     });
-
-    // 認証ヘッダーを保存
-    saveAuthHeaders(response.headers);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
