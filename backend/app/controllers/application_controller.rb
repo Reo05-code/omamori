@@ -13,9 +13,7 @@ class ApplicationController < ActionController::API
 
   # レスポンスの認証ヘッダーを削除して Cookie-only に段階移行する
   # テスト環境ではヘッダー削除を行わない（既存のテストはヘッダー可視性に依存する場合があるため）
-  unless Rails.env.test?
-    after_action :remove_auth_headers
-  end
+  after_action :remove_auth_headers unless Rails.env.test?
 
   private
 
@@ -61,13 +59,11 @@ class ApplicationController < ActionController::API
 
   # レスポンスヘッダーから認証に関するヘッダー群を削除する（Stage3）
   def remove_auth_headers
-    begin
-      %w[access-token client uid expiry token-type].each do |header_name|
-        response.headers.delete(header_name)
-      end
-    rescue StandardError => e
-      Rails.logger.debug("[ApplicationController] remove_auth_headers failed: #{e.message}")
+    %w[access-token client uid expiry token-type].each do |header_name|
+      response.headers.delete(header_name)
     end
+  rescue StandardError => e
+    Rails.logger.debug { "[ApplicationController] remove_auth_headers failed: #{e.message}" }
   end
 
   def generate_auth_token_headers(resource)

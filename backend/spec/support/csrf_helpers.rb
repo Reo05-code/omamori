@@ -16,7 +16,7 @@ module CsrfHelpers
     headers = options[:headers] || {}
     headers["X-CSRF-Token"] = token
 
-    post path, **options.merge(headers: headers)
+    post path, **options, headers: headers
   end
 
   def put_with_csrf(path, **options)
@@ -24,7 +24,7 @@ module CsrfHelpers
     headers = options[:headers] || {}
     headers["X-CSRF-Token"] = token
 
-    put path, **options.merge(headers: headers)
+    put path, **options, headers: headers
   end
 
   def delete_with_csrf(path, **options)
@@ -32,6 +32,6 @@ module CsrfHelpers
     headers = options[:headers] || {}
     headers["X-CSRF-Token"] = token
 
-    delete path, **options.merge(headers: headers)
+    delete path, **options, headers: headers
   end
 end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Api
   module V1
     module Auth
@@ -6,7 +7,7 @@ module Api
       # GET /api/v1/auth/csrf
       class CsrfController < ApplicationController
         # レスポンスは JSON 形式で返し、JS から読み取れる `XSRF-TOKEN` クッキー
-        #（httponly: false）も同時にセットします。フロントは取得したトークン
+        # （httponly: false）も同時にセットします。フロントは取得したトークン
         # を `X-CSRF-Token` ヘッダに入れて変更系リクエストを送信します。
         respond_to :json
 
