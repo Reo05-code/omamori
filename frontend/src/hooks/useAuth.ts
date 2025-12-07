@@ -6,17 +6,22 @@ export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
-  // 初期化: devise_token_auth のヘッダ保存キー `access-token` を参照して認証済み判定
+  // 初期化: サーバー側の Cookie ベース認証を検証して認証状態を決定
   useEffect(() => {
-    try {
-      const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access-token') : null;
-      if (accessToken) {
-        setToken(accessToken);
-        setIsAuthenticated(true);
+    let mounted = true;
+    (async () => {
+      try {
+        const validateRes = await validateToken();
+        if (mounted && !validateRes.error && validateRes.data) {
+          setIsAuthenticated(true);
+        }
+      } catch (e) {
+        // 非同期検証が失敗しても特にエラーを投げない
       }
-    } catch (e) {
-      console.warn('unable to access localStorage for auth token', e);
-    }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ログイン処理: backend 側でレスポンスヘッダに認証情報が入る想定の API を呼ぶ
@@ -28,19 +33,17 @@ export const useAuth = () => {
         throw new Error(res.error);
       }
 
-      // api.client の apiRequest がレスポンスヘッダを localStorage に保存するので、それを読み取る
-      const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access-token') : null;
-      if (accessToken) setToken(accessToken);
-
-      // トークン検証で現在ユーザー情報を取得しておくと安全
+      // サーバ側で Cookie がセットされていることを前提に、トークン検証を実行
       try {
         const validateRes = await validateToken();
         if (!validateRes.error && validateRes.data) {
           setIsAuthenticated(true);
+        } else {
+          // 成功レスポンスが得られない場合は認証フラグを false のままにする
+          setIsAuthenticated(false);
         }
-      } catch {
-        // validate が失敗しても一旦認証済みフラグは true にしておく
-        setIsAuthenticated(true);
+      } catch (e) {
+        setIsAuthenticated(false);
       }
 
       return res;
@@ -58,14 +61,7 @@ export const useAuth = () => {
       console.warn('logout API call failed', e);
     }
 
-    try {
-      localStorage.removeItem('access-token');
-      localStorage.removeItem('client');
-      localStorage.removeItem('uid');
-    } catch (e) {
-      // ignore
-    }
-
+    // サーバー側でセッションを破棄（Set-Cookie による削除）した上でクライアント状態を初期化
     setToken(null);
     setIsAuthenticated(false);
   };

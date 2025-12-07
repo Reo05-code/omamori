@@ -1,5 +1,7 @@
 /**
  * APIクライアント設定
+/**
+ * APIクライアント設定
  * BaseURL、ヘッダー、共通エラーハンドリングを提供
  */
 
@@ -25,59 +27,6 @@ interface ApiResponse<T> {
 }
 
 /**
- * 認証ヘッダーを取得
- */
-function getAuthHeaders(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-
-  const accessToken = localStorage.getItem("access-token");
-  const client = localStorage.getItem("client");
-  const uid = localStorage.getItem("uid");
-
-  if (accessToken && client && uid) {
-    return {
-      "access-token": accessToken,
-      client: client,
-      uid: uid,
-    };
-  }
-  return {};
-}
-
-/**
- * 認証情報をレスポンスヘッダーから保存
- */
-function saveAuthHeaders(headers: Headers): void {
-  const accessToken = headers.get("access-token");
-  const client = headers.get("client");
-  const uid = headers.get("uid");
-
-  if (accessToken && client && uid) {
-    localStorage.setItem("access-token", accessToken);
-    localStorage.setItem("client", client);
-    localStorage.setItem("uid", uid);
-  }
-}
-
-/**
- * Cookie から CSRF トークンを読み取る（`XSRF-TOKEN` を使う）
- */
-function getCsrfTokenFromCookie(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-/**
- * 認証情報をクリア
- */
-export function clearAuthHeaders(): void {
-  localStorage.removeItem("access-token");
-  localStorage.removeItem("client");
-  localStorage.removeItem("uid");
-}
-
-/**
  * APIリクエストを実行
  */
 export async function apiRequest<T>(
@@ -89,30 +38,17 @@ export async function apiRequest<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getAuthHeaders(),
     ...options.headers,
   };
 
   try {
-    // リクエスト前に CSRF トークンをヘッダへ注入（GET 以外）
-    const headersWithCsrf = { ...headers };
-    if (method !== "GET") {
-      const csrf = getCsrfTokenFromCookie();
-      if (csrf) {
-        headersWithCsrf["X-CSRF-Token"] = csrf;
-      }
-    }
-
     const response = await fetch(url, {
       method,
-      headers: headersWithCsrf,
-      // credentials を付けてサーバー発行の httpOnly クッキーを送受信できるようにする
-      credentials: FETCH_CREDENTIALS,
+      headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      // credentials は環境変数で制御（デフォルト include）
+      credentials: FETCH_CREDENTIALS,
     });
-
-    // 認証ヘッダーを保存
-    saveAuthHeaders(response.headers);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
