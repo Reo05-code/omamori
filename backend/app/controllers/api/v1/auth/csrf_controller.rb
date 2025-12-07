@@ -18,13 +18,10 @@ module Api
 
           # フロントが参照できるクッキーをセットしておく（httponly: false）。
           # `secure` は本番環境では true にします。
-          cookies[:"XSRF-TOKEN"] = {
-            value: token,
-            httponly: false,
-            secure: Rails.env.production?,
-            same_site: :lax,
-            domain: cookie_options[:domain]
-          }
+          # 認証用クッキーと属性を合わせるため、ApplicationController#cookie_options を利用
+          # SPA が document.cookie からトークンを読み取って `X-CSRF-Token` ヘッダを付与するため
+          # CSRF 用 Cookie は HttpOnly: false にします。secure / same_site 等は cookie_options で統一。
+          cookies[:"XSRF-TOKEN"] = cookie_options.merge(value: token, httponly: false)
 
           render json: { csrf_token: token }
         end
