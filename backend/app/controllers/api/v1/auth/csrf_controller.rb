@@ -22,7 +22,8 @@ module Api
             value: token,
             httponly: false,
             secure: Rails.env.production?,
-            same_site: :lax
+            same_site: :lax,
+            domain: cookie_options[:domain]
           }
 
           render json: { csrf_token: token }
