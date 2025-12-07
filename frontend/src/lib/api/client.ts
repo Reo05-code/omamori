@@ -1,15 +1,12 @@
 /**
  * APIクライアント設定
- * BaseURL、ヘッダー、共通エラーハンドリングを提供
+ * - BaseURL の統一
+ * - Cookie 認証 (credentials: 'include')
+ * - JSON/非JSON/204 の扱いを安全に処理
  */
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-
-// fetch の credentials を環境変数で制御（デフォルトは 'include'）
-const FETCH_CREDENTIALS =
-  (process.env.NEXT_PUBLIC_FETCH_CREDENTIALS as RequestCredentials) ||
-  ("include" as RequestCredentials);
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -25,60 +22,10 @@ interface ApiResponse<T> {
 }
 
 /**
- * 認証ヘッダーを取得
- */
-function getAuthHeaders(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-
-  const accessToken = localStorage.getItem("access-token");
-  const client = localStorage.getItem("client");
-  const uid = localStorage.getItem("uid");
-
-  if (accessToken && client && uid) {
-    return {
-      "access-token": accessToken,
-      client: client,
-      uid: uid,
-    };
-  }
-  return {};
-}
-
-/**
- * 認証情報をレスポンスヘッダーから保存
- */
-function saveAuthHeaders(headers: Headers): void {
-  const accessToken = headers.get("access-token");
-  const client = headers.get("client");
-  const uid = headers.get("uid");
-
-  if (accessToken && client && uid) {
-    localStorage.setItem("access-token", accessToken);
-    localStorage.setItem("client", client);
-    localStorage.setItem("uid", uid);
-  }
-}
-
-/**
- * Cookie から CSRF トークンを読み取る（`XSRF-TOKEN` を使う）
- */
-function getCsrfTokenFromCookie(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-/**
- * 認証情報をクリア
- */
-export function clearAuthHeaders(): void {
-  localStorage.removeItem("access-token");
-  localStorage.removeItem("client");
-  localStorage.removeItem("uid");
-}
-
-/**
- * APIリクエストを実行
+ * API のコア実行関数
+ * - fetch の共通設定
+ * - JSON / NoContent / 非JSON を安全に処理
+ * - エラーメッセージを統一
  */
 export async function apiRequest<T>(
   method: HttpMethod,
@@ -87,45 +34,44 @@ export async function apiRequest<T>(
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${path}`;
 
+  // ★共通ヘッダー（現状 JSON 固定）
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getAuthHeaders(),
-    ...options.headers,
+    ...options.headers, // 呼び出し側で上書き可能
   };
 
   try {
-    // リクエスト前に CSRF トークンをヘッダへ注入（GET 以外）
-    const headersWithCsrf = { ...headers };
-    if (method !== "GET") {
-      const csrf = getCsrfTokenFromCookie();
-      if (csrf) {
-        headersWithCsrf["X-CSRF-Token"] = csrf;
-      }
-    }
-
     const response = await fetch(url, {
       method,
-      headers: headersWithCsrf,
-      // credentials を付けてサーバー発行の httpOnly クッキーを送受信できるようにする
-      credentials: FETCH_CREDENTIALS,
+      headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      credentials: "include", // ★httpOnly Cookie 認証の要
     });
 
-    // 認証ヘッダーを保存
-    saveAuthHeaders(response.headers);
+    // レスポンスの JSON 判定（204 や HTMLを安全に扱う）
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType?.includes("application/json");
 
+    // ======== エラーレスポンス ========
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      // JSON ならパース、違えば null
+      const errorData = isJson ? await response.json() : null;
+
       return {
         data: null,
-        error: errorData.errors?.[0] || `エラーが発生しました (${response.status})`,
+        error:
+          errorData?.errors?.[0] ||
+          `エラーが発生しました (${response.status})`,
         status: response.status,
       };
     }
 
-    const data = await response.json();
+    // ======== 成功レスポンス ========
+    // 204 No Content 対策 → data には null を入れる
+    const data = isJson ? await response.json() : null;
+
     return { data, error: null, status: response.status };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: null,
       error: "ネットワークエラーが発生しました",
@@ -134,16 +80,23 @@ export async function apiRequest<T>(
   }
 }
 
-// 便利メソッド
+/**
+ * HTTP メソッド別の薄いラッパー
+ * - 呼び出し側のコードを簡潔に保つための実務的パターン
+ */
 export const api = {
   get: <T>(path: string, options?: RequestOptions) =>
     apiRequest<T>("GET", path, options),
+
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     apiRequest<T>("POST", path, { ...options, body }),
+
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     apiRequest<T>("PUT", path, { ...options, body }),
+
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     apiRequest<T>("PATCH", path, { ...options, body }),
+
   delete: <T>(path: string, options?: RequestOptions) =>
     apiRequest<T>("DELETE", path, options),
 };

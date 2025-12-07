@@ -3,7 +3,7 @@
  * ログイン、ログアウト、サインアップなどの認証処理
  */
 
-import { api, clearAuthHeaders } from "./client";
+import { api } from "./client";
 import { API_PATHS } from "./paths";
 import type {
   LoginRequest,
@@ -30,7 +30,6 @@ export async function login(email: string, password: string) {
  */
 export async function logout() {
   const result = await api.delete(API_PATHS.AUTH.SIGN_OUT);
-  clearAuthHeaders();
   return result;
 }
 

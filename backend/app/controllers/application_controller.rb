@@ -11,76 +11,16 @@ class ApplicationController < ActionController::API
     protect_from_forgery with: Rails.env.production? ? :exception : :null_session
   end
 
-  # リクエストが来たら、クッキーからヘッダーへ転記
-  prepend_before_action :copy_auth_cookies_to_headers
-
-  # レスポンスを返す前に、ヘッダーからクッキーへ転記
-  # 今までヘッダー付与される前にコピーされてた。これを修正
-  # NOTE: DeviseTokenAuth は内部で after_action(:update_auth_header) を使って
-  # レスポンスヘッダーにトークンを書き込みます。after_action の実行順序は逆になるため、ここでは prepend してチェーンの先頭に差し込み、
-  # 結果的に DeviseTokenAuth の after_action の後に実行されるようにします。
-  prepend_after_action :set_auth_cookies_from_headers
-
   private
-
-  # リクエスト処理前: Cookie -> Request Headers
-  def copy_auth_cookies_to_headers
-    return unless cookies.encrypted[:access_token]
-
-    # request.headers[...] を使うのがより確実
-    mapping = {
-      "access-token" => :access_token,
-      "client" => :client,
-      "uid" => :uid
-    }
-
-    mapping.each do |header_name, cookie_key|
-      request.headers[header_name] ||= cookies.encrypted[cookie_key]
-    end
-  rescue StandardError => e
-    Rails.logger.warn("Failed to copy auth cookies to headers: #{e.message}")
-  end
-
-  # リクエスト処理後: Response Headers -> Cookie
-  # トークンがローテーションされた場合、新しいトークンをクッキーに保存し直す
-  def set_auth_cookies_from_headers
-    return if response.headers["access-token"].blank?
-
-    write_and_cleanup_auth_cookies
-  end
-
-  def write_and_cleanup_auth_cookies
-    Rails.logger.debug("[ApplicationController] set_auth_cookies_from_headers: start")
-    Rails.logger.debug do
-      "[ApplicationController] response.headers['access-token']: #{response.headers['access-token']}"
-    end
-    Rails.logger.debug("[ApplicationController] writing encrypted cookies...")
-    write_encrypted_cookies_from_headers
-    Rails.logger.debug("[ApplicationController] cookies written")
-
-    # セキュリティのため、レスポンスヘッダーからは削除してクライアントに見せない
-    %w[access-token client uid expiry].each { |h| response.headers.delete(h) }
-  end
 
   def cookie_options
     {
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax,
-      expires: 2.weeks.from_now
+      expires: 2.weeks.from_now,
+      domain: ENV["COOKIE_DOMAIN"].presence
     }
-  end
-
-  def write_encrypted_cookies_from_headers
-    mapping = {
-      access_token: "access-token",
-      client: "client",
-      uid: "uid"
-    }
-
-    mapping.each do |cookie_key, header_name|
-      cookies.encrypted[cookie_key] = cookie_options.merge(value: response.headers[header_name])
-    end
   end
 
   # リソース用の認証トークンを生成し、暗号化された httpOnly クッキーとして永続化する
@@ -120,21 +60,29 @@ class ApplicationController < ActionController::API
     {}
   end
 
-  # ステージ2の CSRF Cookie 機能が有効な場合、フロントで読み取れる XSRF-TOKEN を発行する
-  def issue_xsrf_cookie_if_enabled
-    return unless ENV["ENABLE_STAGE2_CSRF"] == "true"
-
-    # form_authenticity_token を呼ぶと session 内に token が自動生成される
-    token = form_authenticity_token
-
-    # フロントで読み取るため httponly: false にし、共通オプションに expires を含める
-    cookies["XSRF-TOKEN"] = cookie_options.merge(value: token, httponly: false)
-  end
-
   # サインアウトやセッション破棄時にクッキーを削除するユーティリティ
   def clear_auth_cookies
     cookies.delete(:access_token)
     cookies.delete(:client)
     cookies.delete(:uid)
+  end
+
+  protected
+
+  # APIモードでは flash が存在しないため、通常の handle_unverified_request を使うと
+  # request.flash= で NoMethodError が発生する可能性があります。
+  # そこでオーバーライドし、APIでは flash を触らずに JSON 401 を返すようにしています。
+  # 本番環境では通常通り InvalidAuthenticityToken を発生させ、安全性を確保します。
+
+  def handle_unverified_request
+    # フォージェリ保護が無効（例: テスト環境）の場合は処理を中断せず、そのままリクエストを通す。
+    # これによりテストや内部クライアントが正常に動作します。
+    return unless ActionController::Base.allow_forgery_protection
+
+    # 本番環境では通常通り例外を発生させて厳格に検証。
+    # 本番以外の環境では JSON 401 を返して開発時に確認しやすくする。
+    raise ActionController::InvalidAuthenticityToken if Rails.env.production?
+
+    render json: { error: "Invalid authenticity token" }, status: :unauthorized
   end
 end

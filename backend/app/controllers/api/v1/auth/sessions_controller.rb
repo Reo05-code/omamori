@@ -9,6 +9,18 @@ module Api
       class SessionsController < DeviseTokenAuth::SessionsController
         respond_to :json
 
+        # ログイン・ログアウトのエンドポイントで CSRF 検証をスキップ
+        # 注意: 開発用の限定的な対応。将来的にはフロント側で CSRF トークンを取得して送信する。
+        # rubocop:disable Rails/LexicallyScopedActionFilter
+        begin
+          skip_before_action :verify_authenticity_token, only: %i[create destroy]
+        rescue ArgumentError => e
+          Rails.logger.debug do
+            "[SessionsController] verify_authenticity_token not defined, skip_before_action ignored: #{e.message}"
+          end
+        end
+        # rubocop:enable Rails/LexicallyScopedActionFilter
+
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
@@ -26,14 +38,10 @@ module Api
           # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
           # ApplicationController の after_action が動くことに依存するのは脆弱なので、
           # サインイン成功時はここで明示的にクッキーへ書き込みます。
-          # Cookie 設定は devise_token_auth がレスポンスヘッダーを書き込む after_action に
-          # 依存するため、ここで明示的に呼び出すのはやめて after_action に任せます。
-          Rails.logger.debug("[SessionsController] render_create_success: issuing XSRF-TOKEN if enabled")
+          # Cookie 設定は devise_token_auth がレスポンスヘッダーを書き込む after_action に依存します。
 
           # 認証用クッキー発行
           issue_encrypted_auth_cookies_for(@resource)
-          # CSRFクッキー発行（有効時）
-          issue_xsrf_cookie_if_enabled
 
           render json: {
             status: "success",
