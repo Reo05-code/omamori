@@ -9,6 +9,12 @@ module Api
       class SessionsController < DeviseTokenAuth::SessionsController
         respond_to :json
 
+        # API からの POST(/sign_in) はブラウザのクッキー送信で実行されるが、
+        # 現在のフローではクライアント側で CSRF トークンを提供しないため、
+        # サインイン作業だけは CSRF 検証をスキップして受け付ける。
+        # 注意: 開発用の限定的な対応。将来的にはフロント側で CSRF トークンを取得して送信する。
+        skip_before_action :verify_authenticity_token, only: [:create]
+
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。

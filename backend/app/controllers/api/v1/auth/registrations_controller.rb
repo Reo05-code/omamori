@@ -10,6 +10,10 @@ module Api
       class RegistrationsController < DeviseTokenAuth::RegistrationsController
         respond_to :json
 
+        # サインアップ時も同様にクライアントから CSRF トークンが渡らない環境があるため、
+        # 新規登録（create）では一時的に CSRF 検証をスキップする。
+        skip_before_action :verify_authenticity_token, only: [:create]
+
         # `update`/`destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
