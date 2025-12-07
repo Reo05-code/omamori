@@ -75,8 +75,16 @@ class ApplicationController < ActionController::API
   # 本番環境では通常通り InvalidAuthenticityToken を発生させ、安全性を確保します。
 
   def handle_unverified_request
-    raise ActionController::InvalidAuthenticityToken if Rails.env.production?
+    # フォージェリ保護が無効（例: テスト環境）の場合は処理を中断せず、そのままリクエストを通す。
+    # これによりテストや内部クライアントが正常に動作します。
+    return if !ActionController::Base.allow_forgery_protection
 
-    render json: { error: "Invalid authenticity token" }, status: :unauthorized
+    # 本番環境では通常通り例外を発生させて厳格に検証。
+    # 本番以外の環境では JSON 401 を返して開発時に確認しやすくする。
+    if Rails.env.production?
+      raise ActionController::InvalidAuthenticityToken
+    else
+      render json: { error: "Invalid authenticity token" }, status: :unauthorized
+    end
   end
 end
