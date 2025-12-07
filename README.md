@@ -109,6 +109,31 @@ scriptsを参照
 
 以下は本プロジェクトで取り組んだ主要な技術的課題と、それに対して採用したアプローチのメモです（メンテナ向けの備忘録）。
 
+### CSRF 実装まとめ（現状）
+
+- エンドポイント: `GET /api/v1/auth/csrf` は `form_authenticity_token` を生成し、JSON に `csrf_token` を返すと同時に `XSRF-TOKEN` クッキーをセットします（`httponly: false`、`same_site: :lax`、`secure` は本番で true）。
+- フロント: `frontend/src/lib/api/client.ts` が非GET（POST/PUT/PATCH/DELETE）リクエスト時に `fetchCsrf()` を呼び、JSON の `csrf_token` を `X-CSRF-Token` ヘッダとして付与します。ブラウザ側は `credentials: 'include'` で認証クッキーを自動送信します。
+- 認証クッキー: `ApplicationController#cookie_options` により `access_token`/`client`/`uid` は `httponly: true`（JS不可）で発行されます。CSRF トークン用クッキーは JS で読めるよう `httponly: false` に設定しています。
+
+### デプロイ時の注意点（必読）
+
+- 本番では `ENV["COOKIE_DOMAIN"]` を設定してサブドメイン間で Cookie が共有できるようにしてください（`CsrfController` は `cookie_options[:domain]` を使用します）。
+- 本番環境では必ず HTTPS を有効にし、`secure: true` が適用されていることを確認してください。
+- `Access-Control-Allow-Credentials: true` と `Access-Control-Allow-Origin` を適切に設定し、ワイルドカードは避けてください。
+
+### テスト・検証手順（開発者向け）
+
+- ローカルでの手順:
+	1. `docker compose up -d` でコンテナ起動
+	2. `docker compose exec -e CI=true backend bundle exec rspec` で request spec を実行
+	3. ブラウザでログイン操作を行い DevTools の Network -> Fetch/XHR で `GET /api/v1/auth/csrf` → `POST /api/v1/auth/sign_in` の順に `X-CSRF-Token` ヘッダが付与されることを確認
+- E2E: ブラウザ環境での完全検証は Playwright/Cypress 等で自動化することを推奨します。
+
+### 実装上のトレードオフ
+
+- 互換性優先のため CSRF 用 Cookie を `httponly: false` にしています。認証用 Cookie は `httponly: true` に保ち、XSS 緩和（CSP 等）を併用してください。JSON トークン受け取りへ完全移行する場合は `httponly: true` に変更可能ですが、フロント全体の改修が必要です。
+
+
 - Stage2/Stage3 の CSRF 対応
 	- 背景: SPA（Next.js）側で XHR/fetch を使う場合、CSRF 保護を担保しつつブラウザに認証情報（トークン）を安全に保持・送信させる必要がありました。
 	- 採用した方針:
