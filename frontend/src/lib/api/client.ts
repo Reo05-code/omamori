@@ -8,6 +8,8 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
+import { fetchCsrf } from "./csrf";
+
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
@@ -41,6 +43,20 @@ export async function apiRequest<T>(
   };
 
   try {
+    // 非GETリクエストでは CSRF トークンを取得してヘッダーにセットする
+    if (method !== "GET") {
+      try {
+        const csrfToken = await fetchCsrf(API_BASE_URL);
+        if (csrfToken) {
+          headers["X-CSRF-Token"] = csrfToken;
+        }
+      } catch (e) {
+        // CSRF 取得失敗はログに残すが、リクエスト自体は続行させる
+        // 呼び出し先で 401/403 が返る可能性がある
+        // eslint-disable-next-line no-console
+        console.warn("failed to fetch csrf token", e);
+      }
+    }
     const response = await fetch(url, {
       method,
       headers,
