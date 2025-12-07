@@ -9,6 +9,14 @@ module Api
       class PasswordsController < DeviseTokenAuth::PasswordsController
         respond_to :json
 
+        # Debug: ローカルCI で想定通り redirect_url 等が渡っているか確認するためのログ。
+        # 一時的に追加（デバッグ後は削除予定）。
+        def create
+          Rails.logger.debug("[PasswordsController#create] params: ")
+          Rails.logger.debug(params.to_unsafe_h.inspect)
+          super
+        end
+
         # `update` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
