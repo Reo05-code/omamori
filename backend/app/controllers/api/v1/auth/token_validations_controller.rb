@@ -10,9 +10,7 @@ module Api
 
         # トークン検証成功時のレスポンス
         def render_validate_token_success
-          # SPA用にCSRFトークンをCookieに発行（フロントがヘッダーにセットして送信）
-
-
+          # SPA用にCSRFトークンをCookieに発行（フロントがヘッダーにセットして送信)
           render json: {
             status: "success",
             data: resource_data(resource_json: @resource.as_json)

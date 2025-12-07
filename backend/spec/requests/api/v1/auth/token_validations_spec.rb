@@ -7,8 +7,6 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
   let(:user) { create(:user) }
 
   describe "GET /api/v1/auth/validate_token (トークン有効性確認)" do
-
-
     context "有効なトークンの場合" do
       let(:auth_headers) { user.create_new_auth_token }
 

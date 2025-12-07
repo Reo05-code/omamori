@@ -11,9 +11,7 @@ class ApplicationController < ActionController::API
     protect_from_forgery with: Rails.env.production? ? :exception : :null_session
   end
 
-
   private
-
 
   def cookie_options
     {
@@ -61,7 +59,6 @@ class ApplicationController < ActionController::API
     Rails.logger.warn("Failed to generate auth token headers: #{e.message}")
     {}
   end
-
 
   # サインアウトやセッション破棄時にクッキーを削除するユーティリティ
   def clear_auth_cookies
