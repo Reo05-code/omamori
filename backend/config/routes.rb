@@ -16,7 +16,7 @@ Rails.application.routes.draw do
         }
       # SPA クライアント向け CSRF 取得エンドポイント（form_authenticity_token を返し、
       # XSRF-TOKEN クッキーをセットします）
-      get "auth/csrf", to: "api/v1/auth/csrf#show"
+      get "auth/csrf", to: "auth/csrf#show"
     end
   end
 end
