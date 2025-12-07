@@ -13,7 +13,13 @@ module Api
         # ユーザー登録・更新・削除のエンドポイントで CSRF 検証をスキップ
         # 注意: 開発用の限定的な対応。将来的にはフロント側で CSRF トークンを取得して送信する。
         # rubocop:disable Rails/LexicallyScopedActionFilter
-        skip_before_action :verify_authenticity_token, only: %i[create update destroy]
+        begin
+          skip_before_action :verify_authenticity_token, only: %i[create update destroy]
+        rescue ArgumentError => e
+          Rails.logger.debug do
+            "[RegistrationsController] verify_authenticity_token not defined, skip_before_action ignored: #{e.message}"
+          end
+        end
         # rubocop:enable Rails/LexicallyScopedActionFilter
 
         # `update`/`destroy` は DeviseTokenAuth のスーパークラスで定義されるため
