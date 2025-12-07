@@ -27,7 +27,9 @@ Rails.application.configure do
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 
-  # Disable request forgery protection in test environment.
+  # テスト環境ではCSRF保護を無効化
+  # RSpecテストではCSRFトークンを送信しないため、false に設定
+  # 本番環境・開発環境では ApplicationController の protect_from_forgery が有効
   config.action_controller.allow_forgery_protection = false
 
   # Configure mailer for test environment
