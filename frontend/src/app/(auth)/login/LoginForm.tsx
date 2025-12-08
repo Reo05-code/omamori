@@ -76,7 +76,7 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 
 						<div className="mt-6 text-center text-sm">
 							<p className="text-warm-brown-600">アカウントをお持ちでないですか？{' '}
-								<Link href="#" className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200">新規登録</Link>
+								<Link href="/register" className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200">新規登録</Link>
 							</p>
 						</div>
 					</div>
