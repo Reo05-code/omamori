@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from 'react'
+import { signUp } from '@/lib/api/auth'
 
 export default function RegisterForm() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [agree, setAgree] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,29 +30,25 @@ export default function RegisterForm() {
     }
 
       setLoading(true)
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password }),
-      })
+      try {
+        const result = await signUp(email, password, passwordConfirm, fullName, phoneNumber)
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data?.message || '登録に失敗しました。')
-      } else {
-        setSuccess('登録が完了しました。ログインしてください。')
-        setFullName('')
-        setEmail('')
-        setPassword('')
-        setPasswordConfirm('')
-        setAgree(false)
+        if (result.error) {
+          setError(result.error)
+        } else {
+          setSuccess('登録が完了しました。ログインしてください。')
+          setFullName('')
+          setEmail('')
+          setPassword('')
+          setPasswordConfirm('')
+          setPhoneNumber('')
+          setAgree(false)
+        }
+      } catch (err) {
+        setError('通信エラーが発生しました。')
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      setError('通信エラーが発生しました。')
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (
@@ -69,6 +67,13 @@ export default function RegisterForm() {
         <label className="block text-sm font-medium text-warm-brown-700" htmlFor="email">メールアドレス</label>
         <div className="mt-1">
           <input id="email" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@railstutorial.org" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="phone">電話番号（任意）</label>
+        <div className="mt-1">
+          <input id="phone" name="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="090-1234-5678" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
         </div>
       </div>
 
