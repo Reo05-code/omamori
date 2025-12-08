@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { signUp } from '@/lib/api/auth'
+import Input from '@/components/ui/Input'
+import PrimaryButton from '@/components/ui/PrimaryButton'
+import ErrorView from '@/components/common/ErrorView'
 
 export default function RegisterForm() {
   const [fullName, setFullName] = useState('')
@@ -29,69 +32,52 @@ export default function RegisterForm() {
       return
     }
 
-      setLoading(true)
-      try {
-        const result = await signUp(email, password, passwordConfirm, fullName, phoneNumber)
+    setLoading(true)
+    try {
+      const result = await signUp(email, password, passwordConfirm, fullName, phoneNumber)
 
-        if (result.error) {
-          setError(result.error)
-        } else {
-          setSuccess('登録が完了しました。ログインしてください。')
-          setFullName('')
-          setEmail('')
-          setPassword('')
-          setPasswordConfirm('')
-          setPhoneNumber('')
-          setAgree(false)
-        }
-      } catch (err) {
-        setError('通信エラーが発生しました。')
-      } finally {
-        setLoading(false)
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setSuccess('登録が完了しました。ログインしてください。')
+        setFullName('')
+        setEmail('')
+        setPassword('')
+        setPasswordConfirm('')
+        setPhoneNumber('')
+        setAgree(false)
       }
+    } catch (err) {
+      setError('通信エラーが発生しました。')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" aria-label="register-form">
-      {error && <div className="text-sm text-red-600">{error}</div>}
+      <ErrorView message={error} />
       {success && <div className="text-sm text-green-600">{success}</div>}
 
       <div>
-        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="full-name">氏名</label>
-        <div className="mt-1">
-          <input id="full-name" name="full-name" type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="山田 太郎" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
-        </div>
+        <Input id="full-name" name="full-name" type="text" required label="氏名" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="山田 太郎" />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="email">メールアドレス</label>
-        <div className="mt-1">
-          <input id="email" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@railstutorial.org" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
-        </div>
+        <Input id="email" name="email" type="email" required label="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@railstutorial.org" />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="phone">電話番号（任意）</label>
-        <div className="mt-1">
-          <input id="phone" name="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="090-1234-5678" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
-        </div>
+        <Input id="phone" name="phone" type="tel" label="電話番号（任意）" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="090-1234-5678" />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="password">パスワード</label>
-        <div className="mt-1">
-          <input id="password" name="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
-        </div>
+        <Input id="password" name="password" type="password" required label="パスワード" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-warm-brown-700" htmlFor="password-confirm">パスワード（確認）</label>
-        <div className="mt-1">
-          <input id="password-confirm" name="password-confirm" type="password" required value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} placeholder="••••••••" className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange sm:text-sm placeholder-warm-brown-400" />
-        </div>
+        <Input id="password-confirm" name="password-confirm" type="password" required label="パスワード（確認）" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} placeholder="••••••••" />
       </div>
-
-
 
       <div className="flex items-center">
         <input id="terms-agreement" name="terms-agreement" type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="h-4 w-4 rounded border-warm-brown-200 text-warm-orange focus:ring-warm-orange" />
@@ -102,9 +88,9 @@ export default function RegisterForm() {
       </div>
 
       <div>
-        <button type="submit" disabled={loading} className="flex w-full justify-center rounded-lg border border-transparent bg-warm-orange py-3 px-4 text-sm font-bold text-white shadow-md shadow-warm-orange/30 hover:bg-warm-orange-light focus:outline-none focus:ring-2 focus:ring-warm-orange focus:ring-offset-2 focus:ring-offset-warm-surface transition-all duration-200">
-          {loading ? '登録中...' : '登録する'}
-        </button>
+        <PrimaryButton type="submit" loading={loading}>
+          登録する
+        </PrimaryButton>
       </div>
     </form>
   )
