@@ -5,6 +5,8 @@ import Link from 'next/link'
 import type { LoginFormProps } from '@/types'
 import ErrorView from '@/components/common/ErrorView'
 import OmamoriIcon from '@/components/ui/OmamoriIcon'
+import Input from '@/components/ui/Input'
+import PrimaryButton from '@/components/ui/PrimaryButton'
 
 export default function LoginForm({ email, password, setEmail, setPassword, onSubmit, loading = false, error = null }: LoginFormProps) {
 	return (
@@ -24,35 +26,29 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 					<form onSubmit={onSubmit} className="space-y-6">
 						<ErrorView message={error} />
 						<div>
-							<label htmlFor="email" className="block text-sm font-medium text-warm-brown-700">メールアドレス</label>
-							<div className="mt-1">
-								<input
-									id="email"
-									name="email"
-									type="email"
-									autoComplete="email"
-									required
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange text-sm placeholder-warm-brown-400"
-								/>
-							</div>
+							<Input
+								id="email"
+								name="email"
+								type="email"
+								autoComplete="email"
+								required
+								label="メールアドレス"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+							/>
 						</div>
 
 						<div>
-							<label htmlFor="password" className="block text-sm font-medium text-warm-brown-700">パスワード</label>
-							<div className="mt-1">
-								<input
-									id="password"
-									name="password"
-									type="password"
-									autoComplete="current-password"
-									required
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									className="block w-full rounded-lg border-warm-brown-200 bg-white py-3 px-4 shadow-inner-soft focus:border-warm-orange focus:ring-warm-orange text-sm placeholder-warm-brown-400"
-								/>
-							</div>
+							<Input
+								id="password"
+								name="password"
+								type="password"
+								autoComplete="current-password"
+								required
+								label="パスワード"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
 						</div>
 
 						<div className="flex items-center justify-end">
@@ -62,13 +58,9 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 						</div>
 
 						<div>
-							<button
-								type="submit"
-								disabled={loading}
-								className="flex w-full justify-center rounded-lg border border-transparent bg-warm-orange py-3 px-4 text-sm font-bold text-white shadow-md shadow-warm-orange/30 hover:bg-warm-orange-light focus:outline-none focus:ring-2 focus:ring-warm-orange focus:ring-offset-2 focus:ring-offset-warm-surface transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-							>
-								{loading ? '処理中...' : 'ログイン'}
-							</button>
+							<PrimaryButton type="submit" loading={loading}>
+								ログイン
+							</PrimaryButton>
 						</div>
 					</form>
 
@@ -84,7 +76,7 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 
 						<div className="mt-6 text-center text-sm">
 							<p className="text-warm-brown-600">アカウントをお持ちでないですか？{' '}
-								<Link href="#" className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200">新規登録</Link>
+								<Link href="/register" className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200">新規登録</Link>
 							</p>
 						</div>
 					</div>
