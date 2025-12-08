@@ -54,10 +54,12 @@ Rails.application.configure do
   # メール設定（必須）
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
-  # 開発環境ではメールを実際には送らず、テスト用にメモリに保存する
-  # ログで内容を確認したい場合は logger を使うか letter_opener gem を導入
-  config.action_mailer.delivery_method = :test
+  # 開発環境ではメールをブラウザ上の一覧で確認できるように letter_opener_web を利用
+  # Gemfile に `letter_opener` と `letter_opener_web` を追加済み
+  # ブラウザで確認するにはバックエンドを起動したホストとポートで /letter_opener にアクセス
+  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.perform_deliveries = true
 
-  config.action_mailer.raise_delivery_errors = true
+  # 開発時は配信エラーで例外を上げない（一覧からメールを確認する運用）
+  config.action_mailer.raise_delivery_errors = false
 end

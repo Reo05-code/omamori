@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  # 開発環境向け: LetterOpenerWeb をマウントして送信メールをブラウザで確認
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
   # Root path for Render health check
   root "health#index"
   # Health check endpoint

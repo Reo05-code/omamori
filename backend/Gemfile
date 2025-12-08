@@ -50,6 +50,9 @@ group :development do
   # Security auditing
   gem "brakeman", require: false
   gem "bundler-audit", require: false
+  # Open emails in the browser during development
+  gem "letter_opener"
+  gem "letter_opener_web"
 end
 
 group :test do
