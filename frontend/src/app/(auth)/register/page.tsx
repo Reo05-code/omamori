@@ -22,7 +22,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center text-sm">
             <p className="text-warm-brown-600">
               すでにアカウントをお持ちですか？
-              <Link className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200 ml-1" href="/auth/login">ログイン</Link>
+              <Link className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200 ml-1" href="/login">ログイン</Link>
             </p>
           </div>
         </div>
