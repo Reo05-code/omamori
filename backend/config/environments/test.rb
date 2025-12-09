@@ -10,7 +10,7 @@ Rails.application.configure do
   # this is usually not necessary, and can slow down your test suite. However, it's
   # recommended that you enable it in continuous integration systems to ensure eager
   # loading is working properly before deploying your code.
-  # Note: Disabled due to Devise/Zeitwerk compatibility issue with eager loading
+  # Devise/DeviseTokenAuth との互換性問題のため、テスト環境では常に無効化
   config.eager_load = false
 
   # Configure public file server for tests with Cache-Control for performance.
@@ -25,7 +25,8 @@ Rails.application.configure do
   config.cache_store = :null_store
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
-  config.action_dispatch.show_exceptions = :rescuable
+  # CI環境では例外を発生させる
+  config.action_dispatch.show_exceptions = ENV["CI"].present? ? :none : :rescuable
 
   # テスト環境ではCSRF保護を無効化
   # RSpecテストではCSRFトークンを送信しないため、false に設定

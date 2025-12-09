@@ -21,8 +21,8 @@ RSpec.configure do |config|
   # Fixtureのパス設定（FactoryBotを使うなら不要だが、一応残しておく）
   config.fixture_paths = [Rails.root.join("spec/fixtures")]
 
-  # テスト毎にトランザクションを張り、終了後にロールバックする（DBをクリーンに保つ）
-  config.use_transactional_fixtures = true
+  # DatabaseCleanerを使用するため、RSpecの組み込みトランザクション機能は無効化
+  config.use_transactional_fixtures = false
 
   # Rails gem内部のバックトレースを除外して、エラーログを見やすくする
   config.filter_rails_from_backtrace!
@@ -43,4 +43,10 @@ RSpec.configure do |config|
 
   # ファイルの配置場所からスペックのタイプ（model, request等）を自動推論する
   config.infer_spec_type_from_file_location!
+
+  # ActionMailerの配信設定を各テスト前に初期化（CI環境でのフレーク防止）
+  config.before do
+    ActionMailer::Base.deliveries.clear
+    ActionMailer::Base.perform_deliveries = true
+  end
 end
