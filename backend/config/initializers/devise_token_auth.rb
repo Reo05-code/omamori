@@ -10,10 +10,6 @@ DeviseTokenAuth.setup do |config|
 
   # パスワード変更時に、古いトークンを全削除する
   config.remove_tokens_after_password_reset = true
-  # フロントのパスワード再設定ページ（Dev環境でメール内リンクがここへ飛ぶ）
-  config.default_password_reset_url = "http://localhost:3000/reset-password"
-  # メール確認成功後のリダイレクト先（必要に応じて同じURLを使う）
-  config.default_confirm_success_url = "http://localhost:3000/reset-password"
 end
 
 

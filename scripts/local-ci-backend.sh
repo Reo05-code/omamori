@@ -25,7 +25,7 @@ docker compose exec backend bundle exec bundler-audit check --update
 
 echo ""
 echo "--- Running RSpec (with CI=true for eager_load) ---"
-docker compose exec -e CI=true backend bundle exec rspec
+docker compose exec -e CI=true -e RAILS_ENV=test -e DISABLE_SPRING=1 backend bundle exec rspec
 
 echo ""
 echo "========================================"
