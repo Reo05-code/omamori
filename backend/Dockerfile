@@ -1,15 +1,14 @@
 FROM ruby:3.2-alpine
 
-# 必要なパッケージをインストール
 RUN apk add --no-cache \
-    build-base \
-    postgresql-dev \
-    tzdata \
-    bash \
-    git \
-    nodejs \
-    npm \
-    yaml-dev
+        build-base \
+        postgresql-dev \
+        tzdata \
+        bash \
+        git \
+        nodejs \
+        npm \
+        yaml-dev
 
 WORKDIR /app
 
