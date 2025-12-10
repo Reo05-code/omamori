@@ -64,10 +64,18 @@ export async function validateToken() {
  * パスワードリセットメール送信
  */
 export async function requestPasswordReset(email: string, redirectUrl: string) {
+  // クライアント側でも最低限のバリデーションを行い、不正な入力は即時に拒否する
+  const trimmed = email?.trim() ?? ''
+  if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+    // 入力バリデーションエラーは例外として投げる（呼び出し側で catch して表示する想定）
+    throw new Error('有効なメールアドレスを入力してください')
+  }
+
   const body: PasswordResetRequest = {
-    email,
+    email: trimmed,
     redirect_url: redirectUrl,
   };
+
   return api.post<PasswordResetResponse>(API_PATHS.AUTH.PASSWORD, body);
 }
 
@@ -76,11 +84,12 @@ export async function requestPasswordReset(email: string, redirectUrl: string) {
  */
 export async function updatePassword(
   password: string,
-  passwordConfirmation: string
+  passwordConfirmation: string,
+  headers?: Record<string, string>
 ) {
   const body: PasswordUpdateRequest = {
     password,
     password_confirmation: passwordConfirmation,
   };
-  return api.put<PasswordUpdateResponse>(API_PATHS.AUTH.PASSWORD, body);
+  return api.put<PasswordUpdateResponse>(API_PATHS.AUTH.PASSWORD, body, { headers });
 }
