@@ -35,10 +35,12 @@ RSpec.describe User do
     it { is_expected.to validate_uniqueness_of(:email).scoped_to(:provider).case_insensitive }
 
     # --- role ---
-    it { is_expected.to validate_presence_of(:role) }
+    # role は enum かつモデルでデフォルトをセットするため、
+    # presence の代わりにデフォルト割当の動作を確認する
+    it { is_expected.to define_enum_for(:role).with_values(worker: 0, admin: 1) }
 
     # --- phone_number ---
-    it { is_expected.to validate_presence_of(:phone_number) }
+    # phone_number はフロント側で任意扱いのため、空白許容とする
     it { is_expected.to allow_value("0312345678").for(:phone_number) }
     it { is_expected.to allow_value("09012345678").for(:phone_number) }
     it { is_expected.not_to allow_value("090123456").for(:phone_number) }
@@ -87,6 +89,12 @@ RSpec.describe User do
 
       it "不正な role は ArgumentError" do
         expect { user.role = :invalid_role }.to raise_error(ArgumentError)
+      end
+
+      it "role が未指定でも作成時にデフォルトが入る" do
+        u = build(:user, role: nil)
+        u.save!
+        expect(u.role).to eq("admin")
       end
     end
   end
