@@ -9,12 +9,12 @@ export default function PasswordRequestPage() {
   const [sent, setSent] = useState(false)
 
   // URL が必須のため、環境変数が未設定なら明示的にエラーで止める
-  const envBase = process.env.NEXT_PUBLIC_BASE_URL
+  const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
 
   if (!envBase) {
     // ログを残しつつ、ユーザーには親切な案内を表示する
     // (CIで必須envチェックを導入する）
-    console.error('NEXT_PUBLIC_BASE_URL is not set. Password reset links cannot be generated.')
+    console.error('NEXT_PUBLIC_API_BASE_URL is not set. Password reset links cannot be generated.')
 
     return (
       <main className="min-h-screen flex items-center justify-center p-4">
