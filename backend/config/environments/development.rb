@@ -51,8 +51,40 @@ Rails.application.configure do
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
-  # メール設定（必須）
-  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+# メール設定（必須）
+  # `FRONTEND_BASE_URL` が設定されていれば、そのホスト/ポートを使用して
+  # メール内のリンクを組み立てる。なければローカルの `localhost:3000` を使用。
+  if ENV['FRONTEND_BASE_URL'].present?
+    require 'uri'
+    begin
+      uri = URI.parse(ENV['FRONTEND_BASE_URL'])
+      host = uri.host || 'localhost'
+      port = uri.port || 3000
+      protocol = uri.scheme
+      config.action_mailer.default_url_options = { host: host, port: port, protocol: protocol }
+    rescue URI::InvalidURIError
+      config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+    end
+  else
+    config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+  end
 
+  # 開発メール送信: letter_opener を使ってブラウザでメールを開く
+  config.action_mailer.delivery_method = :letter_opener
+
+  # 開発では配信とエラーを有効にしてデバッグしやすくする
   config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+
+    # 開発メール送信: 通常は `letter_opener` を使ってブラウザでメールを開く。
+    # ただし Docker コンテナ内では Launchy がブラウザを見つけられず例外になるため、
+    # コンテナ検出時はファイル書き出しモードにフォールバック。
+    if File.exist?("/.dockerenv")
+      # コンテナ内ではメールを HTML ファイルとして出力する（tmp/letter_opener に保存）
+      config.action_mailer.delivery_method = :file
+      config.action_mailer.file_settings = { location: Rails.root.join('tmp', 'letter_opener').to_s }
+    else
+      # ローカル開発環境では letter_opener を使用してブラウザで開く
+      config.action_mailer.delivery_method = :letter_opener
+    end
 end
