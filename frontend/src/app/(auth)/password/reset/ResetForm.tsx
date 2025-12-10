@@ -5,7 +5,7 @@ import { updatePassword } from '@/lib/api/auth'
 import Input from '@/components/ui/Input'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import ErrorView from '@/components/common/ErrorView'
-import { sanitizeErrorMessage } from '@/lib/utils'
+import { sanitizeErrorMessage, isStrongPassword } from '@/lib/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 // ResetForm:
@@ -28,7 +28,7 @@ export default function ResetForm() {
   const [error, setError] = useState<string | null>(null)
 
   // パスワード検証: 8文字以上、英大文字・小文字、数字を含む
-  const passwordValid = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(password)
+  const passwordValid = isStrongPassword(password)
   const passwordsMatch = password === passwordConfirmation
 
   const handleSubmit = async (e: React.FormEvent) => {
