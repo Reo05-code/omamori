@@ -21,7 +21,9 @@ class ApplicationController < ActionController::API
     {
       httponly: true,
       secure: Rails.env.production?,
-      same_site: :lax,
+      # クロスオリジンのフロント（Vercel）から fetch でクッキーを送信するためには
+      # 本番環境で SameSite=None が必要（この場合 Secure も必須）。開発環境は :lax のままにする。
+      same_site: (Rails.env.production? ? :none : :lax),
       expires: 2.weeks.from_now,
       domain: ENV["COOKIE_DOMAIN"].presence
     }
