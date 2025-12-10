@@ -53,7 +53,7 @@ export default function LoginForm({ email, password, setEmail, setPassword, onSu
 
 						<div className="flex items-center justify-end">
 							<div className="text-sm">
-								<Link href="#" className="font-medium text-warm-brown-600 hover:text-warm-orange transition-colors duration-200">パスワードを忘れた場合</Link>
+								<Link href="/password/request" className="font-medium text-warm-brown-600 hover:text-warm-orange transition-colors duration-200">パスワードを忘れた場合</Link>
 							</div>
 						</div>
 

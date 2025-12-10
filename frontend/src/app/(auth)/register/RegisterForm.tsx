@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { signUp } from '@/lib/api/auth'
+import { isStrongPassword, isEmail, isPhoneNumber, isRequired } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import ErrorView from '@/components/common/ErrorView'
@@ -17,6 +18,10 @@ export default function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // パスワード検証フラグ（コンポーネント全体で利用）
+  const passwordValid = isStrongPassword(password)
+  const passwordsMatch = password === passwordConfirm
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -29,6 +34,23 @@ export default function RegisterForm() {
 
     if (password !== passwordConfirm) {
       setError('パスワードが一致しません。')
+      return
+    }
+
+    // メールアドレスと電話番号の検証（電話は任意）
+    if (!isRequired(email) || !isEmail(email)) {
+      setError('有効なメールアドレスを入力してください。')
+      return
+    }
+
+    if (phoneNumber && !isPhoneNumber(phoneNumber)) {
+      setError('電話番号は10〜11桁の数字で入力してください。')
+      return
+    }
+
+    // パスワード強度を共通関数で検証（変数はコンポーネント上で計算済み）
+    if (!passwordValid) {
+      setError('パスワードは8文字以上で、英大文字・小文字・数字を含めてください。')
       return
     }
 
@@ -72,11 +94,21 @@ export default function RegisterForm() {
       </div>
 
       <div>
-        <Input id="password" name="password" type="password" required label="パスワード" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+        <Input id="password" name="password" type="password" required aria-describedby="pw-help" label="パスワード" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
       </div>
 
       <div>
         <Input id="password-confirm" name="password-confirm" type="password" required label="パスワード（確認）" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} placeholder="••••••••" />
+      </div>
+
+      <div id="pw-help" className="text-sm text-warm-brown-600" aria-live="polite">
+        <p>※ パスワードは8文字以上、英大文字・小文字、数字を含めてください。</p>
+        <p className={"mt-1 " + (password ? (passwordValid ? 'text-green-600' : 'text-red-600') : '')}>
+          {password ? (passwordValid ? 'パスワード要件を満たしています' : 'パスワードの要件を満たしていません') : ''}
+        </p>
+        <p className={passwordConfirm ? (password === passwordConfirm ? 'text-green-600' : 'text-red-600') : ''}>
+          {passwordConfirm ? (password === passwordConfirm ? 'パスワードが一致しています' : '確認パスワードと一致していません') : ''}
+        </p>
       </div>
 
       <div className="flex items-center">
@@ -88,7 +120,7 @@ export default function RegisterForm() {
       </div>
 
       <div>
-        <PrimaryButton type="submit" loading={loading}>
+        <PrimaryButton type="submit" loading={loading} disabled={loading || !isStrongPassword(password) || password !== passwordConfirm}>
           登録する
         </PrimaryButton>
       </div>
