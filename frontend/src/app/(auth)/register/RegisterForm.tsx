@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { signUp } from '@/lib/api/auth'
-import { isStrongPassword } from '@/lib/utils'
+import { isStrongPassword, isEmail, isPhoneNumber, isRequired } from '@/lib/utils'
 import Input from '@/components/ui/Input'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import ErrorView from '@/components/common/ErrorView'
@@ -34,6 +34,17 @@ export default function RegisterForm() {
 
     if (password !== passwordConfirm) {
       setError('パスワードが一致しません。')
+      return
+    }
+
+    // メールアドレスと電話番号の検証（電話は任意）
+    if (!isRequired(email) || !isEmail(email)) {
+      setError('有効なメールアドレスを入力してください。')
+      return
+    }
+
+    if (phoneNumber && !isPhoneNumber(phoneNumber)) {
+      setError('電話番号は10〜11桁の数字で入力してください。')
       return
     }
 
