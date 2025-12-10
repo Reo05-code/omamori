@@ -6,7 +6,7 @@ import Input from '@/components/ui/Input'
 import PrimaryButton from '@/components/ui/PrimaryButton'
 import ErrorView from '@/components/common/ErrorView'
 import Link from 'next/link'
-import { sanitizeErrorMessage } from '@/lib/utils'
+import { sanitizeErrorMessage, isEmail, isRequired } from '@/lib/utils'
 
 /**
  * 概要:
@@ -31,6 +31,13 @@ export default function RequestForm({ redirectUrl, onSuccess }: RequestFormProps
     try {
       // 入力の先頭・末尾の空白を除去して送信
       const trimmed = email.trim()
+
+      // クライアント側で簡易検証（UI 側でもボタン無効化しているが二重で安全策）
+      if (!isRequired(trimmed) || !isEmail(trimmed)) {
+        setError('有効なメールアドレスを入力してください')
+        setLoading(false)
+        return
+      }
 
       // サーバへパスワードリセットメールのリクエストを送る
       const res = await requestPasswordReset(trimmed, redirectUrl)
@@ -80,7 +87,11 @@ export default function RequestForm({ redirectUrl, onSuccess }: RequestFormProps
       <ErrorView message={error} />
       <Input id="email" name="email" type="email" required label="登録メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} />
       <div>
-        <PrimaryButton type="submit" loading={loading} disabled={loading || email.trim().length === 0 || !/\S+@\S+\.\S+/.test(email.trim())}>
+        <PrimaryButton
+          type="submit"
+          loading={loading}
+          disabled={loading || !isRequired(email) || !isEmail(email)}
+        >
           リセットメールを送信
         </PrimaryButton>
       </div>

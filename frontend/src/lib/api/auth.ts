@@ -4,6 +4,7 @@
  */
 
 import { api } from "./client";
+import { isEmail } from "../utils";
 import { API_PATHS } from "./paths";
 import type {
   LoginRequest,
@@ -66,7 +67,7 @@ export async function validateToken() {
 export async function requestPasswordReset(email: string, redirectUrl: string) {
   // クライアント側でも最低限のバリデーションを行い、不正な入力は即時に拒否する
   const trimmed = email?.trim() ?? ''
-  if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+  if (!isEmail(trimmed)) {
     // 入力バリデーションエラーは例外として投げる（呼び出し側で catch して表示する想定）
     throw new Error('有効なメールアドレスを入力してください')
   }
