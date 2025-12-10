@@ -46,6 +46,33 @@ RSpec.describe "Api::V1::Auth::Passwords" do
         mail = ActionMailer::Base.deliveries.last
         expect(mail.to).to eq([user.email])
       end
+
+      it 'メール内のリンクは許可された redirect_url のホストを使う' do
+        allowed = ENV.fetch('FRONTEND_BASE_URL', 'http://localhost:3000')
+
+        post_with_csrf "/api/v1/auth/password", params: { email: user.email, redirect_url: "#{allowed}/password/reset" }, as: :json
+
+        expect(response).to have_http_status(:ok)
+        mail = ActionMailer::Base.deliveries.last
+        body = mail.body.raw_source
+        url = body[/href="([^"]+)"/, 1]
+        expect(url).to be_present
+        expect(URI.parse(url).host).to eq(URI.parse(allowed).host)
+      end
+
+      it '不正な redirect_url は FRONTEND_BASE_URL にフォールバックする' do
+        disallowed = 'https://attacker.example.com/password/reset'
+        fallback = ENV.fetch('FRONTEND_BASE_URL', 'http://localhost:3000')
+
+        post_with_csrf "/api/v1/auth/password", params: { email: user.email, redirect_url: disallowed }, as: :json
+
+        expect(response).to have_http_status(:ok)
+        mail = ActionMailer::Base.deliveries.last
+        body = mail.body.raw_source
+        url = body[/href="([^"]+)"/, 1]
+        expect(url).to be_present
+        expect(URI.parse(url).host).to eq(URI.parse(fallback).host)
+      end
     end
 
     context "存在しないメールアドレスの場合" do
