@@ -10,7 +10,7 @@ module Api
         respond_to :json
 
         # AllowedRedirects helper をロード（lib/ 配下）
-        require Rails.root.join('lib', 'allowed_redirects').to_s
+        require Rails.root.join("lib/allowed_redirects").to_s
 
         # `update` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
