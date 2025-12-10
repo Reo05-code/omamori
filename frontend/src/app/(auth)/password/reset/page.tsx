@@ -1,5 +1,6 @@
-// // パスワード再設定のページ本体
+// パスワード再設定のページ本体
 // メール内リンクから遷移してきたユーザーを想定
+import { Suspense } from 'react'
 import ResetForm from './ResetForm'
 
 export default function PasswordResetPage() {
@@ -12,7 +13,11 @@ export default function PasswordResetPage() {
         </div>
 
         <div className="rounded-xl bg-warm-surface/80 backdrop-blur-sm p-8 shadow-soft ring-1 ring-warm-brown-200/50">
-          <ResetForm />
+          {/* ResetForm は useSearchParams を利用するため必ずクライアント側で実行される。
+              Suspense はクライアント境界の読み込み中にフォールバックを表示するためのもの。 */}
+          <Suspense fallback={<div />}>
+            <ResetForm />
+          </Suspense>
         </div>
       </div>
     </main>
