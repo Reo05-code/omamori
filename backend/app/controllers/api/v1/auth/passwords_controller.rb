@@ -9,6 +9,9 @@ module Api
       class PasswordsController < DeviseTokenAuth::PasswordsController
         respond_to :json
 
+        # AllowedRedirects helper をロード（lib/ 配下）
+        require Rails.root.join('lib', 'allowed_redirects').to_s
+
         # `update` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
@@ -22,6 +25,20 @@ module Api
             status: "success",
             message: I18n.t("api.v1.auth.passwords.create_success")
           }
+        end
+
+        # DeviseTokenAuth の create をオーバーライドして redirect_url を sanitize
+        def create
+          # permit で明示的に受け付けるキーを制限しておく
+          params.permit(:email, :redirect_url)
+
+          if params[:redirect_url].present?
+            sanitized = AllowedRedirects.sanitize(params[:redirect_url])
+            params[:redirect_url] = sanitized
+          end
+
+          # DTA の create を呼び出す
+          super
         end
 
         # パスワードリセットメール送信失敗時のレスポンス
