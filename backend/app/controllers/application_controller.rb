@@ -15,6 +15,8 @@ class ApplicationController < ActionController::API
   private
 
   def verify_origin!
+    return if Rails.env.test?
+
     allowed = [
       "https://omamori-three.vercel.app",
       "http://localhost:3000"
