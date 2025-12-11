@@ -3,6 +3,9 @@ class ApplicationController < ActionController::API
   include DeviseTokenAuth::Concerns::SetUserByToken
   include ActionController::Cookies
 
+  # Origin/Referer チェック
+  before_action :verify_origin!
+
   # CSRF保護を環境ごとに設定
   # テスト環境: protect_from_forgery を呼ばない（config/environments/test.rb で allow_forgery_protection = false）
   # 本番環境: exception（不正リクエストをブロック、より安全）
@@ -16,6 +19,19 @@ class ApplicationController < ActionController::API
   after_action :remove_auth_headers unless Rails.env.test?
 
   private
+
+  def verify_origin!
+    allowed = [
+      "https://omamori-three.vercel.app",
+      "http://localhost:3000"
+    ]
+    origin = request.headers["Origin"]
+    referer = request.headers["Referer"]
+    unless allowed.include?(origin) ||
+           allowed.any? { |o| referer&.start_with?(o) }
+      render json: { error: "Forbidden origin" }, status: :forbidden
+    end
+  end
 
   def cookie_options
     {
@@ -52,18 +68,14 @@ class ApplicationController < ActionController::API
   end
 
   def persist_auth_cookie(cookie_key, token_value)
-    # cookies.encrypted は内部で response.set_cookie を呼ぶため、
-    # これだけで十分。ただし、テスト環境の RSpec では encrypted cookies が
-    # response.cookies で見えないため、テスト環境では明示的にセットする。
-    cookies.encrypted[cookie_key] = cookie_options.merge(value: token_value)
-
-    # テスト環境でのみ response.cookies にもセット
-    return unless Rails.env.test? && respond_to?(:response)
-
-    response.set_cookie(
-      cookie_key.to_s,
-      cookie_options.merge(value: token_value)
-    )
+    response.set_cookie cookie_key.to_s, {
+      value: token_value,
+      path: "/",
+      same_site: Rails.env.production? ? :none : :lax,
+      secure: Rails.env.production?,
+      httponly: true,
+      domain: ENV["COOKIE_DOMAIN"]
+    }
   end
 
   # レスポンスヘッダーから認証に関するヘッダー群を削除する（Stage3）

@@ -10,6 +10,9 @@ DeviseTokenAuth.setup do |config|
 
   # パスワード変更時に、古いトークンを全削除する
   config.remove_tokens_after_password_reset = true
+
+  # Cookie 機能を完全無効化
+  config.cookie_enabled = false
 end
 
 
