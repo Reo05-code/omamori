@@ -7,10 +7,11 @@ module Api
       # GET /api/v1/auth/validate_token - トークン有効性確認
       class TokenValidationsController < DeviseTokenAuth::TokenValidationsController
         respond_to :json
+        # DTAがレスポンスヘッダーに自動的に認証トークンを書き込む処理を止める
+        skip_after_action :update_auth_header, raise: false
 
         # トークン検証成功時のレスポンス
         def render_validate_token_success
-          # SPA用にCSRFトークンをCookieに発行（フロントがヘッダーにセットして送信)
           render json: {
             status: "success",
             data: resource_data(resource_json: @resource.as_json)
