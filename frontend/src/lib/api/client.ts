@@ -57,7 +57,7 @@ export async function apiRequest<T>(
       }
     }
     */
-    
+
     const response = await fetch(url, {
       method,
       headers,
