@@ -25,4 +25,5 @@ RUN mkdir -p log tmp/pids tmp/cache tmp/sockets && \
 
 EXPOSE 3001
 
-CMD ["rails", "server", "-b", "0.0.0.0", "-p", "3001"]
+# Run migrations on container start (safe to re-run) then boot Puma
+CMD ["bash", "-lc", "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"]
