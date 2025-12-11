@@ -39,6 +39,10 @@ class ApplicationController < ActionController::API
       return
     end
 
+    assign_auth_headers(access_token, client, uid)
+  end
+
+  def assign_auth_headers(access_token, client, uid)
     Rails.logger.debug("[set_user_by_cookie] Setting headers from cookies")
     request.headers["access-token"] = access_token
     request.headers["client"] = client

@@ -26,7 +26,7 @@ module Api
         def validate_user_token!
           uid, client, access_token = extract_auth_headers
 
-          unless authenticate_with_cookies(uid, client, access_token)
+          unless authenticate_with_cookies?(uid, client, access_token)
             render_validate_token_error
             return
           end
@@ -34,8 +34,8 @@ module Api
           Rails.logger.info("[validate_user_token] Authentication successful for user: #{@resource.email}")
         end
 
-        def authenticate_with_cookies(uid, client, access_token)
-          Rails.logger.info("[validate_user_token] headers present uid=#{!uid.nil?} client=#{!client.nil?} token=#{!access_token.nil?}")
+        def authenticate_with_cookies?(uid, client, access_token)
+          Rails.logger.info('[validate_user_token] headers present')
           return false unless uid && client && access_token
 
           @resource = find_user_by_uid(uid)
@@ -44,13 +44,10 @@ module Api
           token_hash = fetch_token_hash(@resource, client)
           return false unless token_hash
 
-          if token_valid?(token_hash, access_token)
-            true
-          else
-            Rails.logger.info("[validate_user_token] Token validation failed")
-            false
-          end
+          return true if token_valid?(token_hash, access_token)
         end
+          Rails.logger.info('[validate_user_token] Token validation failed')
+          false
 
         def extract_auth_headers
           [request.headers["uid"], request.headers["client"], request.headers["access-token"]]
