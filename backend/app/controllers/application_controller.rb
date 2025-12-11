@@ -68,14 +68,14 @@ class ApplicationController < ActionController::API
   end
 
   def persist_auth_cookie(cookie_key, token_value)
-    response.set_cookie cookie_key.to_s, {
-      value: token_value,
-      path: "/",
-      same_site: Rails.env.production? ? :none : :lax,
-      secure: Rails.env.production?,
-      httponly: true,
-      domain: ENV["COOKIE_DOMAIN"]
-    }
+    opts = cookie_options.dup
+    opts = opts.slice(:path, :same_site, :expires, :domain)
+    # slice removed :httponly/:secure, so ensure keys exist
+    opts[:httponly] = cookie_options[:httponly]
+    opts[:secure] = cookie_options[:secure]
+    opts[:value] = token_value
+
+    response.set_cookie(cookie_key.to_s, opts)
   end
 
   # レスポンスヘッダーから認証に関するヘッダー群を削除する（Stage3）
@@ -126,14 +126,17 @@ class ApplicationController < ActionController::API
   end
 
   def expire_cookie_in_response(cookie_name, path, domain)
-    response.set_cookie(
-      cookie_name.to_s,
+    opts = {
       value: "",
       path: path,
       domain: domain,
       expires: 4.weeks.ago,
-      httponly: true
-    )
+      httponly: cookie_options[:httponly],
+      secure: cookie_options[:secure],
+      same_site: cookie_options[:same_site]
+    }
+
+    response.set_cookie(cookie_name.to_s, opts)
   end
 
   protected
