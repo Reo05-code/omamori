@@ -1,5 +1,4 @@
 class ApplicationController < ActionController::API
-  include ActionController::RequestForgeryProtection
   include DeviseTokenAuth::Concerns::SetUserByToken
   include ActionController::Cookies
 
@@ -8,14 +7,6 @@ class ApplicationController < ActionController::API
 
   # Cookie から認証情報を読み取り、ヘッダーにセット（DTA が読み取れるようにする）
   before_action :set_user_by_cookie!
-
-  # CSRF保護を環境ごとに設定
-  # テスト環境: protect_from_forgery を呼ばない（config/environments/test.rb で allow_forgery_protection = false）
-  # 本番環境: exception（不正リクエストをブロック、より安全）
-  # 開発環境: null_session（API互換、curlでのテストが容易）
-  unless Rails.env.test?
-    protect_from_forgery with: Rails.env.production? ? :exception : :null_session
-  end
 
   # レスポンスの認証ヘッダーを削除して Cookie-only に段階移行する
   # テスト環境ではヘッダー削除を行わない（既存のテストはヘッダー可視性に依存する場合があるため）
@@ -173,24 +164,5 @@ class ApplicationController < ActionController::API
     }
 
     response.set_cookie(cookie_name.to_s, opts)
-  end
-
-  protected
-
-  # APIモードでは flash が存在しないため、通常の handle_unverified_request を使うと
-  # request.flash= で NoMethodError が発生する可能性があります。
-  # そこでオーバーライドし、APIでは flash を触らずに JSON 401 を返すようにしています。
-  # 本番環境では通常通り InvalidAuthenticityToken を発生させ、安全性を確保します。
-
-  def handle_unverified_request
-    # フォージェリ保護が無効（例: テスト環境）の場合は処理を中断せず、そのままリクエストを通す。
-    # これによりテストや内部クライアントが正常に動作します。
-    return unless ActionController::Base.allow_forgery_protection
-
-    # 本番環境では通常通り例外を発生させて厳格に検証。
-    # 本番以外の環境では JSON 401 を返して開発時に確認しやすくする。
-    raise ActionController::InvalidAuthenticityToken if Rails.env.production?
-
-    render json: { error: "Invalid authenticity token" }, status: :unauthorized
   end
 end
