@@ -9,7 +9,8 @@ services:
     # Run DB migrations before starting the service
     releaseCommand: bash -lc "bundle exec rails db:migrate"
     # Start command for the Rails app (adjust if you use a different server)
-    startCommand: bash -lc "bundle exec puma -C config/puma.rb"
+    # On the free plan jobs cannot be triggered; run migrations on boot as a fallback.
+    startCommand: bash -lc "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"
     # Optional: set the region and plan according to your account
     # region: oregon
     # plan: starter
