@@ -23,7 +23,10 @@ COPY . .
 RUN mkdir -p log tmp/pids tmp/cache tmp/sockets && \
     chmod -R 777 log tmp
 
+# Make sure our start script is executable
+RUN chmod +x bin/start || true
+
 EXPOSE 3001
 
-# Run migrations on container start (safe to re-run) then boot Puma
-CMD ["bash", "-lc", "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"]
+# Use start wrapper (runs migrations then puma)
+CMD ["bash", "-lc", "bin/start"]

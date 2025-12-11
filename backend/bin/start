@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo ">>> START: entrypoint script"
+echo ">>> MIGRATE START"
+# Use rake to avoid potential wrapper issues with bin/rails in some environments
+bundle exec rake db:migrate 2>&1 | sed -u 's/^/    /'
+echo ">>> MIGRATE END"
+echo ">>> START PUMA"
+exec bundle exec puma -C config/puma.rb
