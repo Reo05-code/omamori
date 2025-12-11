@@ -21,7 +21,13 @@ module AuthCookieHelper
   def persist_auth_cookie(cookie_key, token_value)
     return if token_value.blank?
 
-    opts = {
+    opts = cookie_opts_for(token_value)
+    Rails.logger.debug('[persist_auth_cookie] Setting cookie')
+    response.set_cookie(cookie_key.to_s, opts)
+  end
+
+  def cookie_opts_for(token_value)
+    {
       value: token_value,
       path: cookie_options[:path],
       same_site: cookie_options[:same_site],
@@ -30,9 +36,6 @@ module AuthCookieHelper
       httponly: cookie_options[:httponly],
       secure: cookie_options[:secure]
     }
-
-    Rails.logger.debug { "[persist_auth_cookie] Setting cookie: #{cookie_key} present=#{token_value.present?}" }
-    response.set_cookie(cookie_key.to_s, opts)
   end
 
   # リソース用の認証トークンを生成し、Cookie に永続化する
