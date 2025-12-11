@@ -40,7 +40,7 @@ module Api
           return unless token_hash
 
           unless token_valid?(token_hash, access_token)
-            Rails.logger.info('[validate_user_token] Token validation failed')
+            Rails.logger.info("[validate_user_token] Token validation failed")
             render_validate_token_error
             return
           end
@@ -49,7 +49,7 @@ module Api
         end
 
         def extract_auth_headers
-          [request.headers['uid'], request.headers['client'], request.headers['access-token']]
+          [request.headers["uid"], request.headers["client"], request.headers["access-token"]]
         end
 
         def find_user_by_uid(uid)
@@ -72,8 +72,9 @@ module Api
         end
 
         def token_valid?(token_hash, access_token)
-          return false unless BCrypt::Password.new(token_hash['token']).is_password?(access_token)
-          return false if token_hash['expiry'] && Time.zone.at(token_hash['expiry'].to_i) < Time.current
+          return false unless BCrypt::Password.new(token_hash["token"]).is_password?(access_token)
+          return false if token_hash["expiry"] && Time.zone.at(token_hash["expiry"].to_i) < Time.current
+
           true
         end
 
