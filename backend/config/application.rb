@@ -43,14 +43,8 @@ module App
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    config.session_store :disabled
     config.middleware.use ActionDispatch::Cookies
-    # クロスオリジン（Vercel フロント → Render API）でセッション/Cookie を送るため SameSite=None を許可
-    # Secure は本番で必須。開発では :lax としてローカルテストしやすくする。
-    config.middleware.use ActionDispatch::Session::CookieStore,
-      key: '_omamori_session',
-      secure: Rails.env.production?,
-      same_site: (Rails.env.production? ? :none : :lax),
-      domain: ENV['COOKIE_DOMAIN'].presence
 
     # Allow all hosts in test and development environments
     config.hosts.clear if Rails.env.test? || Rails.env.development?

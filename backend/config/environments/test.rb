@@ -37,6 +37,13 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
   config.action_mailer.default_url_options = { host: "localhost", port: 3001 }
 
+  # テスト環境でセッションストアを有効化
+  # Devise（bypass_sign_in）はセッションに書き込みを行う。
+  # API専用アプリではデフォルトでセッションが無効化されているため、
+  # DisabledSessionError を避けるためにテスト時のみ Cookie ベースのセッションストアを有効にする。
+  config.session_store :cookie_store, key: "_omamori_test_session"
+  config.middleware.use ActionDispatch::Session::CookieStore, config.session_options
+
   # Disable host authorization in test environment
   config.action_dispatch.hosts_response_app = nil
   config.hosts.clear
