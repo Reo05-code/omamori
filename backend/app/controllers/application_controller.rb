@@ -52,16 +52,9 @@ class ApplicationController < ActionController::API
   end
 
   def persist_auth_cookie(cookie_key, token_value)
+    # cookies.encrypted は内部で response.set_cookie を呼ぶため、
+    # レスポンスに明示的にセットする処理を削除。response.set_cookie を直接呼ぶと二重発行になる。
     cookies.encrypted[cookie_key] = cookie_options.merge(value: token_value)
-
-    # テスト環境の RSpec では encrypted cookies が response.cookies で見えないため、
-    # レスポンスにも明示的にセットしてテストから確認できるようにする。
-    return unless respond_to?(:response)
-
-    response.set_cookie(
-      cookie_key.to_s,
-      cookie_options.merge(value: token_value)
-    )
   end
 
   # レスポンスヘッダーから認証に関するヘッダー群を削除する（Stage3）
@@ -74,7 +67,11 @@ class ApplicationController < ActionController::API
   end
 
   def generate_auth_token_headers(resource)
-    resource.create_new_auth_token
+    token_headers = resource.create_new_auth_token
+    # DTA が自動的にレスポンスヘッダーに auth token を書き込むのを防ぐため、
+    # 生成直後にヘッダーを削除する
+    remove_auth_headers if respond_to?(:remove_auth_headers, true)
+    token_headers
   rescue StandardError => e
     Rails.logger.warn("Failed to generate auth token headers: #{e.message}")
     {}
