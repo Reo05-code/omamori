@@ -44,9 +44,8 @@ module Api
           token_hash = fetch_token_hash(@resource, client)
           return false unless token_hash
 
-          true if token_valid?(token_hash, access_token)
+          token_valid?(token_hash, access_token)
         end
-        Rails.logger.info("[validate_user_token] Token validation failed")
 
         def extract_auth_headers
           [request.headers["uid"], request.headers["client"], request.headers["access-token"]]
@@ -54,10 +53,8 @@ module Api
 
         def find_user_by_uid(uid)
           user = User.find_by(uid: uid)
-          unless user
-            Rails.logger.info("[validate_user_token] User not found for uid: #{uid}")
-            render_validate_token_error
-          end
+          Rails.logger.info("[validate_user_token] User not found for uid: #{uid}") unless user
+
           user
         end
 
@@ -65,9 +62,9 @@ module Api
           token_hash = resource.tokens[client]
           unless token_hash
             Rails.logger.info("[validate_user_token] No token found for client: #{client}")
-            render_validate_token_error
             return
           end
+
           token_hash
         end
 
