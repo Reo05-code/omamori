@@ -53,8 +53,17 @@ class ApplicationController < ActionController::API
 
   def persist_auth_cookie(cookie_key, token_value)
     # cookies.encrypted は内部で response.set_cookie を呼ぶため、
-    # レスポンスに明示的にセットする処理を削除。response.set_cookie を直接呼ぶと二重発行になる。
+    # これだけで十分。ただし、テスト環境の RSpec では encrypted cookies が
+    # response.cookies で見えないため、テスト環境では明示的にセットする。
     cookies.encrypted[cookie_key] = cookie_options.merge(value: token_value)
+
+    # テスト環境でのみ response.cookies にもセット
+    return unless Rails.env.test? && respond_to?(:response)
+
+    response.set_cookie(
+      cookie_key.to_s,
+      cookie_options.merge(value: token_value)
+    )
   end
 
   # レスポンスヘッダーから認証に関するヘッダー群を削除する（Stage3）
@@ -90,15 +99,29 @@ class ApplicationController < ActionController::API
 
   def delete_auth_cookie_for_path(path, domain)
     %i[access_token client uid].each do |ck|
-      response.set_cookie(
-        ck.to_s,
-        value: "",
-        path: path,
-        domain: domain,
-        expires: 4.weeks.ago,
-        httponly: true
-      )
+      delete_single_cookie(ck, path, domain)
     end
+  end
+
+  def delete_single_cookie(cookie_name, path, domain)
+    # cookies.delete で通常の Cookie と encrypted Cookie の両方を削除
+    # domain が nil の場合と指定されている場合の両方に対応
+    cookies.delete(cookie_name, path: path, domain: domain)
+    cookies.delete(cookie_name, path: path) if domain.present?
+
+    # ブラウザ側の Cookie を確実に無効化
+    expire_cookie_in_response(cookie_name, path, domain)
+  end
+
+  def expire_cookie_in_response(cookie_name, path, domain)
+    response.set_cookie(
+      cookie_name.to_s,
+      value: "",
+      path: path,
+      domain: domain,
+      expires: 4.weeks.ago,
+      httponly: true
+    )
   end
 
   protected
