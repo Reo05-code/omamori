@@ -25,12 +25,17 @@ class ApplicationController < ActionController::API
       # 本番環境で SameSite=None が必要（この場合 Secure も必須）。開発環境は :lax のままにする。
       same_site: (Rails.env.production? ? :none : :lax),
       expires: 2.weeks.from_now,
-      domain: ENV["COOKIE_DOMAIN"].presence
+      domain: ENV["COOKIE_DOMAIN"].presence,
+      path: "/"
     }
   end
 
   # リソース用の認証トークンを生成し、暗号化された httpOnly クッキーとして永続化する
   def issue_encrypted_auth_cookies_for(resource)
+    # 旧トークンが複数パスにまたがって残っている場合があるため
+    # 新しいトークンを発行する前に既存の認証 Cookie を確実にクリアする
+    clear_auth_cookies
+
     token_headers = generate_auth_token_headers(resource)
 
     mapping = {
@@ -77,9 +82,26 @@ class ApplicationController < ActionController::API
 
   # サインアウトやセッション破棄時にクッキーを削除するユーティリティ
   def clear_auth_cookies
-    cookies.delete(:access_token)
-    cookies.delete(:client)
-    cookies.delete(:uid)
+    # ブラウザに残る cookie は path や domain の違いで複数存在しうる。
+    # そのためすべての path を列挙して明示的に削除を行う。
+    paths_to_clear = ["/", "/api", "/api/v1", "/api/v1/auth"]
+    domain = cookie_options[:domain]
+    paths_to_clear.each do |path|
+      delete_auth_cookie_for_path(path, domain)
+    end
+  end
+
+  def delete_auth_cookie_for_path(path, domain)
+    %i[access_token client uid].each do |ck|
+      response.set_cookie(
+        ck.to_s,
+        value: "",
+        path: path,
+        domain: domain,
+        expires: 4.weeks.ago,
+        httponly: true
+      )
+    end
   end
 
   protected
