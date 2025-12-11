@@ -6,6 +6,9 @@ class ApplicationController < ActionController::API
   # Origin/Referer チェック
   before_action :verify_origin!
 
+  # Cookie から認証情報を読み取り、ヘッダーにセット（DTA が読み取れるようにする）
+  before_action :set_user_by_cookie!
+
   # CSRF保護を環境ごとに設定
   # テスト環境: protect_from_forgery を呼ばない（config/environments/test.rb で allow_forgery_protection = false）
   # 本番環境: exception（不正リクエストをブロック、より安全）
@@ -33,6 +36,26 @@ class ApplicationController < ActionController::API
     end
   end
 
+  # Cookie から認証情報を読み取り、リクエストヘッダーにセット
+  # DeviseTokenAuth の SetUserByToken がヘッダーから認証情報を読み取るため
+  def set_user_by_cookie!
+    # 既にヘッダーがある場合はスキップ（ヘッダー認証を優先）
+    return if request.headers["access-token"].present?
+
+    # Cookie から認証情報を取得
+    access_token = cookies[:access_token]
+    client = cookies[:client]
+    uid = cookies[:uid]
+
+    # Cookie が存在する場合のみヘッダーにセット
+    if access_token.present? && client.present? && uid.present?
+      Rails.logger.debug { "[set_user_by_cookie] Setting headers from cookies" }
+      request.headers["access-token"] = access_token
+      request.headers["client"] = client
+      request.headers["uid"] = uid
+    end
+  end
+
   def cookie_options
     {
       httponly: true,
@@ -53,6 +76,8 @@ class ApplicationController < ActionController::API
     clear_auth_cookies
 
     token_headers = generate_auth_token_headers(resource)
+    
+    Rails.logger.debug { "[issue_encrypted_auth_cookies_for] token_headers: #{token_headers.inspect}" }
 
     mapping = {
       access_token: "access-token",
@@ -61,20 +86,31 @@ class ApplicationController < ActionController::API
     }
 
     mapping.each do |cookie_key, header_name|
-      persist_auth_cookie(cookie_key, token_headers[header_name])
+      token_value = token_headers[header_name]
+      Rails.logger.debug { "[issue_encrypted_auth_cookies_for] #{cookie_key}: #{token_value.present? ? 'present' : 'MISSING'}" }
+      persist_auth_cookie(cookie_key, token_value)
     end
+    
+    Rails.logger.info { "[issue_encrypted_auth_cookies_for] Cookies issued for user #{resource.id}" }
   rescue StandardError => e
-    Rails.logger.warn("Failed to issue encrypted auth cookies: #{e.message}")
+    Rails.logger.error("Failed to issue encrypted auth cookies: #{e.message}")
+    Rails.logger.error(e.backtrace.join("\n"))
   end
 
   def persist_auth_cookie(cookie_key, token_value)
-    opts = cookie_options.dup
-    opts = opts.slice(:path, :same_site, :expires, :domain)
-    # slice removed :httponly/:secure, so ensure keys exist
-    opts[:httponly] = cookie_options[:httponly]
-    opts[:secure] = cookie_options[:secure]
-    opts[:value] = token_value
+    return if token_value.blank?
 
+    opts = {
+      value: token_value,
+      path: cookie_options[:path],
+      same_site: cookie_options[:same_site],
+      expires: cookie_options[:expires],
+      domain: cookie_options[:domain],
+      httponly: cookie_options[:httponly],
+      secure: cookie_options[:secure]
+    }
+
+    Rails.logger.debug { "[persist_auth_cookie] Setting cookie: #{cookie_key} with opts: #{opts.inspect}" }
     response.set_cookie(cookie_key.to_s, opts)
   end
 
