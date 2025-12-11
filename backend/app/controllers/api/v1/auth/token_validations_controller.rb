@@ -76,7 +76,6 @@ module Api
           return false if token_hash['expiry'] && Time.zone.at(token_hash['expiry'].to_i) < Time.current
           true
         end
-        end
 
         # トークン検証成功時のレスポンス
         def render_validate_token_success
