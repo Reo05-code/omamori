@@ -30,19 +30,19 @@ class ApplicationController < ActionController::API
   # Cookie から認証情報を読み取り、リクエストヘッダーにセット
   # DeviseTokenAuth の SetUserByToken がヘッダーから認証情報を読み取るため
   def set_user_by_cookie!
-    return if request.headers['access-token'].present?
+    return if request.headers["access-token"].present?
 
     access_token, client, uid = auth_cookie_values
 
     unless [access_token, client, uid].all?(&:present?)
-      Rails.logger.warn('[set_user_by_cookie] Missing cookies')
+      Rails.logger.warn("[set_user_by_cookie] Missing cookies")
       return
     end
 
-    Rails.logger.debug('[set_user_by_cookie] Setting headers from cookies')
-    request.headers['access-token'] = access_token
-    request.headers['client'] = client
-    request.headers['uid'] = uid
+    Rails.logger.debug("[set_user_by_cookie] Setting headers from cookies")
+    request.headers["access-token"] = access_token
+    request.headers["client"] = client
+    request.headers["uid"] = uid
   end
   # Cookie 関連の処理は `AuthCookieHelper` に移動しました。
 end

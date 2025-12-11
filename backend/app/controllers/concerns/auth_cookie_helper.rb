@@ -22,7 +22,7 @@ module AuthCookieHelper
     return if token_value.blank?
 
     opts = cookie_opts_for(token_value)
-    Rails.logger.debug('[persist_auth_cookie] Setting cookie')
+    Rails.logger.debug("[persist_auth_cookie] Setting cookie")
     response.set_cookie(cookie_key.to_s, opts)
   end
 
