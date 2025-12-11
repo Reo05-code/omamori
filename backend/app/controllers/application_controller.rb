@@ -86,32 +86,21 @@ class ApplicationController < ActionController::API
     # そのためすべての path を列挙して明示的に削除を行う。
     paths_to_clear = ["/", "/api", "/api/v1", "/api/v1/auth"]
     domain = cookie_options[:domain]
-
     paths_to_clear.each do |path|
-      # 普通のクッキー（明示的に response にもセットしているケース）
-      cookies.delete(:access_token, path: path, domain: domain)
-      cookies.delete(:client, path: path, domain: domain)
-      cookies.delete(:uid, path: path, domain: domain)
+      delete_auth_cookie_for_path(path, domain)
+    end
+  end
 
-      # encrypted cookies も削除
-      cookies.encrypted.delete(:access_token, path: path, domain: domain)
-      cookies.encrypted.delete(:client, path: path, domain: domain)
-      cookies.encrypted.delete(:uid, path: path, domain: domain)
-
-      # ブラウザが保持している cookie を確実に無効化するため、
-      # Expired な Set-Cookie ヘッダーを追加して上書きする
-      if respond_to?(:response)
-        [ :access_token, :client, :uid ].each do |ck|
-          response.set_cookie(
-            ck.to_s,
-            value: "",
-            path: path,
-            domain: domain,
-            expires: Time.at(0),
-            httponly: true
-          )
-        end
-      end
+  def delete_auth_cookie_for_path(path, domain)
+    %i[access_token client uid].each do |ck|
+      response.set_cookie(
+        ck.to_s,
+        value: "",
+        path: path,
+        domain: domain,
+        expires: 4.weeks.ago,
+        httponly: true
+      )
     end
   end
 
