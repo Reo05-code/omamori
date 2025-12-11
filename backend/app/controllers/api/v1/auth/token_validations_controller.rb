@@ -24,44 +24,23 @@ module Api
 
         # クッキーまたはヘッダーからトークンを検証してユーザーを認証
         def validate_user_token!
-          uid = request.headers['uid']
-          client = request.headers['client']
-          access_token = request.headers['access-token']
+          uid, client, access_token = extract_auth_headers
 
-          Rails.logger.info("[validate_user_token] Headers - uid: #{uid.present?}, client: #{client.present?}, access_token: #{access_token.present?}")
+          Rails.logger.info("[validate_user_token] headers present - uid=#{uid.present?} client=#{client.present?} token=#{access_token.present?}")
 
-          unless uid.present? && client.present? && access_token.present?
+          unless uid && client && access_token
             render_validate_token_error
             return
           end
 
-          @resource = User.find_by(uid: uid)
+          @resource = find_user_by_uid(uid)
+          return unless @resource
 
-          unless @resource
-            Rails.logger.info("[validate_user_token] User not found for uid: #{uid}")
-            render_validate_token_error
-            return
-          end
+          token_hash = fetch_token_hash(@resource, client)
+          return unless token_hash
 
-          # DeviseTokenAuth のトークン検証
-          token_hash = @resource.tokens[client]
-
-          unless token_hash
-            Rails.logger.info("[validate_user_token] No token found for client: #{client}")
-            render_validate_token_error
-            return
-          end
-
-          # BCrypt でトークンを検証
-          unless BCrypt::Password.new(token_hash['token']).is_password?(access_token)
-            Rails.logger.info("[validate_user_token] Token validation failed")
-            render_validate_token_error
-            return
-          end
-
-          # トークンの有効期限を確認
-          if token_hash['expiry'] && Time.at(token_hash['expiry'].to_i) < Time.current
-            Rails.logger.info("[validate_user_token] Token expired")
+          unless token_valid?(token_hash, access_token)
+            Rails.logger.info('[validate_user_token] Token validation failed')
             render_validate_token_error
             return
           end
@@ -69,13 +48,41 @@ module Api
           Rails.logger.info("[validate_user_token] Authentication successful for user: #{@resource.email}")
         end
 
-        private
+        def extract_auth_headers
+          [request.headers['uid'], request.headers['client'], request.headers['access-token']]
+        end
+
+        def find_user_by_uid(uid)
+          user = User.find_by(uid: uid)
+          unless user
+            Rails.logger.info("[validate_user_token] User not found for uid: #{uid}")
+            render_validate_token_error
+          end
+          user
+        end
+
+        def fetch_token_hash(resource, client)
+          token_hash = resource.tokens[client]
+          unless token_hash
+            Rails.logger.info("[validate_user_token] No token found for client: #{client}")
+            render_validate_token_error
+            return
+          end
+          token_hash
+        end
+
+        def token_valid?(token_hash, access_token)
+          return false unless BCrypt::Password.new(token_hash['token']).is_password?(access_token)
+          return false if token_hash['expiry'] && Time.zone.at(token_hash['expiry'].to_i) < Time.current
+          true
+        end
+        end
 
         # トークン検証成功時のレスポンス
         def render_validate_token_success
           render json: {
             status: "success",
-            data: @resource.as_json(except: [:tokens, :created_at, :updated_at])
+            data: @resource.as_json(except: %i[tokens created_at updated_at])
           }
         end
 

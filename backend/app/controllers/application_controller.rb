@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::API
   include DeviseTokenAuth::Concerns::SetUserByToken
-  include ActionController::Cookies
+  include AuthCookieHelper
 
   # Origin/Referer チェック
   before_action :verify_origin!
@@ -30,24 +30,19 @@ class ApplicationController < ActionController::API
   # Cookie から認証情報を読み取り、リクエストヘッダーにセット
   # DeviseTokenAuth の SetUserByToken がヘッダーから認証情報を読み取るため
   def set_user_by_cookie!
-    # 既にヘッダーがある場合はスキップ（ヘッダー認証を優先）
-    return if request.headers["access-token"].present?
+    return if request.headers['access-token'].present?
 
-    # Cookie から認証情報を取得
-    access_token = cookies[:access_token]
-    client = cookies[:client]
-    uid = cookies[:uid]
+    access_token, client, uid = auth_cookie_values
 
-    Rails.logger.debug { "[set_user_by_cookie] Cookies: access_token=#{access_token.present?}, client=#{client.present?}, uid=#{uid.present?}" }
+    Rails.logger.debug("[set_user_by_cookie] Cookies present - access_token=#{access_token.present?}, client=#{client.present?}, uid=#{uid.present?}")
 
-    # Cookie が存在する場合のみヘッダーにセット
     if access_token.present? && client.present? && uid.present?
-      Rails.logger.debug { "[set_user_by_cookie] Setting headers from cookies" }
-      request.headers["access-token"] = access_token
-      request.headers["client"] = client
-      request.headers["uid"] = uid
+      Rails.logger.debug('[set_user_by_cookie] Setting headers from cookies')
+      request.headers['access-token'] = access_token
+      request.headers['client'] = client
+      request.headers['uid'] = uid
     else
-      Rails.logger.warn { "[set_user_by_cookie] Missing cookies! access_token=#{access_token.present?}, client=#{client.present?}, uid=#{uid.present?}" }
+      Rails.logger.warn('[set_user_by_cookie] Missing cookies')
     end
   end
 
@@ -82,7 +77,9 @@ class ApplicationController < ActionController::API
 
     mapping.each do |cookie_key, header_name|
       token_value = token_headers[header_name]
-      Rails.logger.debug { "[issue_encrypted_auth_cookies_for] #{cookie_key}: #{token_value.present? ? 'present' : 'MISSING'}" }
+      Rails.logger.debug do
+        "[issue_encrypted_auth_cookies_for] #{cookie_key}: #{token_value.present? ? 'present' : 'MISSING'}"
+      end
       persist_auth_cookie(cookie_key, token_value)
     end
 
