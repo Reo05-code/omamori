@@ -1,4 +1,3 @@
-"""Add helper methods for cookie-based auth to keep ApplicationController small."""
 module AuthCookieHelper
   extend ActiveSupport::Concern
 
