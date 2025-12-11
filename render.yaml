@@ -13,3 +13,11 @@ services:
     # Optional: set the region and plan according to your account
     # region: oregon
     # plan: starter
+
+jobs:
+  - type: job
+    name: omamori-migrate
+    env: docker
+    dockerfilePath: backend/Dockerfile
+    # Run migrations manually from the Render dashboard (Run Job)
+    command: bash -lc "bundle exec rails db:migrate"
