@@ -17,6 +17,9 @@ module Api
         before_action :authenticate_api_v1_user!, only: %i[update destroy]
         # rubocop:enable Rails/LexicallyScopedActionFilter
 
+        # DTA が自動的に Cookie をセットする処理をスキップ
+        skip_after_action :update_auth_header, raise: false
+
         private
 
         # 登録時に許可するパラメータ
