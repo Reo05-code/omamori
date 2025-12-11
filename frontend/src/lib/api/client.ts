@@ -43,7 +43,9 @@ export async function apiRequest<T>(
   };
 
   try {
-    // 非GETリクエストでは CSRF トークンを取得してヘッダーにセットする
+    // CSRF トークンは不要（Origin チェックで保護）
+    // 以下のコードは互換性のためコメントアウト
+    /*
     if (method !== "GET") {
       try {
         const csrfToken = await fetchCsrf(API_BASE_URL);
@@ -51,12 +53,11 @@ export async function apiRequest<T>(
           headers["X-CSRF-Token"] = csrfToken;
         }
       } catch (e) {
-        // CSRF 取得失敗はログに残すが、リクエスト自体は続行させる
-        // 呼び出し先で 401/403 が返る可能性がある
-        // eslint-disable-next-line no-console
         console.warn("failed to fetch csrf token", e);
       }
     }
+    */
+    
     const response = await fetch(url, {
       method,
       headers,
