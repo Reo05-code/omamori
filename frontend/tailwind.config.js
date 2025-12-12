@@ -28,8 +28,20 @@ module.exports = {
         'warm-bg': '#fef3c7',
         'warm-surface': '#fffbeb',
       },
+      // FieldWatch / dashboard color tokens (keep alongside warm-* tokens)
+      primary: '#111827',
+      secondary: '#10b981',
+      danger: '#ef4444',
+      'background-light': '#f3f4f6',
+      'background-dark': '#0f172a',
+      'surface-light': '#ffffff',
+      'surface-dark': '#1e293b',
+      'border-light': '#e5e7eb',
+      'border-dark': '#334155',
       fontFamily: {
         display: ["'M PLUS Rounded 1c'", 'sans-serif'],
+        // Add Noto Sans JP for pages that use the FieldWatch tokens
+        sans: ["'Noto Sans JP'", 'sans-serif'],
       },
       borderRadius: {
         DEFAULT: '0.75rem',
