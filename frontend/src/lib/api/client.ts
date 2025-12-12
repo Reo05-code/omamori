@@ -5,12 +5,11 @@
  * - JSON/非JSON/204 の扱いを安全に処理
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
-import { fetchCsrf } from "./csrf";
+import { fetchCsrf } from './csrf';
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   headers?: Record<string, string>;
@@ -32,13 +31,13 @@ interface ApiResponse<T> {
 export async function apiRequest<T>(
   method: HttpMethod,
   path: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${path}`;
 
   // ★共通ヘッダー（現状 JSON 固定）
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...options.headers, // 呼び出し側で上書き可能
   };
 
@@ -62,12 +61,12 @@ export async function apiRequest<T>(
       method,
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
-      credentials: "include", // ★httpOnly Cookie 認証の要
+      credentials: 'include', // ★httpOnly Cookie 認証の要
     });
 
     // レスポンスの JSON 判定（204 や HTMLを安全に扱う）
-    const contentType = response.headers.get("content-type");
-    const isJson = contentType?.includes("application/json");
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
 
     // ======== エラーレスポンス ========
     if (!response.ok) {
@@ -76,9 +75,7 @@ export async function apiRequest<T>(
 
       return {
         data: null,
-        error:
-          errorData?.errors?.[0] ||
-          `エラーが発生しました (${response.status})`,
+        error: errorData?.errors?.[0] || `エラーが発生しました (${response.status})`,
         status: response.status,
       };
     }
@@ -91,7 +88,7 @@ export async function apiRequest<T>(
   } catch (_error) {
     return {
       data: null,
-      error: "ネットワークエラーが発生しました",
+      error: 'ネットワークエラーが発生しました',
       status: 0,
     };
   }
@@ -102,18 +99,16 @@ export async function apiRequest<T>(
  * - 呼び出し側のコードを簡潔に保つための実務的パターン
  */
 export const api = {
-  get: <T>(path: string, options?: RequestOptions) =>
-    apiRequest<T>("GET", path, options),
+  get: <T>(path: string, options?: RequestOptions) => apiRequest<T>('GET', path, options),
 
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
-    apiRequest<T>("POST", path, { ...options, body }),
+    apiRequest<T>('POST', path, { ...options, body }),
 
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
-    apiRequest<T>("PUT", path, { ...options, body }),
+    apiRequest<T>('PUT', path, { ...options, body }),
 
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
-    apiRequest<T>("PATCH", path, { ...options, body }),
+    apiRequest<T>('PATCH', path, { ...options, body }),
 
-  delete: <T>(path: string, options?: RequestOptions) =>
-    apiRequest<T>("DELETE", path, options),
+  delete: <T>(path: string, options?: RequestOptions) => apiRequest<T>('DELETE', path, options),
 };
