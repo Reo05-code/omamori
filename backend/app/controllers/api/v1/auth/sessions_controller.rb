@@ -20,7 +20,6 @@ module Api
 
         private
 
-
         # ログイン成功時：Cookieを発行して最小限のユーザ情報を返す
         def render_create_success
           # テストで呼び出しを確認するためのデバッグログ
