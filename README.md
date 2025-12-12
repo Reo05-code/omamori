@@ -69,6 +69,11 @@ docker-compose exec frontend npm run lint:fix
 
 # ビルド
 docker-compose exec frontend npm run build
+
+# frontend コンテナ内で整形を実行して ESLint 自動修正もかける（推奨順）
+docker compose exec frontend sh -lc "cd /app && npm run format"
+
+docker compose exec frontend sh -lc "cd /app && npm run lint:fix || true"
 ```
 
 ## CI/CD
