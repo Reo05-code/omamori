@@ -22,19 +22,19 @@ module Api
 
         private
 
-        # 登録時に許可するパラメータ
+        # 新規登録時に許可するパラメータを返す
         def sign_up_params
           params.permit(:email, :password, :password_confirmation, :name, :phone_number)
         end
 
-        # 更新時に許可するパラメータ
+        # アカウント更新時に許可するパラメータを返す
         def account_update_params
           params.permit(:email, :password, :password_confirmation, :name, :phone_number, :avatar_url)
         end
 
         protected
 
-        # 登録成功時のレスポンス
+        # 新規登録成功時にCookieを発行してサクセスレスポンスを返す
         def render_create_success
           issue_encrypted_auth_cookies_for(@resource)
 
@@ -45,7 +45,7 @@ module Api
           }
         end
 
-        # 登録失敗時のレスポンス
+        # 新規登録失敗時のエラーレスポンスを返す
         def render_create_error
           render json: {
             status: "error",
@@ -53,7 +53,7 @@ module Api
           }, status: :unprocessable_content
         end
 
-        # 更新成功時のレスポンス
+        # アカウント更新成功時のサクセスレスポンスを返す
         def render_update_success
           render json: {
             status: "success",
@@ -62,7 +62,7 @@ module Api
           }
         end
 
-        # 更新失敗時のレスポンス
+        # アカウント更新失敗時のエラーレスポンスを返す
         def render_update_error
           render json: {
             status: "error",
@@ -70,7 +70,7 @@ module Api
           }, status: :unprocessable_content
         end
 
-        # アカウント削除成功時のレスポンス
+        # アカウント削除成功時のサクセスレスポンスを返す
         def render_destroy_success
           render json: {
             status: "success",
@@ -78,7 +78,7 @@ module Api
           }
         end
 
-        # アカウント削除失敗時のレスポンス
+        # アカウント削除失敗時のエラーレスポンスを返す
         def render_destroy_error
           render json: {
             status: "error",

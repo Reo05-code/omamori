@@ -15,14 +15,14 @@ module Api
         before_action :set_user_by_cookie!
         before_action :validate_user_token!
 
-        # トークン検証（read-only: Cookie/ヘッダーの更新なし）
+        # トークン検証エンドポイント（読み取り専用）
         def validate_token
           render_validate_token_success
         end
 
         private
 
-        # クッキーまたはヘッダーからトークンを検証してユーザーを認証
+        # クッキー/ヘッダーのトークンを検証して@resourceを設定する
         def validate_user_token!
           uid, client, access_token = extract_auth_headers
 
@@ -34,6 +34,7 @@ module Api
           Rails.logger.info("[validate_user_token] Authentication successful for user: #{@resource.email}")
         end
 
+        # 実際にトークン一致・有効期限をチェックして認証可否を返す
         def authenticate_with_cookies?(uid, client, access_token)
           Rails.logger.info("[validate_user_token] headers present")
           return false unless uid && client && access_token
@@ -47,10 +48,12 @@ module Api
           token_valid?(token_hash, access_token)
         end
 
+        # リクエストから認証ヘッダ(uid, client, access-token)を抽出する
         def extract_auth_headers
           [request.headers["uid"], request.headers["client"], request.headers["access-token"]]
         end
 
+        # uidからユーザーを検索して返す
         def find_user_by_uid(uid)
           user = User.find_by(uid: uid)
           Rails.logger.info("[validate_user_token] User not found for uid: #{uid}") unless user
@@ -58,6 +61,7 @@ module Api
           user
         end
 
+        # ユーザーのtokensハッシュからクライアント情報を取得する
         def fetch_token_hash(resource, client)
           token_hash = resource.tokens[client]
           unless token_hash
@@ -68,6 +72,7 @@ module Api
           token_hash
         end
 
+        # 保存されているハッシュと受け取ったトークンの一致・有効期限を検証する
         def token_valid?(token_hash, access_token)
           return false unless BCrypt::Password.new(token_hash["token"]).is_password?(access_token)
           return false if token_hash["expiry"] && Time.zone.at(token_hash["expiry"].to_i) < Time.current
@@ -75,7 +80,7 @@ module Api
           true
         end
 
-        # トークン検証成功時のレスポンス
+        # トークン検証成功レスポンスを返す
         def render_validate_token_success
           render json: {
             status: "success",
@@ -83,7 +88,7 @@ module Api
           }
         end
 
-        # トークン検証失敗時のレスポンス
+        # トークン検証失敗レスポンスを返す（401）
         def render_validate_token_error
           render json: {
             status: "error",

@@ -19,7 +19,7 @@ module Api
         before_action :authenticate_api_v1_user!, only: [:update]
         # rubocop:enable Rails/LexicallyScopedActionFilter
 
-        # パスワードリセットメール送信成功時のレスポンス
+        # パスワード再設定メール送信成功レスポンスを返す
         def render_create_success
           render json: {
             status: "success",
@@ -27,7 +27,7 @@ module Api
           }
         end
 
-        # DeviseTokenAuth の create をオーバーライドして redirect_url を sanitize
+        # redirect_urlを検証してパスワード再設定メール送信処理を実行する
         def create
           # permit で明示的に受け付けるキーを制限しておく
           params.permit(:email, :redirect_url)
@@ -41,7 +41,7 @@ module Api
           super
         end
 
-        # パスワードリセットメール送信失敗時のレスポンス
+        # パスワード再設定メール送信失敗レスポンスを返す
         def render_create_error
           render json: {
             status: "error",
@@ -49,7 +49,7 @@ module Api
           }, status: :unprocessable_content
         end
 
-        # パスワード変更成功時のレスポンス
+        # パスワード変更成功レスポンスを返す
         def render_update_success
           render json: {
             status: "success",
@@ -58,7 +58,7 @@ module Api
           }
         end
 
-        # パスワード変更失敗時のレスポンス
+        # パスワード変更失敗レスポンスを返す
         def render_update_error
           render json: {
             status: "error",
