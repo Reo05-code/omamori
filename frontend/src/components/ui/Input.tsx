@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import React from 'react'
+import React from 'react';
 
 type Props = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string
-}
+  label?: string;
+};
 
 export default function Input({ label, className = '', id, ...rest }: Props) {
   return (
@@ -22,5 +22,5 @@ export default function Input({ label, className = '', id, ...rest }: Props) {
         />
       </div>
     </>
-  )
+  );
 }

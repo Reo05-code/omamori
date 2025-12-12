@@ -12,11 +12,11 @@ export interface UserResponse {
   name: string;
   phone_number: string;
   avatar_url: string | null;
-  role: "worker" | "admin";
+  role: 'worker' | 'admin';
   allow_password_change: boolean;
   settings: {
     notification_enabled?: boolean;
-    dark_mode?: "on" | "off";
+    dark_mode?: 'on' | 'off';
   };
   created_at: string;
   updated_at: string;
@@ -24,20 +24,20 @@ export interface UserResponse {
 
 // ログインレスポンス
 export interface LoginResponse {
-  status: "success";
+  status: 'success';
   data: UserResponse;
 }
 
 // サインアップレスポンス
 export interface SignUpResponse {
-  status: "success";
+  status: 'success';
   message: string;
   data: UserResponse;
 }
 
 // APIエラーレスポンス
 export interface APIErrorResponse {
-  status: "error";
+  status: 'error';
   errors: string[];
 }
 
@@ -58,7 +58,7 @@ export interface SignUpRequest {
 
 // トークン検証レスポンス
 export interface ValidateTokenResponse {
-  status: "success";
+  status: 'success';
   data: UserResponse;
 }
 
@@ -70,7 +70,7 @@ export interface PasswordResetRequest {
 
 // パスワードリセットメール送信レスポンス
 export interface PasswordResetResponse {
-  status: "success";
+  status: 'success';
   message: string;
 }
 
@@ -82,7 +82,7 @@ export interface PasswordUpdateRequest {
 
 // パスワード変更レスポンス
 export interface PasswordUpdateResponse {
-  status: "success";
+  status: 'success';
   message: string;
   data: UserResponse;
 }

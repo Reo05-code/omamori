@@ -3,9 +3,9 @@
  * ログイン、ログアウト、サインアップなどの認証処理
  */
 
-import { api } from "./client";
-import { isEmail } from "../utils";
-import { API_PATHS } from "./paths";
+import { api } from './client';
+import { isEmail } from '../utils';
+import { API_PATHS } from './paths';
 import type {
   LoginRequest,
   LoginResponse,
@@ -16,7 +16,7 @@ import type {
   SignUpRequest,
   SignUpResponse,
   ValidateTokenResponse,
-} from "./types";
+} from './types';
 
 /**
  * ログイン
@@ -42,7 +42,7 @@ export async function signUp(
   password: string,
   passwordConfirmation: string,
   name: string,
-  phoneNumber: string
+  phoneNumber: string,
 ) {
   const body: SignUpRequest = {
     email,
@@ -66,10 +66,10 @@ export async function validateToken() {
  */
 export async function requestPasswordReset(email: string, redirectUrl: string) {
   // クライアント側でも最低限のバリデーションを行い、不正な入力は即時に拒否する
-  const trimmed = email?.trim() ?? ''
+  const trimmed = email?.trim() ?? '';
   if (!isEmail(trimmed)) {
     // 入力バリデーションエラーは例外として投げる（呼び出し側で catch して表示する想定）
-    throw new Error('有効なメールアドレスを入力してください')
+    throw new Error('有効なメールアドレスを入力してください');
   }
 
   const body: PasswordResetRequest = {
@@ -86,7 +86,7 @@ export async function requestPasswordReset(email: string, redirectUrl: string) {
 export async function updatePassword(
   password: string,
   passwordConfirmation: string,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ) {
   const body: PasswordUpdateRequest = {
     password,

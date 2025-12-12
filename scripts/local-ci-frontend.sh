@@ -7,6 +7,9 @@ echo "Running frontend CI checks..."
 echo "--- Installing dependencies ---"
 docker compose exec frontend npm install
 
+echo "--- Running Prettier check ---"
+docker compose exec frontend sh -lc "cd /app && npm run format:check"
+
 echo "--- Running ESLint ---"
 docker compose exec frontend npm run lint
 

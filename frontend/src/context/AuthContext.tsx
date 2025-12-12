@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import React, { createContext, useContext } from "react"
-import { useAuth } from "../hooks/useAuth"
+import React, { createContext, useContext } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 // `useAuth` の戻り型をそのまま Context の型として利用
-type AuthContextType = ReturnType<typeof useAuth>
+type AuthContextType = ReturnType<typeof useAuth>;
 
 // Context の初期値は null。Provider 内で必ず値を提供する設計。
-const AuthContext = createContext<AuthContextType | null>(null)
+const AuthContext = createContext<AuthContextType | null>(null);
 
 /**
  * AuthProvider
@@ -16,9 +16,9 @@ const AuthContext = createContext<AuthContextType | null>(null)
  * - このコンポーネントはクライアント専用 (`"use client"`) なので SSR コンポーネントには使えない
  */
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const auth = useAuth()
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
-}
+  const auth = useAuth();
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+};
 
 /**
  * useAuthContext
@@ -26,9 +26,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
  * - Provider の外で呼ばれた場合は明確なエラーを投げる
  */
 export const useAuthContext = () => {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuthContext must be used within AuthProvider")
-  return ctx
-}
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuthContext must be used within AuthProvider');
+  return ctx;
+};
 
-export default AuthProvider
+export default AuthProvider;

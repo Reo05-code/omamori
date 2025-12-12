@@ -1,24 +1,24 @@
-type Size = 'sm' | 'md' | 'lg' | number
+type Size = 'sm' | 'md' | 'lg' | number;
 
 type Props = {
-  size?: Size
-  className?: string
-  label?: string
-}
+  size?: Size;
+  className?: string;
+  label?: string;
+};
 
 export default function Spinner({ size = 'md', className = '', label }: Props) {
-  const isNumber = typeof size === 'number'
-  const sizeStyle = isNumber ? { width: size, height: size } : undefined
+  const isNumber = typeof size === 'number';
+  const sizeStyle = isNumber ? { width: size, height: size } : undefined;
 
   const sizeClass = !isNumber
     ? size === 'sm'
       ? 'h-4 w-4'
       : size === 'lg'
-      ? 'h-10 w-10'
-      : 'h-6 w-6'
-    : ''
+        ? 'h-10 w-10'
+        : 'h-6 w-6'
+    : '';
 
-  const baseClass = `${sizeClass} animate-spin text-primary-600`
+  const baseClass = `${sizeClass} animate-spin text-primary-600`;
 
   return (
     <div role="status" className={`inline-block ${className}`}>
@@ -38,13 +38,9 @@ export default function Spinner({ size = 'md', className = '', label }: Props) {
           strokeWidth="4"
           fill="none"
         />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-        />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
       </svg>
       {label ? <span className="sr-only">{label}</span> : null}
     </div>
-  )
+  );
 }

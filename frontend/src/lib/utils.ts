@@ -16,8 +16,8 @@ export function isEmail(value: string): boolean {
  */
 export function isStrongPassword(value: string): boolean {
   // 同じ検証ルールをフロント内のリセット / 登録で共有するためにここで定義
-  const pwRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/
-  return pwRegex.test(value)
+  const pwRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/;
+  return pwRegex.test(value);
 }
 
 /**

@@ -1,14 +1,20 @@
-"use client"
+'use client';
 
-import React from 'react'
-import Spinner from './Spinner'
+import React from 'react';
+import Spinner from './Spinner';
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  loading?: boolean
-}
+  loading?: boolean;
+};
 
-export default function PrimaryButton({ children, loading = false, className = '', disabled, ...rest }: Props) {
-  const isDisabled = disabled || loading
+export default function PrimaryButton({
+  children,
+  loading = false,
+  className = '',
+  disabled,
+  ...rest
+}: Props) {
+  const isDisabled = disabled || loading;
   return (
     <button
       {...rest}
@@ -24,5 +30,5 @@ export default function PrimaryButton({ children, loading = false, className = '
         children
       )}
     </button>
-  )
+  );
 }

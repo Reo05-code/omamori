@@ -1,51 +1,51 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { api } from '../lib/api/client'
-import Spinner from '../components/ui/Spinner'
-import ErrorView from '../components/common/ErrorView'
+import { useEffect, useState } from 'react';
+import { api } from '../lib/api/client';
+import Spinner from '../components/ui/Spinner';
+import ErrorView from '../components/common/ErrorView';
 
 interface HealthStatus {
-  status: string
-  timestamp: string
-  environment: string
+  status: string;
+  timestamp: string;
+  environment: string;
 }
 
 export default function Home() {
-  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHealthStatus = async () => {
       try {
-        const res = await api.get<HealthStatus>('/health')
+        const res = await api.get<HealthStatus>('/health');
         if (res.error) {
-          setError(res.error)
+          setError(res.error);
         } else {
-          setHealthStatus(res.data as HealthStatus)
+          setHealthStatus(res.data as HealthStatus);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchHealthStatus()
-  }, [])
+    fetchHealthStatus();
+  }, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-2xl w-full mx-4">
         <div className="bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">
-            Rails + Next.js
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">Rails + Next.js</h1>
           <p className="text-gray-600 text-center mb-8">フルスタック開発環境へようこそ</p>
 
           <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-4">バックエンド API ステータス</h2>
+            <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+              バックエンド API ステータス
+            </h2>
 
             {loading && (
               <div className="flex items-center justify-center py-8">
@@ -56,7 +56,9 @@ export default function Home() {
             {error && (
               <div className="py-4">
                 <ErrorView message={error} />
-                <p className="text-sm text-red-600 mt-2">バックエンドサーバーが起動していることを確認してください。</p>
+                <p className="text-sm text-red-600 mt-2">
+                  バックエンドサーバーが起動していることを確認してください。
+                </p>
               </div>
             )}
 
@@ -77,7 +79,9 @@ export default function Home() {
                   </div>
                   <div className="flex">
                     <dt className="font-semibold text-gray-700 w-24">Timestamp:</dt>
-                    <dd className="text-gray-600">{new Date(healthStatus.timestamp).toLocaleString('ja-JP')}</dd>
+                    <dd className="text-gray-600">
+                      {new Date(healthStatus.timestamp).toLocaleString('ja-JP')}
+                    </dd>
                   </div>
                 </dl>
               </div>
@@ -110,5 +114,5 @@ export default function Home() {
         </div>
       </div>
     </main>
-  )
+  );
 }
