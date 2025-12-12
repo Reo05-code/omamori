@@ -13,8 +13,8 @@ FactoryBot.define do
     password { "password123" }
     password_confirmation { "password123" }
 
-    # enum :worker を基本値として設定
-    role { :worker }
+    # enum :admin を基本値として設定
+    role { :admin }
 
     # DB 制約に合わせてユニーク番号を生成
     sequence(:phone_number) { |n| format("090%08d", n) }

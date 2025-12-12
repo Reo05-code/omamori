@@ -17,7 +17,7 @@ module AuthCookieHelper
     }
   end
 
-  # 永続化用の Cookie をセットする（トークンが空の場合は noop）
+  # 与えられたトークンを永続化用Cookieとしてレスポンスにセットする
   def persist_auth_cookie(cookie_key, token_value)
     return if token_value.blank?
 
@@ -26,6 +26,7 @@ module AuthCookieHelper
     response.set_cookie(cookie_key.to_s, opts)
   end
 
+  # 指定トークン値からCookie設定オプションを組み立てる
   def cookie_opts_for(token_value)
     {
       value: token_value,
@@ -61,7 +62,7 @@ module AuthCookieHelper
     Rails.logger.error(e.backtrace.join("\n"))
   end
 
-  # token header を生成（DTA のヘッダー自動追加を避けるためヘッダーは削除する）
+  # リソースから認証ヘッダーを生成し、レスポンスヘッダーを消す
   def generate_auth_token_headers(resource)
     token_headers = resource.create_new_auth_token
     remove_auth_headers if respond_to?(:remove_auth_headers, true)
@@ -71,6 +72,7 @@ module AuthCookieHelper
     {}
   end
 
+  # レスポンスに含まれる認証関連ヘッダーを削除する
   def remove_auth_headers
     %w[access-token client uid expiry token-type].each do |header_name|
       response.headers.delete(header_name)
@@ -79,6 +81,7 @@ module AuthCookieHelper
     Rails.logger.debug { "[AuthCookieHelper] remove_auth_headers failed: #{e.message}" }
   end
 
+  # すべての認証Cookieを複数パスに渡って削除する
   def clear_auth_cookies
     paths_to_clear = ["/", "/api", "/api/v1", "/api/v1/auth"]
     domain = cookie_options[:domain]
@@ -87,18 +90,21 @@ module AuthCookieHelper
     end
   end
 
+  # 指定パス/ドメインで認証Cookieを削除する（ヘッダー側もexpire）
   def delete_auth_cookie_for_path(path, domain)
     %i[access_token client uid].each do |ck|
       delete_single_cookie(ck, path, domain)
     end
   end
 
+  # 単一のCookie削除処理（domain付き/なし両方へ対応）
   def delete_single_cookie(cookie_name, path, domain)
     cookies.delete(cookie_name, path: path, domain: domain)
     cookies.delete(cookie_name, path: path) if domain.present?
     expire_cookie_in_response(cookie_name, path, domain)
   end
 
+  # レスポンスに明示的な期限切れCookieを書き込んでブラウザ側でも削除させる
   def expire_cookie_in_response(cookie_name, path, domain)
     opts = {
       value: "",
@@ -113,7 +119,7 @@ module AuthCookieHelper
     response.set_cookie(cookie_name.to_s, opts)
   end
 
-  # 認証 Cookie の値を配列で返す
+  # 認証Cookieの(access_token, client, uid)を配列で返す
   def auth_cookie_values
     [cookies[:access_token], cookies[:client], cookies[:uid]]
   end

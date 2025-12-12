@@ -20,17 +20,12 @@ module Api
 
         private
 
-        # ログイン成功時のレスポンス
+        # ログイン成功時：Cookieを発行して最小限のユーザ情報を返す
         def render_create_success
-          # Debug: このコントローラの処理が呼ばれたことを確認するためのログ
-          # テスト実行中に render_create_success が実行されるかを追跡します
+          # テストで呼び出しを確認するためのデバッグログ
           Rails.logger.debug("[SessionsController] render_create_success: start")
-          # devise_token_auth は既にヘッダ (access-token, client, uid) を設定している。
-          # ApplicationController の after_action が動くことに依存するのは脆弱なので、
-          # サインイン成功時はここで明示的にクッキーへ書き込みます。
-          # Cookie 設定は devise_token_auth がレスポンスヘッダーを書き込む after_action に依存します。
 
-          # 認証用クッキー発行
+          # devise_token_auth のレスポンスヘッダ依存を避けるため、ここでCookieを発行する
           issue_encrypted_auth_cookies_for(@resource)
 
           render json: {
@@ -39,7 +34,7 @@ module Api
           }, status: :ok
         end
 
-        # ログイン失敗時のレスポンス
+        # ログイン認証失敗時のエラーレスポンスを返す
         def render_create_error_bad_credentials
           render json: {
             status: "error",
@@ -47,7 +42,7 @@ module Api
           }, status: :unauthorized
         end
 
-        # ログアウト成功時のレスポンス
+        # ログアウト成功時：認証Cookieをクリアして成功を返す
         def render_destroy_success
           clear_auth_cookies
 
@@ -57,7 +52,7 @@ module Api
           }, status: :ok
         end
 
-        # ログアウト失敗時のレスポンス
+        # ログアウト失敗時のエラーレスポンスを返す
         def render_destroy_error
           render json: {
             status: "error",
@@ -65,7 +60,7 @@ module Api
           }, status: :bad_request
         end
 
-        # ユーザー情報を返すJSONを最小化
+        # 最小限のユーザ情報をJSONで返す
         def user_data(user)
           {
             id: user.id,
