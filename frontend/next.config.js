@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
 
 // 開発環境用
 // フロントから /api/* へのリクエストをバックエンドの Rails サーバにプロキシします。
