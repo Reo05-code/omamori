@@ -12,14 +12,13 @@ class Invitation < ApplicationRecord
   before_validation :ensure_token
 
   # バリデーション
-  validates :inviter, presence: true
   validate :inviter_must_be_admin
   validates :invited_email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :token, presence: true, uniqueness: true
   validates :role, presence: true
 
   # 未承諾かつ有効期限内の招待のみを返すスコープ
-  scope :pending, -> {
+  scope :pending, lambda {
     where(accepted_at: nil)
       # まだ承諾されていなくて、期限が設定されていないか、まだ期限内の招待
       .where("expires_at IS NULL OR expires_at > ?", Time.current)
