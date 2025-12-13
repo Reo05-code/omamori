@@ -11,8 +11,13 @@ class User < ApplicationRecord
   # モバイルアプリや SPA との連携で使う
   include DeviseTokenAuth::Concerns::User
 
-  # Roleの定義 (0: worker, 1: admin)
+  # Roleの定義
   enum :role, { worker: 0, admin: 1 }
+
+  # ユーザが発行した招待
+  # - inviter_id を使って Invitation を参照する
+  has_many :sent_invitations, class_name: "Invitation", foreign_key: "inviter_id", inverse_of: :inviter,
+                              dependent: :destroy
 
   # store_accessor は JSON カラムに保存されているキーを「モデルの普通の属性」として扱える機能
   # 例: user.notification_enabled, user.dark_mode
