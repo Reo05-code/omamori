@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_13_071341) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_14_070214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,8 +23,27 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_13_071341) do
     t.datetime "accepted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "organization_id"
     t.index ["inviter_id"], name: "index_invitations_on_inviter_id"
+    t.index ["organization_id"], name: "index_invitations_on_organization_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
+  end
+
+  create_table "memberships", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "role", default: 0, null: false, comment: "0=worker, 1=admin"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id"], name: "index_memberships_on_organization_id"
+    t.index ["user_id", "organization_id"], name: "index_memberships_on_user_id_and_organization_id", unique: true
+    t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "organizations", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
@@ -49,5 +68,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_13_071341) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
+  add_foreign_key "invitations", "organizations"
   add_foreign_key "invitations", "users", column: "inviter_id"
+  add_foreign_key "memberships", "organizations"
+  add_foreign_key "memberships", "users"
 end
