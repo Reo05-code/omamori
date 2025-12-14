@@ -7,6 +7,8 @@
 class Invitation < ApplicationRecord
   # 招待者（Userモデルの admin）への関連
   belongs_to :inviter, class_name: "User"
+  # オプショナルに組織を紐づけられる（将来必須化の可能性あり）
+  belongs_to :organization, optional: true
 
   # トークンを作成（UUID）
   before_validation :ensure_token
