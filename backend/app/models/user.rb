@@ -24,7 +24,8 @@ class User < ApplicationRecord
   store_accessor :settings, :notification_enabled, :dark_mode
 
   # バリデーション
-  validates :name, presence: true, length: { maximum: 50 }
+  # API 経由で名前が必須だと登録失敗になるため、名前は任意にします。
+  validates :name, allow_blank: true, length: { maximum: 50 }
   validates :role, presence: true, inclusion: { in: roles.keys }
   # フロントエンド側では電話番号は任意扱いのため、空白は許容する
   validates :phone_number, allow_blank: true, format: { with: /\A\d{10,11}\z/, message: "は10〜11桁の数字で入力してください" }
@@ -38,7 +39,8 @@ class User < ApplicationRecord
   private
 
   def set_default_role
-    self.role ||= "admin"
+    # enum を利用しているのでシンボルで割り当てる（または整数を使う）
+    self.role ||= :worker
   end
 
   # 3. email

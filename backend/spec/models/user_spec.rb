@@ -27,7 +27,9 @@ RSpec.describe User do
   # ============================================
   describe "Validations" do
     # --- name ---
-    it { is_expected.to validate_presence_of(:name) }
+    # name は API 経由で必須でないため、空白を許容する
+    it { is_expected.to allow_value(nil).for(:name) }
+    it { is_expected.to allow_value("").for(:name) }
     it { is_expected.to validate_length_of(:name).is_at_most(50) }
 
     # --- email ---
@@ -94,7 +96,7 @@ RSpec.describe User do
       it "role が未指定でも作成時にデフォルトが入る" do
         u = build(:user, role: nil)
         u.save!
-        expect(u.role).to eq("admin")
+        expect(u.role).to eq("worker")
       end
     end
   end
