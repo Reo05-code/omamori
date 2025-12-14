@@ -17,6 +17,15 @@ Rails.application.routes.draw do
       # SPA クライアント向け CSRF 取得エンドポイント（form_authenticity_token を返し、
       # XSRF-TOKEN クッキーをセットします）
       get "auth/csrf", to: "auth/csrf#show"
+
+      # Organization と関連リソースのエンドポイント
+      resources :organizations, only: %i[index create show] do
+        resources :memberships, only: %i[index update destroy]
+        resources :invitations, only: %i[index create]
+      end
+
+      # 未ログインユーザが招待を受け入れるためのエンドポイント
+      post "invitations/accept", to: "invitations#accept"
     end
   end
 end
