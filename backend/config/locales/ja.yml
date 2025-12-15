@@ -47,6 +47,8 @@ ja:
         destroy_success: "メンバーを削除しました"
         error:
           update: "メンバー情報の更新に失敗しました"
+          cannot_demote_self: "自分自身の管理者権限は降格できません"
+          last_admin: "組織には少なくとも1人の管理者が必要です"
 
       invitations:
         accepted: "招待を承諾しました"
