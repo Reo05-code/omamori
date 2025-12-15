@@ -7,22 +7,16 @@ module Api
 
       def index
         memberships = @organization.memberships.includes(:user)
-        render json: memberships.map { |m|
-          {
-            id: m.id,
-            user_id: m.user_id,
-            email: m.user.email,
-            role: m.role
-          }
-        }
+        render json: memberships.map { |m| Api::V1::MembershipSerializer.new(m).as_json }
       end
 
       def update
         membership = @organization.memberships.find(params[:id])
         membership.update!(membership_params)
-        render json: membership
+        render json: Api::V1::MembershipSerializer.new(membership).as_json
       rescue ActiveRecord::RecordInvalid => e
-        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] }, status: :unprocessable_entity
+        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] },
+               status: :unprocessable_entity
       end
 
       def destroy
@@ -39,7 +33,10 @@ module Api
 
       def require_admin!
         membership = @organization.memberships.find_by(user: current_user)
-        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") }, status: :forbidden) unless membership&.admin?
+        return if membership&.admin?
+
+        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") },
+               status: :forbidden)
       end
 
       def membership_params

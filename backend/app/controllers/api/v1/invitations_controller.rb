@@ -7,16 +7,19 @@ module Api
       before_action :require_admin!, only: %i[index create]
 
       def index
-        render json: @organization.invitations.where(accepted_at: nil)
+        invitations = @organization.invitations.where(accepted_at: nil).includes(:inviter)
+
+        render json: invitations.map { |inv| Api::V1::InvitationSerializer.new(inv).as_json }
       end
 
       def create
         invitation = @organization.invitations.new(invitation_params)
         invitation.inviter = current_user
         invitation.save!
-        render json: invitation, status: :created
+        render json: Api::V1::InvitationSerializer.new(invitation).as_json, status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] }, status: :unprocessable_entity
+        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] },
+               status: :unprocessable_entity
       end
 
       def accept
@@ -44,7 +47,10 @@ module Api
 
       def require_admin!
         membership = @organization.memberships.find_by(user: current_user)
-        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") }, status: :forbidden) unless membership&.admin?
+        return if membership&.admin?
+
+        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") },
+               status: :forbidden)
       end
 
       def invitation_params

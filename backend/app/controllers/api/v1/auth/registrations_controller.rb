@@ -50,7 +50,7 @@ module Api
           render json: {
             status: "error",
             errors: resource_errors[:full_messages].presence || [I18n.t("api.v1.auth.error.registrations.create")]
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
 
         # アカウント更新成功時のサクセスレスポンスを返す
@@ -67,7 +67,7 @@ module Api
           render json: {
             status: "error",
             errors: resource_errors[:full_messages]
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
 
         # アカウント削除成功時のサクセスレスポンスを返す
@@ -83,7 +83,7 @@ module Api
           render json: {
             status: "error",
             errors: [I18n.t("api.v1.auth.registrations.destroy_error")]
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
     end
