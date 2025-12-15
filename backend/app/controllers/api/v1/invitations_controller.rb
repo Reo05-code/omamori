@@ -16,7 +16,10 @@ module Api
         invitation = @organization.invitations.new(invitation_params)
         invitation.inviter = current_user
         invitation.save!
-        render json: Api::V1::InvitationSerializer.new(invitation).as_json, status: :created
+         render json: Api::V1::InvitationSerializer.new(invitation).as_json,
+           status: :created,
+          #  showがルーティングにないため一覧パスをlocation設定
+           location: api_v1_organization_invitations_path(@organization)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] },
                status: :unprocessable_entity

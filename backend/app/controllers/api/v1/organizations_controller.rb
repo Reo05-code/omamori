@@ -24,7 +24,9 @@ module Api
             user: current_user,
             role: :admin
           )
-          render json: Api::V1::OrganizationSerializer.new(organization).as_json, status: :created
+             render json: Api::V1::OrganizationSerializer.new(organization).as_json,
+               status: :created,
+               location: api_v1_organization_path(organization)
         end
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.error.create")] },
