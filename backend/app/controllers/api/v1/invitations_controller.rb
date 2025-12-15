@@ -12,8 +12,9 @@ module Api
       end
 
       def create
-        # role を正規化して無効なら 422 を返す
-        norm_role = normalize_role_or_render(invitation_params[:role])
+        # role は params から取り出して正規化する（Strong params に role を含めない）
+        raw_role = params.dig(:invitation, :role)
+        norm_role = normalize_role_or_render(raw_role)
         return if norm_role.blank?
 
         invitation = create_invitation(norm_role)
@@ -54,10 +55,11 @@ module Api
       end
 
       def invitation_params
-        params.require(:invitation).permit(:invited_email, :role)
+        params.require(:invitation).permit(:invited_email)
       end
 
       def normalize_role_or_render(role)
+        # role は params から直接取らず、このヘルパに渡して正規化する
         norm_role = Membership.normalize_role(role)
         if norm_role.blank?
           render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_content

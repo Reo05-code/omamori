@@ -15,9 +15,7 @@ module Api
         # ポリシーは理由付きの結果を返す。Controller は結果（allowed?, error_key）だけを見てレスポンスする。
         return if render_membership_update_forbidden?(membership)
 
-        # trueなら更新処理実行
-        membership.update!(membership_params)
-        render json: Api::V1::MembershipSerializer.new(membership).as_json
+        perform_membership_update(membership)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] },
                status: :unprocessable_content
@@ -48,11 +46,28 @@ module Api
       end
 
       def membership_params
-        params.require(:membership).permit(:role)
+        # Do not permit :role directly to avoid mass-assignment warnings from Brakeman.
+        # Role should be normalized via `role_param` and passed explicitly to update.
+        params.require(:membership).permit
+      end
+
+      def role_param
+        params.dig(:membership, :role)
       end
 
       def membership_update_result(membership)
-        MembershipPolicy.new(current_user, membership, @current_membership).update(membership_params[:role])
+        MembershipPolicy.new(current_user, membership, @current_membership).update(role_param)
+      end
+
+      def perform_membership_update(membership)
+        norm_role = Membership.normalize_role(role_param)
+        if norm_role.blank?
+          render json: { errors: [I18n.t("api.v1.memberships.error.update")] }, status: :unprocessable_content
+          return
+        end
+
+        membership.update!(role: norm_role)
+        render json: Api::V1::MembershipSerializer.new(membership).as_json
       end
 
       def render_membership_update_forbidden?(membership)
