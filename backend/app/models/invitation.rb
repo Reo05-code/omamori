@@ -42,29 +42,41 @@ class Invitation < ApplicationRecord
     # pending でなければ拒否
     return Result.new(false, :invalid_token, nil, []) unless pending?
 
-    # 招待メールアドレスとユーザのメールアドレスが一致するか確認（大文字小文字は区別しない）
+    check_email_mismatch(user) || check_already_member(user) || begin
+      membership = nil
+      begin
+        membership = create_membership_for(user)
+      rescue ActiveRecord::RecordInvalid => e
+        # 例外を Result に変換して返す（設計を Result ベースに統一）
+        return Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
+      rescue ActiveRecord::RecordNotUnique
+        return Result.new(false, :already_member, nil, [])
+      end
+
+      Result.new(true, nil, membership, [])
+    end
+  end
+
+  def create_membership_for(user)
+    ActiveRecord::Base.transaction do
+      membership = organization.memberships.create!(user: user, role: role)
+      update!(accepted_at: Time.current)
+      membership
+    end
+  end
+
+  def check_email_mismatch(user)
     if invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
       return Result.new(false, :email_mismatch, nil, [])
     end
 
-    # すでに組織のメンバーであれば拒否
+    nil
+  end
+
+  def check_already_member(user)
     return Result.new(false, :already_member, nil, []) if organization.memberships.exists?(user: user)
 
-    # Membership 作成、Invitation を accepted にする処理をトランザクションで実行
-    membership = nil
-    begin
-      ActiveRecord::Base.transaction do
-        membership = organization.memberships.create!(user: user, role: role)
-        update!(accepted_at: Time.current)
-      end
-    rescue ActiveRecord::RecordInvalid => e
-      # 例外を Result に変換して返す（設計を Result ベースに統一）
-      return Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
-    rescue ActiveRecord::RecordNotUnique
-      return Result.new(false, :already_member, nil, [])
-    end
-
-    Result.new(true, nil, membership, [])
+    nil
   end
 
   private

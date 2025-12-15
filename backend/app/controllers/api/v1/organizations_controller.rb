@@ -35,8 +35,8 @@ module Api
         end
       rescue ActiveRecord::RecordInvalid => e
         # バリデーションエラーは詳細メッセージを優先して返し、なければ I18n の汎用メッセージへフォールバックする
-        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.error.create")] },
-               status: :unprocessable_content
+        errs = e.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.error.create")]
+        render json: { errors: errs }, status: :unprocessable_content
       end
 
       private

@@ -13,13 +13,10 @@ module Api
 
       def create
         # role を正規化して無効なら 422 を返す
-        norm_role = Membership.normalize_role(invitation_params[:role])
-        if norm_role.blank?
-          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_content
-          return
-        end
+        norm_role = normalize_role_or_render(invitation_params[:role])
+        return if norm_role.blank?
 
-        invitation = @organization.invitations.create!(invitation_params.merge(inviter: current_user, role: norm_role))
+        invitation = create_invitation(norm_role)
         render json: Api::V1::InvitationSerializer.new(invitation).as_json,
                status: :created,
                # show がルーティングにないため一覧パスを location に設定
@@ -36,24 +33,7 @@ module Api
         # Controller は結果を HTTP ステータスにマップして返すのみ。
         result = invitation.accept_by(current_user)
 
-        if result.success
-          render json: { message: I18n.t("api.v1.invitations.accepted"), membership: Api::V1::MembershipSerializer.new(result.membership).as_json }
-          return
-        end
-
-        case result.error_key
-        when :invalid_token
-          render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
-        when :email_mismatch
-          render json: { error: I18n.t("api.v1.invitations.error.email_mismatch") }, status: :forbidden
-        when :already_member
-          render json: { error: I18n.t("api.v1.invitations.error.already_member") }, status: :conflict
-        when :validation_errors
-          render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] },
-                 status: :unprocessable_content
-        else
-          render json: { error: I18n.t("api.v1.invitations.error.create") }, status: :unprocessable_content
-        end
+        handle_accept_result(result)
       rescue ActiveRecord::RecordNotFound
         render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
       end
@@ -75,6 +55,45 @@ module Api
 
       def invitation_params
         params.require(:invitation).permit(:invited_email, :role)
+      end
+
+      def normalize_role_or_render(role)
+        norm_role = Membership.normalize_role(role)
+        if norm_role.blank?
+          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_content
+          return nil
+        end
+
+        norm_role
+      end
+
+      def create_invitation(norm_role)
+        @organization.invitations.create!(invitation_params.merge(inviter: current_user, role: norm_role))
+      end
+
+      def handle_accept_result(result)
+        if result.success
+          render_accept_success(result.membership)
+          return
+        end
+
+        if result.error_key == :validation_errors
+          render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] },
+                 status: :unprocessable_content and return
+        end
+
+        mapping = {
+          invalid_token: [:not_found, "api.v1.invitations.error.invalid_token"],
+          email_mismatch: [:forbidden, "api.v1.invitations.error.email_mismatch"],
+          already_member: [:conflict, "api.v1.invitations.error.already_member"]
+        }
+
+        status_sym, i18n_key = mapping[result.error_key] || [:unprocessable_content, "api.v1.invitations.error.create"]
+        render json: { error: I18n.t(i18n_key) }, status: status_sym
+      end
+
+      def render_accept_success(membership)
+        render json: { message: I18n.t("api.v1.invitations.accepted"), membership: Api::V1::MembershipSerializer.new(membership).as_json }
       end
     end
   end

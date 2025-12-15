@@ -13,13 +13,7 @@ module Api
       def update
         membership = @organization.memberships.find(params[:id])
         # ポリシーは理由付きの結果を返す。Controller は結果（allowed?, error_key）だけを見てレスポンスする。
-        result = MembershipPolicy.new(current_user, membership, @current_membership)
-                                 .update(membership_params[:role])
-
-        unless result.allowed?
-          render json: { error: error_message_for(result.error_key) }, status: :forbidden
-          return
-        end
+        return if render_membership_update_forbidden?(membership)
 
         # trueなら更新処理実行
         membership.update!(membership_params)
@@ -55,6 +49,20 @@ module Api
 
       def membership_params
         params.require(:membership).permit(:role)
+      end
+
+      def membership_update_result(membership)
+        MembershipPolicy.new(current_user, membership, @current_membership).update(membership_params[:role])
+      end
+
+      def render_membership_update_forbidden?(membership)
+        result = membership_update_result(membership)
+        unless result.allowed?
+          render json: { error: error_message_for(result.error_key) }, status: :forbidden
+          return true
+        end
+
+        false
       end
 
       def error_message_for(error_key)

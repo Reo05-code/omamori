@@ -7,7 +7,7 @@ module Api
       end
 
       def as_json(*)
-        inviter = @invitation.association(:inviter).loaded? ? @invitation.inviter : @invitation.inviter
+        inviter = @invitation.inviter
 
         {
           id: @invitation.id,

@@ -7,7 +7,7 @@ module Api
       end
 
       def as_json(*)
-        user = @membership.association(:user).loaded? ? @membership.user : @membership.user
+        user = @membership.user
 
         {
           id: @membership.id,
