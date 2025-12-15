@@ -13,12 +13,13 @@ class Membership < ApplicationRecord
   # - 空文字列や不正な数値は nil を返し、呼び出し元でバリデーションできます。
   def self.normalize_role(value)
     return nil if value.nil?
+
     s = value.to_s
     return nil if s.empty?
 
     if s =~ /^\d+$/
       key = roles.key(s.to_i)
-      key ? key.to_s : nil
+      key&.to_s
     else
       s
     end

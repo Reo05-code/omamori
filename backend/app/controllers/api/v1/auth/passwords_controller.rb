@@ -46,7 +46,7 @@ module Api
           render json: {
             status: "error",
             errors: resource_errors[:full_messages].presence || [I18n.t("api.v1.auth.error.passwords.create")]
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
 
         # パスワード変更成功レスポンスを返す
@@ -63,7 +63,7 @@ module Api
           render json: {
             status: "error",
             errors: resource_errors[:full_messages].presence || [I18n.t("api.v1.auth.error.passwords.update")]
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
       end
     end

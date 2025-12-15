@@ -11,8 +11,6 @@ class Invitation < ApplicationRecord
   # Invitation は必ず組織に属する
   belongs_to :organization
 
-  validates :organization, presence: true
-
   enum :role, { worker: 0, admin: 1 }
 
   # トークンを作成（UUID）
@@ -42,9 +40,7 @@ class Invitation < ApplicationRecord
   # pending な招待を user が受諾する処理
   def accept_by(user)
     # pending でなければ拒否
-    unless pending?
-      return Result.new(false, :invalid_token, nil, [])
-    end
+    return Result.new(false, :invalid_token, nil, []) unless pending?
 
     # 招待メールアドレスとユーザのメールアドレスが一致するか確認（大文字小文字は区別しない）
     if invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
@@ -52,9 +48,7 @@ class Invitation < ApplicationRecord
     end
 
     # すでに組織のメンバーであれば拒否
-    if organization.memberships.exists?(user: user)
-      return Result.new(false, :already_member, nil, [])
-    end
+    return Result.new(false, :already_member, nil, []) if organization.memberships.exists?(user: user)
 
     # Membership 作成、Invitation を accepted にする処理をトランザクションで実行
     membership = nil

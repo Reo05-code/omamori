@@ -14,7 +14,7 @@ module Api
         membership = @organization.memberships.find(params[:id])
         # ポリシーは理由付きの結果を返す。Controller は結果（allowed?, error_key）だけを見てレスポンスする。
         result = MembershipPolicy.new(current_user, membership, @current_membership)
-                                   .update(membership_params[:role])
+                                 .update(membership_params[:role])
 
         unless result.allowed?
           render json: { error: error_message_for(result.error_key) }, status: :forbidden
@@ -26,7 +26,7 @@ module Api
         render json: Api::V1::MembershipSerializer.new(membership).as_json
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] },
-               status: :unprocessable_entity
+               status: :unprocessable_content
       end
 
       def destroy
@@ -67,7 +67,6 @@ module Api
           I18n.t("api.v1.organizations.error.forbidden")
         end
       end
-
     end
   end
 end

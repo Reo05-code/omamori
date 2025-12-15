@@ -14,8 +14,8 @@ module Api
       def create
         # role を正規化して無効なら 422 を返す
         norm_role = Membership.normalize_role(invitation_params[:role])
-        unless norm_role.present?
-          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_entity
+        if norm_role.blank?
+          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_content
           return
         end
 
@@ -26,7 +26,7 @@ module Api
                location: api_v1_organization_invitations_path(@organization)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] },
-               status: :unprocessable_entity
+               status: :unprocessable_content
       end
 
       def accept
@@ -49,9 +49,10 @@ module Api
         when :already_member
           render json: { error: I18n.t("api.v1.invitations.error.already_member") }, status: :conflict
         when :validation_errors
-          render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] }, status: :unprocessable_entity
+          render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] },
+                 status: :unprocessable_content
         else
-          render json: { error: I18n.t("api.v1.invitations.error.create") }, status: :unprocessable_entity
+          render json: { error: I18n.t("api.v1.invitations.error.create") }, status: :unprocessable_content
         end
       rescue ActiveRecord::RecordNotFound
         render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
