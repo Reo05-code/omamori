@@ -36,3 +36,20 @@ ja:
             update: "パスワードの更新に失敗しました"
           token_validations:
             invalid_token: "トークンが無効です"
+
+      organizations:
+        not_found: "組織が見つかりません"
+        error:
+          create: "組織の作成に失敗しました"
+          forbidden: "アクセスが拒否されました"
+
+      memberships:
+        destroy_success: "メンバーを削除しました"
+        error:
+          update: "メンバー情報の更新に失敗しました"
+
+      invitations:
+        accepted: "招待を承諾しました"
+        error:
+          create: "招待の作成に失敗しました"
+          invalid_token: "無効なトークンです"

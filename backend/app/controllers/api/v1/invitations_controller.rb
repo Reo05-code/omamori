@@ -16,7 +16,7 @@ module Api
         invitation.save!
         render json: invitation, status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] }, status: :unprocessable_entity
       end
 
       def accept
@@ -31,9 +31,9 @@ module Api
           invitation.update!(accepted_at: Time.current)
         end
 
-        render json: { message: 'accepted' }
+        render json: { message: I18n.t("api.v1.invitations.accepted") }
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'invalid token' }, status: :not_found
+        render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
       end
 
       private
@@ -44,7 +44,7 @@ module Api
 
       def require_admin!
         membership = @organization.memberships.find_by(user: current_user)
-        render(json: { error: 'forbidden' }, status: :forbidden) unless membership&.admin?
+        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") }, status: :forbidden) unless membership&.admin?
       end
 
       def invitation_params

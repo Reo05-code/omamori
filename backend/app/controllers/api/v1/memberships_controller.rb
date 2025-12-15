@@ -22,13 +22,13 @@ module Api
         membership.update!(membership_params)
         render json: membership
       rescue ActiveRecord::RecordInvalid => e
-        render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] }, status: :unprocessable_entity
       end
 
       def destroy
         membership = @organization.memberships.find(params[:id])
         membership.destroy!
-        render json: { message: 'removed' }
+        render json: { message: I18n.t("api.v1.memberships.destroy_success") }
       end
 
       private
@@ -39,7 +39,7 @@ module Api
 
       def require_admin!
         membership = @organization.memberships.find_by(user: current_user)
-        render(json: { error: 'forbidden' }, status: :forbidden) unless membership&.admin?
+        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") }, status: :forbidden) unless membership&.admin?
       end
 
       def membership_params

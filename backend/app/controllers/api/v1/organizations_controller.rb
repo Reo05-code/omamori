@@ -18,14 +18,14 @@ module Api
           render json: organization, status: :created
         end
       rescue ActiveRecord::RecordInvalid => e
-        render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.error.create")] }, status: :unprocessable_entity
       end
 
       def show
         organization = current_user.organizations.find(params[:id])
         render json: organization
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Not Found' }, status: :not_found
+        render json: { error: I18n.t("api.v1.organizations.not_found") }, status: :not_found
       end
 
       private
