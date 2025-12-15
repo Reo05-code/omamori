@@ -11,9 +11,11 @@ class User < ApplicationRecord
   # モバイルアプリや SPA との連携で使う
   include DeviseTokenAuth::Concerns::User
 
-  # Roleの定義
+  # Roleの定義(将来的に削除予定)
   enum :role, { worker: 0, admin: 1 }
 
+  has_many :memberships, dependent: :destroy
+  has_many :organizations, through: :memberships
   # ユーザが発行した招待
   # - inviter_id を使って Invitation を参照する
   has_many :sent_invitations, class_name: "Invitation", foreign_key: "inviter_id", inverse_of: :inviter,
@@ -42,10 +44,4 @@ class User < ApplicationRecord
     # enum を利用しているのでシンボルで割り当てる（または整数を使う）
     self.role ||= :worker
   end
-
-  # 3. email
-  # Devise の validatable により自動で presence と format と uniqueness のバリデーションが入るので不要。
-
-  # 4. encrypted_password
-  # Devise が管理するので自前でバリデーション不要。
 end
