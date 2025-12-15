@@ -60,3 +60,4 @@ ja:
           invalid_role: "無効な role が指定されました"
           organization_missing: "招待に紐づく組織が設定されていません"
           invalid_membership: "メンバーの作成に失敗しました"
+          validation_errors: "入力の検証に失敗しました"

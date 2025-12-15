@@ -32,7 +32,8 @@ module Api
       def accept
         invitation = Invitation.pending.find_by!(token: params[:token])
 
-        # Invitation モデルに受諾ロジックを委譲
+        # 受諾処理はモデル（Invitation#accept_by）に委譲する。
+        # Controller は結果を HTTP ステータスにマップして返すのみ。
         result = invitation.accept_by(current_user)
 
         if result.success
@@ -47,10 +48,8 @@ module Api
           render json: { error: I18n.t("api.v1.invitations.error.email_mismatch") }, status: :forbidden
         when :already_member
           render json: { error: I18n.t("api.v1.invitations.error.already_member") }, status: :conflict
-        when :organization_missing
-          render json: { error: I18n.t("api.v1.invitations.error.organization_missing") }, status: :unprocessable_entity
-        when :invalid_membership
-          render json: { errors: [I18n.t("api.v1.invitations.error.create")] }, status: :unprocessable_entity
+        when :validation_errors
+          render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] }, status: :unprocessable_entity
         else
           render json: { error: I18n.t("api.v1.invitations.error.create") }, status: :unprocessable_entity
         end
@@ -68,7 +67,8 @@ module Api
         membership = @organization.memberships.find_by(user: current_user)
         return if membership&.admin?
 
-        render(json: { error: I18n.t("api.v1.organizations.error.forbidden") },
+        render(json:
+        { error: I18n.t("api.v1.organizations.error.forbidden") },
                status: :forbidden)
       end
 

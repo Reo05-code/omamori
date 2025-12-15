@@ -31,40 +31,46 @@ class Invitation < ApplicationRecord
       .where("expires_at IS NULL OR expires_at > ?", Time.current)
   }
 
-  # 招待を受諾するビジネスロジックをモデルへ集約する
-  # 引数: user (User) — accept を行う認証済みユーザー
-  # 戻り値: Result = Struct.new(:success, :error_key, :membership)
-  Result = Struct.new(:success, :error_key, :membership)
+  # 招待を受諾するビジネスロジック
+  Result = Struct.new(:success, :error_key, :membership, :errors)
 
+  # インスタンスが現在 pending（未承諾かつ期限内）かどうかを判定
+  def pending?
+    accepted_at.nil? && (expires_at.nil? || expires_at > Time.current)
+  end
+
+  # pending な招待を user が受諾する処理
   def accept_by(user)
-    return Result.new(false, :organization_missing, nil) if organization.nil?
-
-    # pending であることを再確認（controller が pending スコープで取得する前提だが二重チェック）
-    unless accepted_at.nil? && (expires_at.nil? || expires_at > Time.current)
-      return Result.new(false, :invalid_token, nil)
+    # pending でなければ拒否
+    unless pending?
+      return Result.new(false, :invalid_token, nil, [])
     end
 
+    # 招待メールアドレスとユーザのメールアドレスが一致するか確認（大文字小文字は区別しない）
     if invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
-      return Result.new(false, :email_mismatch, nil)
+      return Result.new(false, :email_mismatch, nil, [])
     end
 
+    # すでに組織のメンバーであれば拒否
     if organization.memberships.exists?(user: user)
-      return Result.new(false, :already_member, nil)
+      return Result.new(false, :already_member, nil, [])
     end
 
+    # Membership 作成、Invitation を accepted にする処理をトランザクションで実行
     membership = nil
     begin
       ActiveRecord::Base.transaction do
         membership = organization.memberships.create!(user: user, role: role)
         update!(accepted_at: Time.current)
       end
-    rescue ActiveRecord::RecordInvalid
-      return Result.new(false, :invalid_membership, nil)
+    rescue ActiveRecord::RecordInvalid => e
+      # 例外を Result に変換して返す（設計を Result ベースに統一）
+      return Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
     rescue ActiveRecord::RecordNotUnique
-      return Result.new(false, :already_member, nil)
+      return Result.new(false, :already_member, nil, [])
     end
 
-    Result.new(true, nil, membership)
+    Result.new(true, nil, membership, [])
   end
 
   private
