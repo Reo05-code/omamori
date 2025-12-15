@@ -8,8 +8,10 @@ class Invitation < ApplicationRecord
   # 招待者（Userモデルの admin）への関連
   belongs_to :inviter, class_name: "User", inverse_of: :sent_invitations
 
-  # オプショナルに組織を紐づける
-  belongs_to :organization, optional: true
+  # Invitation は必ず組織に属する
+  belongs_to :organization
+
+  validates :organization, presence: true
 
   enum :role, { worker: 0, admin: 1 }
 
@@ -28,6 +30,42 @@ class Invitation < ApplicationRecord
       # まだ承諾されていなくて、期限が設定されていないか、まだ期限内の招待
       .where("expires_at IS NULL OR expires_at > ?", Time.current)
   }
+
+  # 招待を受諾するビジネスロジックをモデルへ集約する
+  # 引数: user (User) — accept を行う認証済みユーザー
+  # 戻り値: Result = Struct.new(:success, :error_key, :membership)
+  Result = Struct.new(:success, :error_key, :membership)
+
+  def accept_by(user)
+    return Result.new(false, :organization_missing, nil) if organization.nil?
+
+    # pending であることを再確認（controller が pending スコープで取得する前提だが二重チェック）
+    unless accepted_at.nil? && (expires_at.nil? || expires_at > Time.current)
+      return Result.new(false, :invalid_token, nil)
+    end
+
+    if invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
+      return Result.new(false, :email_mismatch, nil)
+    end
+
+    if organization.memberships.exists?(user: user)
+      return Result.new(false, :already_member, nil)
+    end
+
+    membership = nil
+    begin
+      ActiveRecord::Base.transaction do
+        membership = organization.memberships.create!(user: user, role: role)
+        update!(accepted_at: Time.current)
+      end
+    rescue ActiveRecord::RecordInvalid
+      return Result.new(false, :invalid_membership, nil)
+    rescue ActiveRecord::RecordNotUnique
+      return Result.new(false, :already_member, nil)
+    end
+
+    Result.new(true, nil, membership)
+  end
 
   private
 

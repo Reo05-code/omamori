@@ -55,3 +55,8 @@ ja:
         error:
           create: "招待の作成に失敗しました"
           invalid_token: "無効なトークンです"
+          email_mismatch: "このアカウントでは招待を受諾できません（招待先メールアドレスと一致しません）"
+          already_member: "既に組織のメンバーです"
+          invalid_role: "無効な role が指定されました"
+          organization_missing: "招待に紐づく組織が設定されていません"
+          invalid_membership: "メンバーの作成に失敗しました"
