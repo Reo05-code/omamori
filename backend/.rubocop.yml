@@ -70,3 +70,6 @@ RSpec/NestedGroups:
 
 Capybara/RSpec/PredicateMatcher:
   Enabled: false
+
+RSpec/ContextWording:
+  Enabled: false

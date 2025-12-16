@@ -51,4 +51,8 @@ class ApplicationController < ActionController::API
     request.headers["client"] = client
     request.headers["uid"] = uid
   end
+
+  # DeviseTokenAuth が namespace ごとに生成する helper 名と、アプリ側で期待する current_user インターフェースを揃えるため、alias によって認証 helper を統一している
+  alias current_user current_api_v1_user
+  alias authenticate_user! authenticate_api_v1_user!
 end
