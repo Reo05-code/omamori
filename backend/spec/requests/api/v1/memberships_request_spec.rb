@@ -19,7 +19,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json).to be_an(Array)
-      expect(json.map { |m| m["user"]["id"] }).to include(worker.id)
+      expect(json.map { |m| m["user_id"] }).to include(worker.id)
     end
   end
 

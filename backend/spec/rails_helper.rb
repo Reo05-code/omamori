@@ -38,6 +38,9 @@ RSpec.configure do |config|
   # 今後の Request Spec で役立ちます
   config.include Devise::Test::IntegrationHelpers, type: :request
 
+  # DeviseTokenAuth の認証ヘルパー（create_new_auth_token を使った認証）
+  config.include DeviseTokenAuthHelpers, type: :request
+
   # ファイルの配置場所からスペックのタイプ（model, request等）を自動推論する
   config.infer_spec_type_from_file_location!
 
