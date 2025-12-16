@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Api::V1::Organizations", type: :request do
+RSpec.describe "Api::V1::Organizations" do
   describe "GET /api/v1/organizations (一覧取得)" do
     let(:user) { create(:user) }
     let!(:organization) { create(:organization) }
@@ -16,7 +16,7 @@ RSpec.describe "Api::V1::Organizations", type: :request do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json).to be_an(Array)
-      expect(json.map { |o| o["id"] }).to include(organization.id)
+      expect(json.pluck("id")).to include(organization.id)
     end
   end
 
@@ -25,9 +25,9 @@ RSpec.describe "Api::V1::Organizations", type: :request do
 
     it "組織とメンバーシップを作成する" do
       post "/api/v1/organizations",
-                    params: { organization: { name: "New Org" } },
-                    headers: user.create_new_auth_token,
-                    as: :json
+           params: { organization: { name: "New Org" } },
+           headers: user.create_new_auth_token,
+           as: :json
 
       expect(response).to have_http_status(:created)
       json = response.parsed_body

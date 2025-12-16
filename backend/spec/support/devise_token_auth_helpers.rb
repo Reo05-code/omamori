@@ -11,22 +11,22 @@ module DeviseTokenAuthHelpers
   end
 
   # 認証済みの GET リクエスト
-  def authenticated_get(path, user:, **options)
-    get path, headers: auth_headers_for(user), **options
+  def authenticated_get(path, user:, **)
+    get(path, headers: auth_headers_for(user), **)
   end
 
   # 認証済みの POST リクエスト
-  def authenticated_post(path, user:, **options)
-    post path, headers: auth_headers_for(user), **options
+  def authenticated_post(path, user:, **)
+    post(path, headers: auth_headers_for(user), **)
   end
 
   # 認証済みの PUT リクエスト
-  def authenticated_put(path, user:, **options)
-    put path, headers: auth_headers_for(user), **options
+  def authenticated_put(path, user:, **)
+    put(path, headers: auth_headers_for(user), **)
   end
 
   # 認証済みの DELETE リクエスト
-  def authenticated_delete(path, user:, **options)
-    delete path, headers: auth_headers_for(user), **options
+  def authenticated_delete(path, user:, **)
+    delete(path, headers: auth_headers_for(user), **)
   end
 end

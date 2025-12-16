@@ -53,6 +53,6 @@ class ApplicationController < ActionController::API
   end
 
   # DeviseTokenAuth が namespace ごとに生成する helper 名と、アプリ側で期待する current_user インターフェースを揃えるため、alias によって認証 helper を統一している
-  alias_method :current_user, :current_api_v1_user
-  alias_method :authenticate_user!, :authenticate_api_v1_user!
+  alias current_user current_api_v1_user
+  alias authenticate_user! authenticate_api_v1_user!
 end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable RSpec/ContextWording
 require "rails_helper"
 
 RSpec.describe "Api::V1::Auth::Passwords" do

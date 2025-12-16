@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Api::V1::Memberships", type: :request do
+RSpec.describe "Api::V1::Memberships" do
   describe "GET /api/v1/organizations/:organization_id/memberships (メンバー一覧)" do
     let(:admin) { create(:user) }
     let(:worker) { create(:user) }
@@ -19,7 +19,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json).to be_an(Array)
-      expect(json.map { |m| m["user_id"] }).to include(worker.id)
+      expect(json.pluck("user_id")).to include(worker.id)
     end
   end
 
@@ -33,9 +33,9 @@ RSpec.describe "Api::V1::Memberships", type: :request do
     context "管理者の場合" do
       it "メンバーのロールを更新できる" do
         put "/api/v1/organizations/#{organization.id}/memberships/#{worker_membership.id}",
-                     params: { membership: { role: "admin" } },
-                     headers: admin.create_new_auth_token,
-                     as: :json
+            params: { membership: { role: "admin" } },
+            headers: admin.create_new_auth_token,
+            as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -47,9 +47,9 @@ RSpec.describe "Api::V1::Memberships", type: :request do
     context "非管理者の場合" do
       it "403 forbidden を返す" do
         put "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
-                     params: { membership: { role: "worker" } },
-                     headers: worker.create_new_auth_token,
-                     as: :json
+            params: { membership: { role: "worker" } },
+            headers: worker.create_new_auth_token,
+            as: :json
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -67,8 +67,8 @@ RSpec.describe "Api::V1::Memberships", type: :request do
       it "メンバーを削除できる" do
         expect do
           delete "/api/v1/organizations/#{organization.id}/memberships/#{member_membership.id}",
-                          headers: admin.create_new_auth_token,
-                          as: :json
+                 headers: admin.create_new_auth_token,
+                 as: :json
         end.to change(organization.memberships, :count).by(-1)
 
         expect(response).to have_http_status(:ok)
@@ -78,8 +78,8 @@ RSpec.describe "Api::V1::Memberships", type: :request do
     context "非管理者の場合" do
       it "403 forbidden を返す" do
         delete "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
-                        headers: member.create_new_auth_token,
-                        as: :json
+               headers: member.create_new_auth_token,
+               as: :json
 
         expect(response).to have_http_status(:forbidden)
       end

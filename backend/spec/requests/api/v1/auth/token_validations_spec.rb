@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable RSpec/ContextWording, RSpec/ExampleLength
+# rubocop:disable RSpec/ExampleLength
 require "rails_helper"
 
 RSpec.describe "Api::V1::Auth::TokenValidations" do

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Api::V1::Invitations", type: :request do
+RSpec.describe "Api::V1::Invitations" do
   describe "POST /api/v1/organizations/:organization_id/invitations (招待作成)" do
     let(:admin) { create(:user) }
     let(:organization) { create(:organization) }
@@ -13,9 +13,9 @@ RSpec.describe "Api::V1::Invitations", type: :request do
 
     it "管理者による招待作成に成功する" do
       post "/api/v1/organizations/#{organization.id}/invitations",
-                    params: { invitation: { invited_email: "invitee@example.com", role: "worker" } },
-                    headers: admin.create_new_auth_token,
-                    as: :json
+           params: { invitation: { invited_email: "invitee@example.com", role: "worker" } },
+           headers: admin.create_new_auth_token,
+           as: :json
 
       expect(response).to have_http_status(:created)
       json = response.parsed_body
@@ -24,18 +24,18 @@ RSpec.describe "Api::V1::Invitations", type: :request do
   end
 
   describe "POST /api/v1/invitations/accept (招待受諾)" do
+    let(:inviter) { create(:user) }
+    let(:invitee) { create(:user, email: "acceptor@example.com") }
+    let(:invitation) { create(:invitation, inviter: inviter, organization: org, invited_email: invitee.email) }
+    let(:org) { create(:organization) }
+
+    before { create(:membership, organization: org, user: inviter, role: :admin) }
+
     it "保留中の招待を受諾しメンバーシップを作成する" do
-      inviter = create(:user)
-      org = create(:organization)
-      create(:membership, organization: org, user: inviter, role: :admin)
-
-      invitee = create(:user, email: "acceptor@example.com")
-      invitation = create(:invitation, inviter: inviter, organization: org, invited_email: invitee.email)
-
       post "/api/v1/invitations/accept",
-                    params: { token: invitation.token },
-                    headers: invitee.create_new_auth_token,
-                    as: :json
+           params: { token: invitation.token },
+           headers: invitee.create_new_auth_token,
+           as: :json
 
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
