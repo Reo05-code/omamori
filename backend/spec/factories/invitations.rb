@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :invitation do
-    inviter factory: %i[user]
+    association :inviter, factory: :user
     organization
     sequence(:invited_email) { |n| "invitee#{n}@example.com" }
     role { :worker }
