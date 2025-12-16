@@ -15,14 +15,14 @@ RSpec.describe Membership do
     it "role が必須であること" do
       membership.role = nil
       expect(membership).not_to be_valid
-      expect(membership.errors[:role]).to include("can't be blank")
+      expect(membership.errors[:role]).to include(I18n.t("errors.messages.blank"))
     end
 
     it "同一 organization に対して user は一意であること" do
       existing = create(:membership)
       duplicate = build(:membership, organization: existing.organization, user: existing.user)
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:user_id]).to include("has already been taken")
+      expect(duplicate.errors[:user_id]).to include(I18n.t("errors.messages.taken"))
     end
   end
 end

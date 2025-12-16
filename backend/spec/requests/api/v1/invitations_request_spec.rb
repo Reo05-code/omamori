@@ -12,7 +12,7 @@ RSpec.describe "Api::V1::Invitations", type: :request do
     end
 
     it "管理者による招待作成に成功する" do
-      post_with_csrf "/api/v1/organizations/#{organization.id}/invitations",
+      post "/api/v1/organizations/#{organization.id}/invitations",
                     params: { invitation: { invited_email: "invitee@example.com", role: "worker" } },
                     headers: admin.create_new_auth_token,
                     as: :json
@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::Invitations", type: :request do
       invitee = create(:user, email: "acceptor@example.com")
       invitation = create(:invitation, inviter: inviter, organization: org, invited_email: invitee.email)
 
-      post_with_csrf "/api/v1/invitations/accept",
+      post "/api/v1/invitations/accept",
                     params: { token: invitation.token },
                     headers: invitee.create_new_auth_token,
                     as: :json

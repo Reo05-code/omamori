@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
 
     context "管理者の場合" do
       it "メンバーのロールを更新できる" do
-        put_with_csrf "/api/v1/organizations/#{organization.id}/memberships/#{worker_membership.id}",
+        put "/api/v1/organizations/#{organization.id}/memberships/#{worker_membership.id}",
                      params: { membership: { role: "admin" } },
                      headers: admin.create_new_auth_token,
                      as: :json
@@ -46,7 +46,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
 
     context "非管理者の場合" do
       it "403 forbidden を返す" do
-        put_with_csrf "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
+        put "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
                      params: { membership: { role: "worker" } },
                      headers: worker.create_new_auth_token,
                      as: :json
@@ -66,7 +66,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
     context "管理者の場合" do
       it "メンバーを削除できる" do
         expect do
-          delete_with_csrf "/api/v1/organizations/#{organization.id}/memberships/#{member_membership.id}",
+          delete "/api/v1/organizations/#{organization.id}/memberships/#{member_membership.id}",
                           headers: admin.create_new_auth_token,
                           as: :json
         end.to change(organization.memberships, :count).by(-1)
@@ -77,7 +77,7 @@ RSpec.describe "Api::V1::Memberships", type: :request do
 
     context "非管理者の場合" do
       it "403 forbidden を返す" do
-        delete_with_csrf "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
+        delete "/api/v1/organizations/#{organization.id}/memberships/#{admin_membership.id}",
                         headers: member.create_new_auth_token,
                         as: :json
 

@@ -24,7 +24,7 @@ RSpec.describe "Api::V1::Organizations", type: :request do
     let(:user) { create(:user) }
 
     it "組織とメンバーシップを作成する" do
-      post_with_csrf "/api/v1/organizations",
+      post "/api/v1/organizations",
                     params: { organization: { name: "New Org" } },
                     headers: user.create_new_auth_token,
                     as: :json

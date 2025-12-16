@@ -28,12 +28,12 @@ RSpec.describe "Api::V1::Auth::Registrations" do
     context "有効なパラメータの場合" do
       it "新しいユーザーを作成する" do
         expect do
-          post_with_csrf "/api/v1/auth", params: valid_attributes, as: :json
+          post "/api/v1/auth", params: valid_attributes, as: :json
         end.to change(User, :count).by(1)
       end
 
       it "成功レスポンスを返す" do
-        post_with_csrf "/api/v1/auth", params: valid_attributes, as: :json
+        post "/api/v1/auth", params: valid_attributes, as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -42,7 +42,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
       end
 
       it "認証情報を返す（ヘッダーは公開せずクッキーに設定する）" do
-        post_with_csrf "/api/v1/auth", params: valid_attributes, as: :json
+        post "/api/v1/auth", params: valid_attributes, as: :json
 
         # ヘッダーはクッキーへ移し、レスポンスヘッダーを露出しない設計のため
         # ここでは httpOnly クッキーが設定されていることのみ検証する
@@ -60,7 +60,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
       end
 
       it "エラーレスポンスを返す" do
-        post_with_csrf "/api/v1/auth", params: invalid_attributes, as: :json
+        post "/api/v1/auth", params: invalid_attributes, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = response.parsed_body
@@ -73,7 +73,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
       before { create(:user, email: "existing@example.com") }
 
       it "エラーを返す" do
-        post_with_csrf "/api/v1/auth", params: valid_attributes.merge(email: "existing@example.com"), as: :json
+        post "/api/v1/auth", params: valid_attributes.merge(email: "existing@example.com"), as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = response.parsed_body
@@ -88,7 +88,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
 
     context "認証済みの場合" do
       it "ユーザー情報を更新できる" do
-        put_with_csrf "/api/v1/auth", params: { name: "Updated Name" }, headers: auth_headers, as: :json
+        put "/api/v1/auth", params: { name: "Updated Name" }, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -99,7 +99,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
 
     context "未認証の場合" do
       it "401エラーを返す" do
-        put_with_csrf "/api/v1/auth", params: { name: "Updated Name" }, as: :json
+        put "/api/v1/auth", params: { name: "Updated Name" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -113,12 +113,12 @@ RSpec.describe "Api::V1::Auth::Registrations" do
     context "認証済みの場合" do
       it "アカウントを削除する" do
         expect do
-          delete_with_csrf "/api/v1/auth", headers: auth_headers, as: :json
+          delete "/api/v1/auth", headers: auth_headers, as: :json
         end.to change(User, :count).by(-1)
       end
 
       it "成功レスポンスを返す" do
-        delete_with_csrf "/api/v1/auth", headers: auth_headers, as: :json
+        delete "/api/v1/auth", headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -128,7 +128,7 @@ RSpec.describe "Api::V1::Auth::Registrations" do
 
     context "未認証の場合" do
       it "401エラーを返す" do
-        delete_with_csrf "/api/v1/auth", as: :json
+        delete "/api/v1/auth", as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end

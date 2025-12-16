@@ -15,7 +15,7 @@ RSpec.describe Invitation do
     it "invited_email が必須であること" do
       invitation.invited_email = nil
       expect(invitation).not_to be_valid
-      expect(invitation.errors[:invited_email]).to include("can't be blank")
+      expect(invitation.errors[:invited_email]).to include(I18n.t("errors.messages.blank"))
     end
   end
 end

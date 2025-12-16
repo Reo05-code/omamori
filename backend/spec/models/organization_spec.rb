@@ -15,7 +15,7 @@ RSpec.describe Organization do
     it "name が必須であること" do
       organization.name = nil
       expect(organization).not_to be_valid
-      expect(organization.errors[:name]).to include("can't be blank")
+      expect(organization.errors[:name]).to include(I18n.t("errors.messages.blank"))
     end
   end
 end
