@@ -11,7 +11,7 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
       let(:auth_headers) { user.create_new_auth_token }
 
       it "成功レスポンスを返す" do
-        if ENV["ENABLE_STAGE3_COOKIE_ONLY"] == "true"
+        if ENV["ENABLE_COOKIE_ONLY"] == "true"
           # Cookie-only flow: set encrypted cookies in request (simulate browser)
           cookies.encrypted[:access_token] = auth_headers["access-token"]
           cookies.encrypted[:client] = auth_headers["client"]
@@ -27,7 +27,7 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
       end
 
       it "ユーザー情報を返す" do
-        if ENV["ENABLE_STAGE3_COOKIE_ONLY"] == "true"
+        if ENV["ENABLE_COOKIE_ONLY"] == "true"
           cookies.encrypted[:access_token] = auth_headers["access-token"]
           cookies.encrypted[:client] = auth_headers["client"]
           cookies.encrypted[:uid] = auth_headers["uid"]

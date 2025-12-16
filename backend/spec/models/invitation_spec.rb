@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Invitation, type: :model do
+RSpec.describe Invitation do
   subject(:invitation) { build(:invitation) }
 
   describe "Factory" do
