@@ -38,14 +38,18 @@ class ApplicationController < ActionController::API
 
     access_token, client, uid = auth_cookie_values
 
-    Rails.logger.debug("[set_user_by_cookie] Cookie values - access_token: #{access_token.present? ? 'present' : 'missing'}, client: #{client.present? ? 'present' : 'missing'}, uid: #{uid}")
+    Rails.logger.debug { "[set_user_by_cookie] Cookie values - #{auth_cookie_debug(access_token, client, uid)}" }
 
     unless [access_token, client, uid].all?(&:present?)
-      Rails.logger.warn("[set_user_by_cookie] Missing cookies - access_token: #{access_token.present?}, client: #{client.present?}, uid: #{uid.present?}")
+      Rails.logger.warn("[set_user_by_cookie] Missing cookies - #{auth_cookie_debug(access_token, client, uid)}")
       return
     end
 
     assign_auth_headers(access_token, client, uid)
+  end
+
+  def auth_cookie_debug(access_token, client, uid)
+    "atk: #{access_token.present? ? 'ok' : 'no'}, clt: #{client.present? ? 'ok' : 'no'}, uid: #{uid}"
   end
 
   # Cookieの値をリクエストヘッダへ割り当てる
