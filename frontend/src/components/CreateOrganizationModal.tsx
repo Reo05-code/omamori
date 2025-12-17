@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api/client';
 
@@ -31,7 +31,9 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate }
     }
 
     setLoading(true);
-    const res = await api.post<any>('/api/v1/organizations', { organization: { name: name.trim() } });
+    const res = await api.post<any>('/api/v1/organizations', {
+      organization: { name: name.trim() },
+    });
     setLoading(false);
 
     if (res.error) {
@@ -69,10 +71,14 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate }
         className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6 z-10"
       >
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">組織を作成</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">まずは組織を作成して始めましょう。</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          まずは組織を作成して始めましょう。
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">組織名</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            組織名
+          </label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
