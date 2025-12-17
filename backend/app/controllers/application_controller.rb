@@ -2,6 +2,9 @@ class ApplicationController < ActionController::API
   include DeviseTokenAuth::Concerns::SetUserByToken
   include AuthCookieHelper
 
+  # API-only: Wardenのセッション使用を無効化
+  before_action :skip_session_storage
+
   # Origin/Referer チェック
   before_action :verify_origin!
 
@@ -13,6 +16,11 @@ class ApplicationController < ActionController::API
   after_action :remove_auth_headers unless Rails.env.test?
 
   private
+
+  # Wardenがセッションに書き込むのを防ぐ
+  def skip_session_storage
+    request.session_options[:skip] = true if request.respond_to?(:session_options)
+  end
 
   def verify_origin!
     # 外部Origin/Refererを検証して不正なリクエストを拒否
@@ -36,8 +44,10 @@ class ApplicationController < ActionController::API
 
     access_token, client, uid = auth_cookie_values
 
+    Rails.logger.debug("[set_user_by_cookie] Cookie values - access_token: #{access_token.present? ? 'present' : 'missing'}, client: #{client.present? ? 'present' : 'missing'}, uid: #{uid}")
+
     unless [access_token, client, uid].all?(&:present?)
-      Rails.logger.warn("[set_user_by_cookie] Missing cookies")
+      Rails.logger.warn("[set_user_by_cookie] Missing cookies - access_token: #{access_token.present?}, client: #{client.present?}, uid: #{uid.present?}")
       return
     end
 
