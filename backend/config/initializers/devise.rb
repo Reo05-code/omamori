@@ -97,7 +97,8 @@ Devise.setup do |config|
   # Notice that if you are skipping storage for all authentication paths, you
   # may want to disable generating routes to Devise's sessions controller by
   # passing skip: :sessions to `devise_for` in your config/routes.rb
-  config.skip_session_storage = [:http_auth]
+  # API-only mode: セッションストレージをスキップ
+  config.skip_session_storage = [:http_auth, :token_auth, :params_auth]
 
   # By default, Devise cleans up the CSRF token on authentication to
   # avoid CSRF token fixation attacks. This means that, when using AJAX
@@ -281,8 +282,13 @@ Devise.setup do |config|
   #   manager.intercept_401 = false
   #   manager.default_strategies(scope: :user).unshift :some_external_strategy
   # end
-
-  # ==> Mountable engine configurations
+  
+  # API-only mode: Wardenがセッションに書き込まないようにする
+  config.warden do |manager|
+    manager.failure_app = lambda { |_env|
+      ['401', { 'Content-Type' => 'application/json' }, [{ error: 'Unauthorized' }.to_json]]
+    }
+  end  # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine
   # is mountable, there are some extra configurations to be taken into account.
   # The following options are available, assuming the engine is mounted as:

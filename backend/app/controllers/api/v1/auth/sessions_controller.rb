@@ -8,6 +8,11 @@ module Api
       # DELETE /api/v1/auth/sign_out - ログアウト
       class SessionsController < DeviseTokenAuth::SessionsController
         respond_to :json
+
+        # API-only: CSRF保護とセッションストレージを無効化
+        skip_before_action :verify_authenticity_token, raise: false
+        skip_before_action :verify_signed_out_user, raise: false
+
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。

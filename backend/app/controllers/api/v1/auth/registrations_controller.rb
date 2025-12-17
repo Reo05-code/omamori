@@ -10,6 +10,9 @@ module Api
       class RegistrationsController < DeviseTokenAuth::RegistrationsController
         respond_to :json
 
+        # API-only: CSRF保護とセッションストレージを無効化
+        skip_before_action :verify_authenticity_token, raise: false
+
         # `update`/`destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。

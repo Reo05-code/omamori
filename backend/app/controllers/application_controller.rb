@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::API
-  include DeviseTokenAuth::Concerns::SetUserByToken
+  # DeviseTokenAuth::Concerns::SetUserByToken の代わりに自作モジュールを使用
+  # これによりセッション依存を完全に排除
+  include TokenAuthenticatable
   include AuthCookieHelper
 
   # Origin/Referer チェック
@@ -7,6 +9,8 @@ class ApplicationController < ActionController::API
 
   # Cookie から認証情報を読み取り、ヘッダーにセット（DTA が読み取れるようにする）
   before_action :set_user_by_cookie!
+  # ヘッダーまたは Cookie から current_user を設定する（セッションを使わない）
+  before_action :authenticate_token!
 
   # レスポンスの認証ヘッダーを削除して Cookie-only に段階移行する
   # テスト環境ではヘッダー削除を行わない（既存のテストはヘッダー可視性に依存する場合があるため）
@@ -36,12 +40,20 @@ class ApplicationController < ActionController::API
 
     access_token, client, uid = auth_cookie_values
 
+    Rails.logger.debug { "[set_user_by_cookie] Cookie values - #{auth_cookie_debug(access_token, client, uid)}" }
+
     unless [access_token, client, uid].all?(&:present?)
-      Rails.logger.warn("[set_user_by_cookie] Missing cookies")
+      Rails.logger.warn("[set_user_by_cookie] Missing cookies - #{auth_cookie_debug(access_token, client, uid)}")
       return
     end
 
     assign_auth_headers(access_token, client, uid)
+    # ヘッダーをセットしたらトークン検証を行い current_user を設定する
+    authenticate_token!
+  end
+
+  def auth_cookie_debug(access_token, client, uid)
+    "atk: #{access_token.present? ? 'ok' : 'no'}, clt: #{client.present? ? 'ok' : 'no'}, uid: #{uid}"
   end
 
   # Cookieの値をリクエストヘッダへ割り当てる
@@ -52,7 +64,7 @@ class ApplicationController < ActionController::API
     request.headers["uid"] = uid
   end
 
-  # DeviseTokenAuth が namespace ごとに生成する helper 名と、アプリ側で期待する current_user インターフェースを揃えるため、alias によって認証 helper を統一している
+  # TokenAuthenticatable で current_user エイリアスが定義されていないため追加
   alias current_user current_api_v1_user
   alias authenticate_user! authenticate_api_v1_user!
 end

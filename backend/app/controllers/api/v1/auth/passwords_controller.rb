@@ -9,6 +9,9 @@ module Api
       class PasswordsController < DeviseTokenAuth::PasswordsController
         respond_to :json
 
+        # API-only: CSRF保護を無効化
+        skip_before_action :verify_authenticity_token, raise: false
+
         # AllowedRedirects helper をロード（lib/ 配下）
         require Rails.root.join("lib/allowed_redirects").to_s
 
