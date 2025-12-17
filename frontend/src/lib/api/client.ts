@@ -5,7 +5,8 @@
  * - JSON/非JSON/204 の扱いを安全に処理
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+// - 常に `NEXT_PUBLIC_API_BASE_URL` を参照する
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 import { fetchCsrf } from './csrf';
 
