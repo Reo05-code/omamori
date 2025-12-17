@@ -2,15 +2,15 @@
 
 # ヘッダーからトークンを検証して User を返すサービス
 class TokenAuthenticator
-  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
   def self.authenticate(request)
     uid, client, access_token = fetch_headers(request)
 
     user = find_user(uid) if uid
     token_data = fetch_token_data(user, client) if user
 
-    valid_token_bool = valid_token?(token_data, access_token)
-    expired = token_expired?(token_data)
+    valid_token_bool = token_data && valid_token?(token_data, access_token)
+    expired = token_data && token_expired?(token_data)
 
     valid = uid && client && access_token && user && token_data && valid_token_bool && !expired
     return nil unless valid
@@ -20,7 +20,7 @@ class TokenAuthenticator
     Rails.logger.error("[TokenAuthenticator] Invalid token hash: #{e.message}")
     nil
   end
-  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
 
   def self.fetch_headers(request)
     [request.headers["uid"], request.headers["client"], request.headers["access-token"]]

@@ -9,6 +9,8 @@ class ApplicationController < ActionController::API
 
   # Cookie から認証情報を読み取り、ヘッダーにセット（DTA が読み取れるようにする）
   before_action :set_user_by_cookie!
+  # ヘッダーまたは Cookie から current_user を設定する（セッションを使わない）
+  before_action :authenticate_token!
 
   # レスポンスの認証ヘッダーを削除して Cookie-only に段階移行する
   # テスト環境ではヘッダー削除を行わない（既存のテストはヘッダー可視性に依存する場合があるため）
@@ -46,6 +48,8 @@ class ApplicationController < ActionController::API
     end
 
     assign_auth_headers(access_token, client, uid)
+    # ヘッダーをセットしたらトークン検証を行い current_user を設定する
+    authenticate_token!
   end
 
   def auth_cookie_debug(access_token, client, uid)
