@@ -1,3 +1,4 @@
+// 指定した組織のメンバー一覧を取得するAPI クライアント関数
 import type { Membership } from "../api/types"
 import { api } from "./client"
 import { API_PATHS } from "./paths"
