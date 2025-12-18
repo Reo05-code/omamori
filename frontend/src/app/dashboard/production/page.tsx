@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import CreateOrganizationOnboarding from '../../../components/CreateOrganizationOnboarding';
+import CreateOrganizationOnboarding from '../../../components/organization/CreateOrganizationOnboarding';
 import Sidebar from '../../../components/dashboard/Sidebar';
 import AlertItem from '../../../components/common/AlertItem';
 
