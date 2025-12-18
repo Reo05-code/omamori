@@ -17,6 +17,12 @@ export const API_PATHS = {
     BASE: '/api/v1/organizations',
     SHOW: (id: string) => `/api/v1/organizations/${id}`,
     MEMBERSHIPS: (id: string) => `/api/v1/organizations/${id}/memberships`,
+    MEMBERSHIP: (orgId: string, membershipId: string) =>
+      `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
     INVITATIONS: (id: string) => `/api/v1/organizations/${id}/invitations`,
+  },
+  // 招待受諾
+  INVITATIONS: {
+    ACCEPT: '/api/v1/invitations/accept',
   },
 } as const;
