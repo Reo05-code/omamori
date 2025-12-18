@@ -86,3 +86,11 @@ export interface PasswordUpdateResponse {
   message: string;
   data: UserResponse;
 }
+
+// Membership API 型
+export interface Membership {
+  id: number
+  user_id: number
+  email?: string | null
+  role: string
+}

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { Membership } from "../../../../types/membership"
+import type { Membership } from "../../../../lib/api/types"
 import { fetchMemberships } from "../../../../lib/api/memberships"
 
 export default function MembersPage(): JSX.Element {
