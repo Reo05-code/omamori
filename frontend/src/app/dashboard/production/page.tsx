@@ -39,7 +39,10 @@ export default function ProductionPage() {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
       {/* 本番用ダッシュボード: 今は静的コンテンツを表示せずモーダルのみを残す */}
-      <CreateOrganizationOnboarding />
+      <Sidebar sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
+      <main className="pl-0 md:pl-64">
+        <CreateOrganizationOnboarding />
+      </main>
     </div>
   );
 }
