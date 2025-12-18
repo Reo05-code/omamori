@@ -12,4 +12,11 @@ export const API_PATHS = {
     VALIDATE_TOKEN: '/api/v1/auth/validate_token',
     PASSWORD: '/api/v1/auth/password',
   },
+  // Organization 関連のパス
+  ORGANIZATIONS: {
+    BASE: '/api/v1/organizations',
+    SHOW: (id: string) => `/api/v1/organizations/${id}`,
+    MEMBERSHIPS: (id: string) => `/api/v1/organizations/${id}/memberships`,
+    INVITATIONS: (id: string) => `/api/v1/organizations/${id}/invitations`,
+  },
 } as const;

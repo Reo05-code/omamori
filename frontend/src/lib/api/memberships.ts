@@ -1,18 +1,15 @@
-import type { Membership } from "../../types/membership"
+import type { Membership } from "../api/types"
+import { api } from "./client"
+import { API_PATHS } from "./paths"
 
 export async function fetchMemberships(organizationId: string): Promise<Membership[]> {
-  const res = await fetch(`/api/v1/organizations/${organizationId}/memberships`, {
-    credentials: "include",
-    headers: {
-      "Accept": "application/json",
-    },
-  })
+  const path = API_PATHS.ORGANIZATIONS.MEMBERSHIPS(organizationId)
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`failed to fetch memberships: ${res.status} ${text}`)
+  const res = await api.get<Membership[]>(path)
+
+  if (res.error || res.data === null) {
+    throw new Error(res.error || `failed to fetch memberships: status=${res.status}`)
   }
 
-  const data = await res.json()
-  return data as Membership[]
+  return res.data
 }
