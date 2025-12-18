@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import type { Membership } from "../../../../lib/api/types"
-import { fetchMemberships } from "../../../../lib/api/memberships"
+import type { Membership } from "../../../../../lib/api/types"
+import { fetchMemberships } from "../../../../../lib/api/memberships"
 
 export default function MembersPage(): JSX.Element {
   const params = useParams()
@@ -34,7 +34,7 @@ export default function MembersPage(): JSX.Element {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">メンバー一覧</h1>
         <Link
-          href={`/organizations/${orgId}/invitations/new`}
+          href={`/dashboard/organizations/${orgId}/invitations/new`}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           メンバーを招待

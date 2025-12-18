@@ -83,8 +83,8 @@ export default function Sidebar({
           </a>
           <Link
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href={orgId ? `/organizations/${orgId}/members` : '/organizations'}
-            aria-current={pathname?.startsWith('/organizations') ? 'page' : undefined}
+            href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
+            aria-current={pathname?.startsWith('/dashboard/organizations') ? 'page' : undefined}
           >
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               {loading ? ' ' : 'people'}
