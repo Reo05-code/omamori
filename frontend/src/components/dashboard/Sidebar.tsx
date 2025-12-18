@@ -1,6 +1,11 @@
-// 再度メニューのコンポーネント
-'use client';
+// サイドメニューのコンポーネント
+"use client";
 import React from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { api } from '../../lib/api/client';
+import { API_PATHS } from '../../lib/api/paths';
+import type { Organization } from '../../types';
 
 export default function Sidebar({
   sidebarCollapsed,
@@ -9,6 +14,33 @@ export default function Sidebar({
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean | ((s: boolean) => boolean)) => void;
 }) {
+  const [orgId, setOrgId] = useState<string | null>(null);
+
+  useEffect(() => {
+  const ctrl = new AbortController();
+
+  async function fetchOrgs() {
+    try {
+      const res = await api.get<Organization[]>(
+        API_PATHS.ORGANIZATIONS.BASE,
+        { signal: ctrl.signal }
+      );
+
+      if (res.error || !res.data || res.data.length === 0) return;
+
+      // 先頭の組織をアクティブ組織として扱う
+      // orgId は URL / クエリ用途のため string で保持
+      setOrgId(String(res.data[0].id));
+    } catch (e: any) {
+      if (e?.name === 'AbortError') return;
+      console.error('failed to fetch organizations', e);
+    }
+  }
+
+  fetchOrgs();
+  return () => ctrl.abort();
+}, []);
+
   return (
     <aside
       className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex-col justify-between hidden md:flex transition-all duration-200 z-20 shadow-sm`}
@@ -29,15 +61,15 @@ export default function Sidebar({
             </span>
             {!sidebarCollapsed && <span className="font-semibold">ダッシュボード</span>}
           </a>
-          <a
+          <Link
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href="#"
+            href={orgId ? `/organizations/${orgId}/members` : '/organizations'}
           >
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               people
             </span>
             {!sidebarCollapsed && <>メンバー</>}
-          </a>
+          </Link>
           <a
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href="#"
