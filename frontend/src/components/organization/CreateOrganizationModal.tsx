@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
 
@@ -31,13 +31,18 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
   }, [open]);
 
   // モーダル表示時の背景スクロール禁止と ESC キーでのクローズ処理
+  const handleClose = useCallback(() => {
+    if (forceCreate) return;
+    onClose?.();
+  }, [forceCreate, onClose]);
+
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !forceCreate) {
+      if (e.key === 'Escape') {
         handleClose();
       }
     };
@@ -47,7 +52,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
       document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', onKey);
     };
-  }, [open, forceCreate]);
+  }, [open, handleClose]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,11 +89,6 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
     }
   }
 
-  function handleClose() {
-    if (forceCreate) return;
-    onClose?.();
-  }
-
   if (!open) return null;
 
   return (
@@ -109,20 +109,28 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
         ref={dialogRef}
         className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6 z-10"
       >
-        <h3 id="create-org-title" className="text-lg font-medium text-gray-900 dark:text-white mb-2">組織を作成</h3>
+        <h3
+          id="create-org-title"
+          className="text-lg font-medium text-gray-900 dark:text-white mb-2"
+        >
+          組織を作成
+        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           まずは組織を作成して始めましょう。
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              組織名
-            </label>
-            <input
+          <label
+            htmlFor="org-name"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            組織名
+          </label>
+          <input
             ref={inputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-              id="org-name"
+            id="org-name"
             className="mt-2 mb-3 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             placeholder="会社名、チーム名など"
             aria-label="組織名"
