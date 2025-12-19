@@ -15,6 +15,7 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 interface RequestOptions {
   headers?: Record<string, string>;
   body?: unknown;
+  signal?: AbortSignal;
 }
 
 interface ApiResponse<T> {
@@ -63,6 +64,7 @@ export async function apiRequest<T>(
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
       credentials: 'include', // ★httpOnly Cookie 認証の要
+      signal: options.signal,
     });
 
     // レスポンスの JSON 判定（204 や HTMLを安全に扱う）
