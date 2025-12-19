@@ -21,6 +21,7 @@ interface RequestOptions {
 interface ApiResponse<T> {
   data: T | null;
   error: string | null;
+  errorBody?: unknown | null;
   status: number;
 }
 
@@ -73,12 +74,12 @@ export async function apiRequest<T>(
 
     // ======== エラーレスポンス ========
     if (!response.ok) {
-      // JSON ならパース、違えば null
       const errorData = isJson ? await response.json() : null;
 
       return {
         data: null,
         error: errorData?.errors?.[0] || `エラーが発生しました (${response.status})`,
+        errorBody: errorData,
         status: response.status,
       };
     }

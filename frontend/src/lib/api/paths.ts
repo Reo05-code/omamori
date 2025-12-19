@@ -19,7 +19,7 @@ export const API_PATHS = {
     MEMBERSHIPS: (id: string) => `/api/v1/organizations/${id}/memberships`,
     MEMBERSHIP: (orgId: string, membershipId: string) =>
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
-    INVITATIONS: (id: string) => `/api/v1/organizations/${id}/invitations`,
+    CREATE_INVITATION: (id: string) => `/api/v1/organizations/${id}/invitations`,
   },
   // 招待受諾
   INVITATIONS: {

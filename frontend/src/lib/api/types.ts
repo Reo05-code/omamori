@@ -94,3 +94,39 @@ export interface Membership {
   email?: string | null;
   role: string;
 }
+
+// Invitation API 型
+export interface Invitation {
+  id: number;
+  invited_email: string;
+  role: 'worker' | 'admin';
+  token: string;
+  expires_at: string | null;
+  accepted_at: string | null;
+  inviter_id: number;
+  organization_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 招待作成リクエスト
+export interface CreateInvitationRequest {
+  invitation: {
+    invited_email: string;
+    role: 'worker' | 'admin';
+  };
+}
+
+// 招待作成レスポンス
+export interface CreateInvitationResponse {
+  id: number;
+  invited_email: string;
+  role: 'worker' | 'admin';
+  token: string;
+  expires_at: string | null;
+  accepted_at: string | null;
+  inviter_id: number;
+  organization_id: number;
+  created_at: string;
+  updated_at: string;
+}
