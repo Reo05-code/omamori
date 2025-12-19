@@ -1,5 +1,5 @@
 // サイドメニューのコンポーネント
-"use client";
+'use client';
 import React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -74,13 +74,12 @@ export default function Sidebar({
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               {loading ? ' ' : 'dashboard'}
             </span>
-            {!sidebarCollapsed && (
-              loading ? (
+            {!sidebarCollapsed &&
+              (loading ? (
                 <span className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
               ) : (
                 <span className="font-semibold">ダッシュボード</span>
-              )
-            )}
+              ))}
           </Link>
           <Link
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
@@ -90,13 +89,12 @@ export default function Sidebar({
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               {loading ? ' ' : 'people'}
             </span>
-            {!sidebarCollapsed && (
-              loading ? (
+            {!sidebarCollapsed &&
+              (loading ? (
                 <span className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
               ) : (
                 <>メンバー</>
-              )
-            )}
+              ))}
           </Link>
           <a
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
@@ -105,13 +103,12 @@ export default function Sidebar({
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               {loading ? ' ' : 'article'}
             </span>
-            {!sidebarCollapsed && (
-              loading ? (
+            {!sidebarCollapsed &&
+              (loading ? (
                 <span className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
               ) : (
                 <>作業ログ</>
-              )
-            )}
+              ))}
           </a>
           <a
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
@@ -121,23 +118,23 @@ export default function Sidebar({
               <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
                 {loading ? ' ' : 'notifications'}
               </span>
-              {!sidebarCollapsed && (
-                loading ? (
+              {!sidebarCollapsed &&
+                (loading ? (
                   <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
                 ) : (
                   <>アラート</>
-                )
-              )}
+                ))}
             </div>
-            {!sidebarCollapsed && (
-              loading ? (
+            {!sidebarCollapsed &&
+              (loading ? (
                 <span className="inline-flex items-center justify-center px-2 py-0.5 ml-3 text-xs font-medium text-white bg-transparent rounded-full">
                   <span className="h-3 w-3 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
                 </span>
               ) : (
-                <span className="inline-flex items-center justify-center px-2 py-0.5 ml-3 text-xs font-medium text-white bg-danger rounded-full">3</span>
-              )
-            )}
+                <span className="inline-flex items-center justify-center px-2 py-0.5 ml-3 text-xs font-medium text-white bg-danger rounded-full">
+                  3
+                </span>
+              ))}
           </a>
 
           {/* collapse toggle inserted inline so it appears under Alerts */}
@@ -156,7 +153,7 @@ export default function Sidebar({
               }
             >
               <span className="material-icons-outlined">
-                {loading ? ' ' : (sidebarCollapsed ? 'chevron_right' : 'chevron_left')}
+                {loading ? ' ' : sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
               </span>
               {!sidebarCollapsed && <span className="ml-2"></span>}
             </button>
@@ -171,13 +168,12 @@ export default function Sidebar({
           <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
             {loading ? ' ' : 'settings'}
           </span>
-          {!sidebarCollapsed && (
-            loading ? (
+          {!sidebarCollapsed &&
+            (loading ? (
               <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
             ) : (
               <>設定</>
-            )
-          )}
+            ))}
         </a>
       </div>
       {errorMessage && (

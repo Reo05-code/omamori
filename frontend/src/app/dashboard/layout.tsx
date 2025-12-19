@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../components/dashboard/Sidebar';
 
@@ -46,7 +46,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-1 flex justify-center lg:justify-start lg:ml-6">
               <div className="w-full max-w-lg lg:max-w-xs relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="material-icons-outlined text-warm-brown-600 text-lg">search</span>
+                  <span className="material-icons-outlined text-warm-brown-600 text-lg">
+                    search
+                  </span>
                 </div>
                 <input
                   id="search"
@@ -59,7 +61,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto focus:outline-none p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="flex-1 overflow-y-auto focus:outline-none p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
         </div>
 
         <div className="fixed bottom-6 right-6">

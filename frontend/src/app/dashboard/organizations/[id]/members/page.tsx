@@ -1,33 +1,33 @@
-"use client"
+'use client';
 
-import React, { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import Link from "next/link"
-import type { Membership } from "../../../../../lib/api/types"
-import { fetchMemberships } from "../../../../../lib/api/memberships"
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import type { Membership } from '../../../../../lib/api/types';
+import { fetchMemberships } from '../../../../../lib/api/memberships';
 
 export default function MembersPage(): JSX.Element {
-  const params = useParams()
-  const orgId = (params as { id?: string })?.id
-  const [members, setMembers] = useState<Membership[] | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams();
+  const orgId = (params as { id?: string })?.id;
+  const [members, setMembers] = useState<Membership[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!orgId) return
+    if (!orgId) return;
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     fetchMemberships(orgId)
       .then((data) => setMembers(data))
       .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false))
-  }, [orgId])
+      .finally(() => setLoading(false));
+  }, [orgId]);
 
   const renderName = (m: Membership) => {
-    if (m.email) return m.email.split("@")[0]
-    return "（名前なし）"
-  }
+    if (m.email) return m.email.split('@')[0];
+    return '（名前なし）';
+  };
 
   return (
     <div className="p-6">
@@ -49,9 +49,15 @@ export default function MembersPage(): JSX.Element {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ロール</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  名前
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  メール
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ロール
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -59,7 +65,9 @@ export default function MembersPage(): JSX.Element {
                 members.map((m) => (
                   <tr key={m.id}>
                     <td className="px-6 py-4 whitespace-nowrap">{renderName(m)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{m.email ?? "—"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {m.email ?? '—'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{m.role}</td>
                   </tr>
                 ))
@@ -75,5 +83,5 @@ export default function MembersPage(): JSX.Element {
         </div>
       )}
     </div>
-  )
+  );
 }

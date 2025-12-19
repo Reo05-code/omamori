@@ -89,8 +89,8 @@ export interface PasswordUpdateResponse {
 
 // Membership API 型
 export interface Membership {
-  id: number
-  user_id: number
-  email?: string | null
-  role: string
+  id: number;
+  user_id: number;
+  email?: string | null;
+  role: string;
 }
