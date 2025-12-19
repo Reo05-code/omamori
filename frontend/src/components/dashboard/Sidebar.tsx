@@ -66,9 +66,10 @@ export default function Sidebar({
           </h1>
         </div>
         <nav aria-label="サイドバー ナビゲーション" className="mt-6 px-3 space-y-1">
-          <a
+          <Link
             className={`relative group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-bold rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href="#"
+            href="/dashboard"
+            aria-current={pathname === '/dashboard' ? 'page' : undefined}
           >
             <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
               {loading ? ' ' : 'dashboard'}
@@ -80,7 +81,7 @@ export default function Sidebar({
                 <span className="font-semibold">ダッシュボード</span>
               )
             )}
-          </a>
+          </Link>
           <Link
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
