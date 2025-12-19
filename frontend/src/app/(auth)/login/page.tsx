@@ -27,8 +27,8 @@ export default function Page() {
         return;
       }
 
-      // ログイン成功: トップへリダイレクト
-      router.push('/');
+      // ログイン成功: ダッシュボードへリダイレクト
+      router.push('/dashboard');
     } catch (err: any) {
       console.error('login error', err);
       setError(err?.message || '通信エラーが発生しました');

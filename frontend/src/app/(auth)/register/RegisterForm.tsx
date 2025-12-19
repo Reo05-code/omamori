@@ -27,10 +27,11 @@ export default function RegisterForm() {
     setError(null);
     setSuccess(null);
 
-    if (!agree) {
-      setError('利用規約に同意してください。');
-      return;
-    }
+    // 利用規約同意バリデーションを一時的に無効化
+    // if (!agree) {
+    //   setError('利用規約に同意してください。');
+    //   return;
+    // }
 
     if (password !== passwordConfirm) {
       setError('パスワードが一致しません。');
@@ -176,7 +177,7 @@ export default function RegisterForm() {
         </p>
       </div>
 
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <input
           id="terms-agreement"
           name="terms-agreement"
@@ -195,7 +196,7 @@ export default function RegisterForm() {
           </a>
           に同意します。
         </label>
-      </div>
+      </div> */}
 
       <div>
         <PrimaryButton
