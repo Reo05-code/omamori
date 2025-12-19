@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Membership } from '../../../../../lib/api/types';
 import { fetchMemberships } from '../../../../../lib/api/memberships';
+import { InviteMemberModal } from '../../../../../components/organization/InviteMemberModal';
 
 export default function MembersPage(): JSX.Element {
   const params = useParams();
@@ -12,6 +13,7 @@ export default function MembersPage(): JSX.Element {
   const [members, setMembers] = useState<Membership[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!orgId) return;
@@ -29,16 +31,25 @@ export default function MembersPage(): JSX.Element {
     return '（名前なし）';
   };
 
+  const handleInviteSuccess = () => {
+    // 招待成功後、メンバー一覧を再取得（オプション）
+    if (orgId) {
+      fetchMemberships(orgId)
+        .then((data) => setMembers(data))
+        .catch((e) => console.error('メンバー一覧の再取得に失敗:', e));
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">メンバー一覧</h1>
-        <Link
-          href={`/dashboard/organizations/${orgId}/invitations/new`}
+        <button
+          onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           メンバーを招待
-        </Link>
+        </button>
       </div>
 
       {loading && <p>読み込み中...</p>}
@@ -81,6 +92,16 @@ export default function MembersPage(): JSX.Element {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* 招待モーダル */}
+      {orgId && (
+        <InviteMemberModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          organizationId={orgId}
+          onSuccess={handleInviteSuccess}
+        />
       )}
     </div>
   );
