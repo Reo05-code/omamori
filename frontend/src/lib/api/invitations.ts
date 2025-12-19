@@ -40,7 +40,11 @@ export async function createInvitation(
     const errors = eb?.errors || [];
 
     // 既にメンバーであるケース
-    if (errors.some((s: string) => /already.*member|already_member|既にメンバー|既に所属|already a member/i.test(s))) {
+    if (
+      errors.some((s: string) =>
+        /already.*member|already_member|既にメンバー|既に所属|already a member/i.test(s),
+      )
+    ) {
       throw new Error('already_member');
     }
 
@@ -50,7 +54,10 @@ export async function createInvitation(
     }
 
     // その他（422 等）：バックエンドの messages をまとめて投げる
-    const joined = errors.length > 0 ? errors.join('; ') : res.error || `招待の作成に失敗しました: status=${res.status}`;
+    const joined =
+      errors.length > 0
+        ? errors.join('; ')
+        : res.error || `招待の作成に失敗しました: status=${res.status}`;
     throw new Error(joined);
   }
 
