@@ -66,11 +66,22 @@ module Api
         end
 
         # 最小限のユーザ情報をJSONで返す
+        # ユーザ自身の所属情報（memberships）を返すことで、
+        # クライアント側は組織ごとのロールで画面分岐できる
         def user_data(user)
+          memberships = user.memberships.map do |m|
+            {
+              id: m.id,
+              organization_id: m.organization_id,
+              role: m.role
+            }
+          end
+
           {
             id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            memberships: memberships
           }
         end
 
