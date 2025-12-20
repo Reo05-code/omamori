@@ -21,6 +21,8 @@ class ApplicationController < ActionController::API
   def verify_origin!
     # test環境では常にスキップ
     return if Rails.env.test?
+    # 読み取り系リクエストはCSRFの主対象ではないため許可する
+    return if request.get? || request.head? || request.options?
 
     # 外部Origin/Refererを検証して不正なリクエストを拒否
     allowed = [
