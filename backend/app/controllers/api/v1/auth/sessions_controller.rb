@@ -13,6 +13,13 @@ module Api
         skip_before_action :verify_authenticity_token, raise: false
         skip_before_action :verify_signed_out_user, raise: false
 
+        # ログイン/ログアウトエンドポイントは公開API（認証前）なので
+        # Originチェックをスキップ。ただし以下のセキュリティ対策は維持：
+        # 1. DeviseTokenAuthによるパスワード検証（ログイン時）
+        # 2. トークン検証（ログアウト時）
+        # 3. rate limiting（将来的に推奨）
+        skip_before_action :verify_origin!, raise: false
+
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
@@ -53,7 +60,7 @@ module Api
 
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.sessions.signed_out")
+            message: I18n.t("api.v1.auth.success.sessions.signed_out")
           }, status: :ok
         end
 
@@ -66,12 +73,22 @@ module Api
         end
 
         # 最小限のユーザ情報をJSONで返す
+        # ユーザ自身の所属情報（memberships）を返すことで、
+        # クライアント側は組織ごとのロールで画面分岐できる
         def user_data(user)
+          memberships = user.memberships.map do |m|
+            {
+              id: m.id,
+              organization_id: m.organization_id,
+              role: m.role
+            }
+          end
+
           {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role
+            memberships: memberships
           }
         end
 

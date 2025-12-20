@@ -12,8 +12,13 @@ export interface UserResponse {
   name: string;
   phone_number: string;
   avatar_url: string | null;
-  role: 'worker' | 'admin';
   allow_password_change: boolean;
+  // ユーザが所属する組織ごとの権限情報
+  memberships?: Array<{
+    id: number;
+    organization_id: number;
+    role: 'worker' | 'admin';
+  }>;
   settings: {
     notification_enabled?: boolean;
     dark_mode?: 'on' | 'off';

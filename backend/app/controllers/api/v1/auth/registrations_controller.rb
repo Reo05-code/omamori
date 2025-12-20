@@ -43,7 +43,7 @@ module Api
 
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.registrations.create_success"),
+            message: I18n.t("api.v1.auth.success.registrations.create"),
             data: resource_data(resource_json: @resource.as_json)
           }
         end
@@ -60,7 +60,7 @@ module Api
         def render_update_success
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.registrations.update_success"),
+            message: I18n.t("api.v1.auth.success.registrations.update"),
             data: resource_data
           }
         end
@@ -77,7 +77,7 @@ module Api
         def render_destroy_success
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.registrations.destroy_success")
+            message: I18n.t("api.v1.auth.success.registrations.destroy")
           }
         end
 

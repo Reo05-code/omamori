@@ -26,7 +26,7 @@ module Api
         def render_create_success
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.passwords.create_success")
+            message: I18n.t("api.v1.auth.success.passwords.create")
           }
         end
 
@@ -56,7 +56,7 @@ module Api
         def render_update_success
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.passwords.update_success"),
+            message: I18n.t("api.v1.auth.success.passwords.update"),
             data: resource_data
           }
         end

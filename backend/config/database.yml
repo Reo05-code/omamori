@@ -1,18 +1,16 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  host: <%= ENV.fetch("POSTGRES_HOST", File.exist?("/.dockerenv") ? "db" : "localhost") %>
   port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
   username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", File.exist?("/.dockerenv") ? "postgres" : "") %>
   pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
 
 test:
   <<: *default
-  database: <%= ENV.fetch("POSTGRES_DB", "app_test") %>
-  username: <%= ENV["CI"] ? "postgres" : ENV.fetch("POSTGRES_USER", "postgres") %>
-  password: <%= ENV["CI"] ? "password" : ENV.fetch("POSTGRES_PASSWORD", "") %>
-  host: <%= ENV["CI"] ? "localhost" : ENV.fetch("POSTGRES_HOST", "localhost") %>
+  # POSTGRES_DB は開発用(default: app_development)と共有されがちなので分離する
+  database: <%= ENV.fetch("POSTGRES_TEST_DB", "app_test") %>
 
 development:
   <<: *default
