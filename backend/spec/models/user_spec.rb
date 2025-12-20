@@ -13,10 +13,6 @@ RSpec.describe User do
       expect(user).to be_valid
     end
 
-    it "admin trait が機能すること" do
-      expect(build(:user, :admin).role).to eq("admin")
-    end
-
     it "with_avatar trait が機能すること" do
       expect(build(:user, :with_avatar).avatar_url).to be_present
     end
@@ -35,11 +31,6 @@ RSpec.describe User do
     # --- email ---
     it { is_expected.to validate_presence_of(:email) }
     it { is_expected.to validate_uniqueness_of(:email).scoped_to(:provider).case_insensitive }
-
-    # --- role ---
-    # role は enum かつモデルでデフォルトをセットするため、
-    # presence の代わりにデフォルト割当の動作を確認する
-    it { is_expected.to define_enum_for(:role).with_values(worker: 0, admin: 1) }
 
     # --- phone_number ---
     # phone_number はフロント側で任意扱いのため、空白許容とする
@@ -88,39 +79,6 @@ RSpec.describe User do
         user.email = "invalid-email"
         expect(user).not_to be_valid
       end
-
-      it "不正な role は ArgumentError" do
-        expect { user.role = :invalid_role }.to raise_error(ArgumentError)
-      end
-
-      it "role が未指定でも作成時にデフォルトが入る" do
-        u = build(:user, role: nil)
-        u.save!
-        expect(u.role).to eq("worker")
-      end
-    end
-  end
-
-  # ============================================
-  # Enum のテスト
-  # ============================================
-  describe "Enum" do
-    it { is_expected.to define_enum_for(:role).with_values(worker: 0, admin: 1) }
-
-    it "worker?/admin? は正しく動作" do
-      expect(build(:user, role: :worker).worker?).to be true
-      expect(build(:user, role: :worker).admin?).to be false
-      expect(build(:user, role: :admin).admin?).to be true
-      expect(build(:user, role: :admin).worker?).to be false
-    end
-
-    it "worker!/admin! で変更可能" do
-      u = create(:user, role: :admin)
-      u.worker!
-      expect(u.reload.role).to eq("worker")
-
-      u.admin!
-      expect(u.reload.role).to eq("admin")
     end
   end
 

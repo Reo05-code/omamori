@@ -35,7 +35,6 @@ RSpec.describe "Api::V1::Auth::Sessions" do
         expect(json["data"]["id"]).to eq(user.id)
         expect(json["data"]["name"]).to eq(user.name)
         expect(json["data"]["email"]).to eq(user.email)
-        expect(json["data"]["role"]).to eq(user.role)
       end
     end
 

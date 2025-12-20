@@ -12,7 +12,6 @@ export interface UserResponse {
   name: string;
   phone_number: string;
   avatar_url: string | null;
-  role: 'worker' | 'admin';
   allow_password_change: boolean;
   settings: {
     notification_enabled?: boolean;
