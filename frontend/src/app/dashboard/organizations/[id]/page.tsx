@@ -61,7 +61,8 @@ export default function OrganizationDashboard() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">組織ダッシュボード</h1>
         <p className="text-sm text-gray-600">
-          あなたの権限: <span className="font-semibold">{role === 'admin' ? '管理者' : 'ワーカー'}</span>
+          あなたの権限:{' '}
+          <span className="font-semibold">{role === 'admin' ? '管理者' : 'ワーカー'}</span>
         </p>
       </div>
 
