@@ -19,26 +19,42 @@ class ApplicationController < ActionController::API
   private
 
   def verify_origin!
-    # test環境では常にスキップ
-    return if Rails.env.test?
-    # 読み取り系リクエストはCSRFの主対象ではないため許可する
-    return if request.get? || request.head? || request.options?
+    return if origin_check_disabled?
 
-    # 外部Origin/Refererを検証して不正なリクエストを拒否
-    allowed = [
-      "https://omamori-three.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:3001"  # フロントエンド開発用
-    ]
     origin = request.headers["Origin"]
     referer = request.headers["Referer"]
 
-    # Origin または Referer が許可リストにある場合のみ通過
-    return if origin.present? && allowed.include?(origin)
-    return if referer.present? && allowed.any? { |o| referer.start_with?(o) }
+    return if origin_allowed?(origin)
+    return if referer_allowed?(referer)
 
-    # どちらも一致しない場合は拒否
     render json: { error: "Forbidden origin" }, status: :forbidden
+  end
+
+  def origin_check_disabled?
+    return true if Rails.env.test?
+    return true if request.get? || request.head? || request.options?
+
+    false
+  end
+
+  def origin_allowed?(origin)
+    return false if origin.blank?
+
+    allowed_origins.include?(origin)
+  end
+
+  def referer_allowed?(referer)
+    return false if referer.blank?
+
+    allowed_origins.any? { |o| referer.start_with?(o) }
+  end
+
+  def allowed_origins
+    [
+      "https://omamori-three.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:3001"
+    ]
   end
 
   # Cookieから認証情報を読み取り、リクエストヘッダへセット
