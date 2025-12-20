@@ -83,7 +83,8 @@ class Invitation < ApplicationRecord
 
   # role は画面制御用だが、Invitation 発行権限の条件として admin を要求する
   def inviter_must_be_admin
-    errors.add(:inviter, "must be admin") unless inviter&.admin?
+    membership = organization&.memberships&.find_by(user: inviter)
+    errors.add(:inviter, "must be admin") unless membership&.admin?
   end
 
   # token をセット（未設定の場合）
