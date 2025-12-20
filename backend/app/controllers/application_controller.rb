@@ -19,19 +19,24 @@ class ApplicationController < ActionController::API
   private
 
   def verify_origin!
-    # 外部Origin/Refererを検証して不正なリクエストを拒否
+    # test環境では常にスキップ
     return if Rails.env.test?
 
+    # 外部Origin/Refererを検証して不正なリクエストを拒否
     allowed = [
       "https://omamori-three.vercel.app",
-      "http://localhost:3000"
+      "http://localhost:3000",
+      "http://localhost:3001"  # フロントエンド開発用
     ]
     origin = request.headers["Origin"]
     referer = request.headers["Referer"]
-    unless allowed.include?(origin) ||
-           allowed.any? { |o| referer&.start_with?(o) }
-      render json: { error: "Forbidden origin" }, status: :forbidden
-    end
+
+    # Origin または Referer が許可リストにある場合のみ通過
+    return if origin.present? && allowed.include?(origin)
+    return if referer.present? && allowed.any? { |o| referer.start_with?(o) }
+
+    # どちらも一致しない場合は拒否
+    render json: { error: "Forbidden origin" }, status: :forbidden
   end
 
   # Cookieから認証情報を読み取り、リクエストヘッダへセット

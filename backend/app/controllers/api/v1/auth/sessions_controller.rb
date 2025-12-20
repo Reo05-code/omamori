@@ -13,6 +13,13 @@ module Api
         skip_before_action :verify_authenticity_token, raise: false
         skip_before_action :verify_signed_out_user, raise: false
 
+        # ログイン/ログアウトエンドポイントは公開API（認証前）なので
+        # Originチェックをスキップ。ただし以下のセキュリティ対策は維持：
+        # 1. DeviseTokenAuthによるパスワード検証（ログイン時）
+        # 2. トークン検証（ログアウト時）
+        # 3. rate limiting（将来的に推奨）
+        skip_before_action :verify_origin!, raise: false
+
         # `destroy` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
