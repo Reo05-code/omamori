@@ -60,7 +60,7 @@ module Api
 
           render json: {
             status: "success",
-            message: I18n.t("api.v1.auth.sessions.signed_out")
+            message: I18n.t("api.v1.auth.success.sessions.signed_out")
           }, status: :ok
         end
 
