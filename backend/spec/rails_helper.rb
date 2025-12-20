@@ -1,6 +1,16 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require "spec_helper"
-ENV["RAILS_ENV"] ||= "test"
+
+# docker-compose ではサービス環境変数で RAILS_ENV=development が入ることがあるため、
+# RSpec 実行時は常に test を強制する
+ENV["RAILS_ENV"] = "test"
+
+# docker-compose の backend サービスは DATABASE_URL が development DB を指しているため、
+# RSpec 実行時に誤って開発DBを purge しないよう test DB に差し替える
+if File.exist?("/.dockerenv")
+  ENV["DATABASE_URL"] = ENV.fetch("TEST_DATABASE_URL", "postgresql://postgres:postgres@db:5432/app_test")
+end
+
 require_relative "../config/environment"
 
 # 本番環境で実行されないようにガード
