@@ -1,3 +1,5 @@
+# ワークセッションモデルを上書き
+cat > backend/app/models/work_session.rb <<'RUBY'
 class WorkSession < ApplicationRecord
   belongs_to :user
   belongs_to :organization
@@ -38,19 +40,39 @@ class WorkSession < ApplicationRecord
     self.status ||= :in_progress
   end
 
+  # 30分後に監視ジョブをスケジュールし、その jid を保存する
+  # その処理を後からキャンセルできるようにする
+  # セッション終了時に確実にキャンセルする
   def schedule_monitoring_job
-    # 監視ジョブをスケジュールし、可能であればプロバイダの jid を保存する。
-    # ActiveJob によるスケジューリングを基本とする。Sidekiq 等の一部アダプタは provider_job_id を提供する。
-    job = MonitorWorkSessionJob.set(wait: 30.minutes).perform_later(id)
-
-    # ActiveJob のアダプタは enqueue されたジョブオブジェクトを返し、provider_job_id や job_id を参照できる場合がある。
+    # 監視ジョブをスケジュールし、Sidekiq Client API で jid を取得して保存する
+    scheduled_time = 30.minutes.from_now
     jid = nil
-    jid = job.provider_job_id if job.respond_to?(:provider_job_id)
-    jid ||= job.job_id if job.respond_to?(:job_id)
+
+    if defined?(Sidekiq)
+      begin
+        # ActiveJob の SidekiqAdapter 用の JobWrapper に渡すシリアライズ済みのジョブペイロードを作成して予定登録する
+        payload = {
+          'job_class' => MonitorWorkSessionJob.name,
+          'job_id' => SecureRandom.uuid,
+          'queue_name' => (MonitorWorkSessionJob.queue_name || 'default'),
+          'arguments' => [id]
+        }
+
+        # ActiveJob を経由せず、Sidekiq の Client API を直接使って jid を取得
+        jid = Sidekiq::Client.push('class' => 'ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper', 'args' => [payload], 'at' => scheduled_time.to_f)
+      rescue StandardError => e
+        Rails.logger.warn("Failed to push Sidekiq scheduled job for WorkSession=#{id}: #{e.message}")
+      end
+    else
+      # Sidekiq が無ければ ActiveJob を使ってスケジュールし、provider_job_id 等が取れれば保存する
+      job = MonitorWorkSessionJob.set(wait: 30.minutes).perform_later(id)
+      jid = job.provider_job_id if job.respond_to?(:provider_job_id)
+      jid ||= job.job_id if job.respond_to?(:job_id)
+    end
 
     if jid.present?
       begin
-        update_column(:active_monitoring_jid, jid)
+        update_columns(active_monitoring_jid: jid, scheduled_at: scheduled_time)
       rescue StandardError => e
         Rails.logger.warn("Failed to save active_monitoring_jid=#{jid} for WorkSession=#{id}: #{e.message}")
       end
@@ -73,11 +95,11 @@ class WorkSession < ApplicationRecord
       end
     end
 
-    # フィールドはベストエフォートでクリアする。バリデーション／コールバックを回避するために update_column を使用。
+    # 状態の不整合を残さない。「このセッションにはもう監視ジョブはない」ことを明示
     begin
-      update_column(:active_monitoring_jid, nil)
+      update_columns(active_monitoring_jid: nil, scheduled_at: nil)
     rescue StandardError => e
-      Rails.logger.warn("Failed to clear active_monitoring_jid for WorkSession=#{id}: #{e.message}")
+      Rails.logger.warn("Failed to clear active_monitoring_jid/scheduled_at for WorkSession=#{id}: #{e.message}")
     end
   end
 end
