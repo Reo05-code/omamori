@@ -75,6 +75,19 @@ class WorkSession < ApplicationRecord
         update_columns(active_monitoring_jid: jid, scheduled_at: scheduled_time)
       rescue StandardError => e
         Rails.logger.warn("Failed to save active_monitoring_jid=#{jid} for WorkSession=#{id}: #{e.message}")
+        # DB 保存に失敗した場合、スケジュール済みジョブを削除して不整合を残さない
+        if defined?(Sidekiq)
+          begin
+            scheduled = Sidekiq::ScheduledSet.new
+            job = scheduled.find { |j| j.jid == jid }
+            if job
+              job.delete
+              Rails.logger.info("Rolled back scheduled job #{jid} for WorkSession=#{id} after DB save failure")
+            end
+          rescue StandardError => ex
+            Rails.logger.warn("Failed to rollback scheduled job #{jid}: #{ex.message}")
+          end
+        end
       end
     end
   end
