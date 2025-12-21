@@ -2,19 +2,17 @@ class WorkSession < ApplicationRecord
   belongs_to :user
   belongs_to :organization
 
-
-  enum status: { in_progress: 0, completed: 1, cancelled: 2 }
+  enum :status, { in_progress: 0, completed: 1, cancelled: 2 }
 
   validates :started_at, presence: true
 
   scope :active, -> { where(status: :in_progress) }
   scope :recent, -> { order(started_at: :desc) }
 
-  # DB保存確定後にジョブ登録
-  after_commit :schedule_monitoring_job, on: :create
-
   # 作成時に開始時刻とステータスのデフォルト設定
   before_validation :set_default_started_at, on: :create
+  # DB保存確定後にジョブ登録
+  after_commit :schedule_monitoring_job, on: :create
 
   # 正常終了処理
   def end!(attrs = {})

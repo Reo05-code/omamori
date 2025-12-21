@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe WorkSession, type: :model do
+RSpec.describe WorkSession do
   describe "Callbacks" do
     it "started_at がない場合は自動で設定される" do
       ws = build(:work_session, started_at: nil)
@@ -22,9 +22,9 @@ RSpec.describe WorkSession, type: :model do
     it "create 後に MonitorWorkSessionJob が登録される" do
       ActiveJob::Base.queue_adapter = :test
 
-      expect {
+      expect do
         create(:work_session)
-      }.to have_enqueued_job(MonitorWorkSessionJob)
+      end.to have_enqueued_job(MonitorWorkSessionJob)
     end
   end
 

@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory :work_session do
-    association :user
-    association :organization
+    user
+    organization
     started_at { Time.current }
     ended_at { nil }
     status { :in_progress }
