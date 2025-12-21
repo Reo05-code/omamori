@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_20_124602) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_21_080452) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -75,7 +75,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_20_124602) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "active_monitoring_jid"
+    t.datetime "scheduled_at"
+    t.index ["active_monitoring_jid"], name: "index_work_sessions_on_active_monitoring_jid", unique: true
     t.index ["organization_id"], name: "index_work_sessions_on_organization_id"
+    t.index ["scheduled_at"], name: "index_work_sessions_on_scheduled_at"
     t.index ["started_at"], name: "index_work_sessions_on_started_at"
     t.index ["user_id"], name: "index_work_sessions_on_user_id"
   end
