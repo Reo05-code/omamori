@@ -10,6 +10,8 @@ class WorkSession < ApplicationRecord
 
   enum :status, { in_progress: 0, completed: 1, cancelled: 2 }
 
+  MONITORING_DELAY = 30.minutes
+
   validates :started_at, presence: true
 
   scope :active, -> { where(status: :in_progress) }
@@ -40,6 +42,21 @@ class WorkSession < ApplicationRecord
     in_progress? && ended_at.nil?
   end
 
+  # 監視ジョブの抽象ステータスを返す。フロントは Sidekiq の内部を知らなくて良い。
+  # - "running"  : ジョブが実行中または即時実行（scheduled_at が過去 or nil だが jid がある）
+  # - "scheduled": 監視ジョブが予約済み（scheduled_at が将来時刻）
+  # - "none"     : 監視ジョブが存在しない
+  def monitoring_status
+    # JID が存在する場合は実際にジョブが存在している（実行中または即時実行）と判断
+    return "running" if active_monitoring_jid.present?
+
+    # JID がない場合は scheduled_at を確認し、未来時刻なら予約済みとする
+    return "scheduled" if scheduled_at.present? && scheduled_at > Time.current
+
+    # 上記に該当しなければ監視ジョブは存在しない
+    "none"
+  end
+
   private
 
   # 新規作成時に開始時刻とステータスのデフォルトを設定する（テストや外部入力がない場合に備える）。
@@ -51,10 +68,20 @@ class WorkSession < ApplicationRecord
   # 30分後に監視ジョブをスケジュールし、その jid を保存する
   # JID を保存することで、セッション終了時に確実にジョブをキャンセルできる（誤通知防止）
   def schedule_monitoring_job
-    scheduled_time = 30.minutes.from_now
-    jid = push_monitoring_job(scheduled_time)
+    scheduled_time = MONITORING_DELAY.from_now
 
-    save_jid(jid, scheduled_time) if jid.present?
+    begin
+      jid = push_monitoring_job(scheduled_time)
+    rescue StandardError => e
+      Rails.logger.warn("Failed to push monitoring job for WorkSession=#{id}: #{e.message}")
+      return
+    end
+
+    begin
+      save_jid(jid, scheduled_time) if jid.present?
+    rescue StandardError => e
+      Rails.logger.warn("Failed to save jid for WorkSession=#{id}: #{e.message}")
+    end
   end
 
   # 予約済みジョブを Redis から削除し、DB上の JID もクリアする
@@ -62,7 +89,14 @@ class WorkSession < ApplicationRecord
     jid = active_monitoring_jid
     return if jid.blank?
 
-    delete_scheduled_job(jid) if defined?(Sidekiq)
+    # Sidekiq が利用可能か明示的に確認してからスケジュール削除を試みる
+    if defined?(Sidekiq::ScheduledSet)
+      begin
+        delete_scheduled_job(jid)
+      rescue StandardError => e
+        Rails.logger.warn("Failed to delete scheduled job #{jid} for WorkSession=#{id}: #{e.message}")
+      end
+    end
 
     begin
       update!(active_monitoring_jid: nil, scheduled_at: nil)
