@@ -70,9 +70,12 @@ class WorkSession < ApplicationRecord
   end
 
   # Sidekiq Client API を直接使用して JID を確実に取得する（ActiveJob経由では取得できないため）
-  # Sidekiq Client API を直接使用して JID を確実に取得する（ActiveJob経由では取得できないため）
+  # ただしテスト環境（ActiveJob の test adapter 使用時）は ActiveJob 経由で
+  # エンキューして `have_enqueued_job` 等のマッチャが機能するようにする。
   def push_monitoring_job(scheduled_time)
-    return push_via_active_job unless defined?(Sidekiq)
+    use_active_job = Rails.env.test? || ActiveJob::Base.queue_adapter == :test
+
+    return push_via_active_job if use_active_job || !defined?(Sidekiq)
 
     payload = build_monitoring_payload
     push_via_sidekiq(payload, scheduled_time)
