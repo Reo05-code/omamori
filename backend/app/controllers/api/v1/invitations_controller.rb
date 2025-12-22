@@ -24,7 +24,7 @@ module Api
                location: api_v1_organization_invitations_path(@organization)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] },
-               status: :unprocessable_content
+               status: :unprocessable_entity
       end
 
       def accept
@@ -62,7 +62,7 @@ module Api
         # role は params から直接取らず、このヘルパに渡して正規化する
         norm_role = Membership.normalize_role(role)
         if norm_role.blank?
-          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_content
+          render json: { errors: [I18n.t("api.v1.invitations.error.invalid_role")] }, status: :unprocessable_entity
           return nil
         end
 
@@ -81,7 +81,7 @@ module Api
 
         if result.error_key == :validation_errors
           render json: { errors: result.errors.presence || [I18n.t("api.v1.invitations.error.create")] },
-                 status: :unprocessable_content and return
+                 status: :unprocessable_entity and return
         end
 
         mapping = {
@@ -90,7 +90,7 @@ module Api
           already_member: [:conflict, "api.v1.invitations.error.already_member"]
         }
 
-        status_sym, i18n_key = mapping[result.error_key] || [:unprocessable_content, "api.v1.invitations.error.create"]
+        status_sym, i18n_key = mapping[result.error_key] || [:unprocessable_entity, "api.v1.invitations.error.create"]
         render json: { error: I18n.t(i18n_key) }, status: status_sym
       end
 
