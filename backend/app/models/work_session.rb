@@ -1,4 +1,8 @@
-require "sidekiq/api"
+begin
+  require "sidekiq/api"
+rescue LoadError
+  Rails.logger.info("Sidekiq gem not available; running without Sidekiq integration")
+end
 
 class WorkSession < ApplicationRecord
   belongs_to :user
@@ -72,13 +76,22 @@ class WorkSession < ApplicationRecord
   # Sidekiq Client API を直接使用して JID を確実に取得する（ActiveJob経由では取得できないため）
   # ただしテスト環境（ActiveJob の test adapter 使用時）は ActiveJob 経由で
   # エンキューして `have_enqueued_job` 等のマッチャが機能するようにする。
+  # Redis 接続失敗時は ActiveJob へフォールバックする。
   def push_monitoring_job(scheduled_time)
     use_active_job = Rails.env.test? || ActiveJob::Base.queue_adapter == :test
 
     return push_via_active_job if use_active_job || !defined?(Sidekiq)
 
-    payload = build_monitoring_payload
-    push_via_sidekiq(payload, scheduled_time)
+    jid = nil
+    begin
+      payload = build_monitoring_payload
+      jid = push_via_sidekiq(payload, scheduled_time)
+    rescue StandardError => e
+      Rails.logger.warn("Sidekiq push failed for WorkSession=#{id}, falling back to ActiveJob: #{e.message}")
+    end
+
+    # Sidekiq push が失敗した場合は ActiveJob にフォールバック
+    jid.present? ? jid : push_via_active_job
   end
 
   # モニタリングジョブのペイロードを構築する。Sidekiq の JobWrapper に渡す形式。
@@ -120,24 +133,34 @@ class WorkSession < ApplicationRecord
   end
 
   # DB保存失敗時に Redis 上の予約ジョブを削除する（可能な限り不整合を解消するため）。
+  # Redis 未接続時は処理をスキップ。
   def rollback_scheduled_job(jid)
-    scheduled = Sidekiq::ScheduledSet.new
-    job = scheduled.find { |j| j.jid == jid }
-    if job
-      job.delete
-      Rails.logger.info("Rolled back scheduled job #{jid} for WorkSession=#{id} after DB save failure")
+    return unless defined?(Sidekiq)
+
+    begin
+      scheduled = Sidekiq::ScheduledSet.new
+      job = scheduled.find { |j| j.jid == jid }
+      if job
+        job.delete
+        Rails.logger.info("Rolled back scheduled job #{jid} for WorkSession=#{id} after DB save failure")
+      end
+    rescue StandardError => e
+      Rails.logger.warn("Failed to rollback scheduled job #{jid}: #{e.message}")
     end
-  rescue StandardError => e
-    Rails.logger.warn("Failed to rollback scheduled job #{jid}: #{e.message}")
   end
 
   # 指定した JID の予約ジョブを Redis の ScheduledSet から削除する。
+  # Redis 未接続時はログ出力のみ行い、処理は継続する。
   def delete_scheduled_job(jid)
-    require "sidekiq/api"
-    scheduled = Sidekiq::ScheduledSet.new
-    job = scheduled.find { |j| j.jid == jid }
-    job&.delete
-  rescue StandardError => e
-    Rails.logger.warn("Failed to cancel scheduled Sidekiq job #{jid}: #{e.message}")
+    return unless defined?(Sidekiq)
+
+    begin
+      require "sidekiq/api"
+      scheduled = Sidekiq::ScheduledSet.new
+      job = scheduled.find { |j| j.jid == jid }
+      job&.delete
+    rescue StandardError => e
+      Rails.logger.warn("Failed to cancel scheduled Sidekiq job #{jid}: #{e.message}")
+    end
   end
 end
