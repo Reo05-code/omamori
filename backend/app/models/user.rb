@@ -13,6 +13,7 @@ class User < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :organizations, through: :memberships
+  has_many :work_sessions, dependent: :destroy
   # ユーザが発行した招待
   # - inviter_id を使って Invitation を参照する
   has_many :sent_invitations, class_name: "Invitation", foreign_key: "inviter_id", inverse_of: :inviter,
