@@ -46,6 +46,12 @@ module App
     config.session_store :disabled
     config.middleware.use ActionDispatch::Cookies
 
+    # Use Sidekiq for ActiveJob queue adapter in development/production
+    config.active_job.queue_adapter = :sidekiq
+
+    # Use Sidekiq for background jobs
+    config.active_job.queue_adapter = :sidekiq
+
     # Allow all hosts in test and development environments
     config.hosts.clear if Rails.env.test? || Rails.env.development?
 

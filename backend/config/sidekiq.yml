@@ -1,0 +1,13 @@
+# concurrency: プロセスあたりのスレッド数。DBのコネクションプール数以下に設定してください。
+concurrency: 5
+
+# キューの優先順位。先に記述したものが優先されます。
+queues:
+  - critical
+  - default
+  - mailers
+
+# 開発環境での詳細ログ出力。本番環境では必要に応じて false に設定してください。
+verbose: false
+
+# Sidekiq Enterprise/Pro などの追加設定が必要な場合はここに追加します。

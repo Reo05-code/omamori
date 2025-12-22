@@ -28,13 +28,59 @@ services:
     environment:
       RAILS_ENV: ${RAILS_ENV:-development}
       RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-app_development}
       # database.yml 側で test DB を分離できるようにする（単一Postgres内に複数DBを作る想定）
       POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-app_test}
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     stdin_open: true
     tty: true
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  sidekiq:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - backend_bundle:/usr/local/bundle
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-app_development}
+      REDIS_URL: redis://redis:6379/0
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f sidekiq || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build:
@@ -58,3 +104,4 @@ services:
 volumes:
   postgres_data:
   backend_bundle:
+  redis_data:
