@@ -26,6 +26,17 @@ Rails.application.routes.draw do
 
       # 未ログインユーザが招待を受け入れるためのエンドポイント
       post "invitations/accept", to: "invitations#accept"
+
+      # WorkSession（作業セッション）
+      resources :work_sessions, only: %i[create show] do
+        collection do
+          get :current
+        end
+        member do
+          post :finish
+          post :cancel
+        end
+      end
     end
   end
 end
