@@ -30,8 +30,8 @@ gem "devise"
 gem "devise_token_auth"
 
 # Background Processing
-gem "sidekiq"
 gem "redis"
+gem "sidekiq"
 
 # ===== Development & Test =====
 group :development, :test do
