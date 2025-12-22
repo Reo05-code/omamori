@@ -18,7 +18,7 @@ module Api
         perform_membership_update(membership)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.memberships.error.update")] },
-               status: :unprocessable_entity
+               status: :unprocessable_content
       end
 
       def destroy
@@ -62,7 +62,7 @@ module Api
       def perform_membership_update(membership)
         norm_role = Membership.normalize_role(role_param)
         if norm_role.blank?
-          render json: { errors: [I18n.t("api.v1.memberships.error.update")] }, status: :unprocessable_entity
+          render json: { errors: [I18n.t("api.v1.memberships.error.update")] }, status: :unprocessable_content
           return
         end
 
