@@ -1,5 +1,5 @@
-# ワークセッションモデルを上書き
-cat > backend/app/models/work_session.rb <<'RUBY'
+require 'sidekiq/api'
+
 class WorkSession < ApplicationRecord
   belongs_to :user
   belongs_to :organization
