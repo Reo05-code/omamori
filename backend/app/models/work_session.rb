@@ -17,19 +17,24 @@ class WorkSession < ApplicationRecord
   scope :active, -> { where(status: :in_progress) }
   scope :recent, -> { order(started_at: :desc) }
 
-  # 作成時に開始時刻とステータスのデフォルト設定
+  # コールバック
+  # - 新規作成時に started_at/status のデフォルトを設定する
   before_validation :set_default_started_at, on: :create
-  # DB保存確定後にジョブ登録
+  # - DB 保存後に監視ジョブをスケジュールして JID を保存する
   after_commit :schedule_monitoring_job, on: :create
 
-  # セッションを正常終了させる。関連する予約ジョブをキャンセルし、終了時刻と状態を更新する。
+  # 正常終了処理
+  # - 監視ジョブをキャンセルする
+  # - ended_at を設定して status を :completed に更新する
   def end!(attrs = {})
     end_time = attrs&.dig(:ended_at) || Time.current
     cancel_scheduled_job
     update!(ended_at: end_time, status: :completed)
   end
 
-  # 実行中のセッションをキャンセルする。ジョブ取消と状態更新を行う。
+  # キャンセル処理
+  # - in_progress のときのみ実行
+  # - 監視ジョブを取消し、ended_at と status を更新する
   def cancel!
     return unless in_progress?
 
@@ -37,20 +42,21 @@ class WorkSession < ApplicationRecord
     update!(ended_at: Time.current, status: :cancelled)
   end
 
-  # セッションが現在実行中で未終了かどうかを判定する。
+  # 実行中判定
+  # - in_progress かつ ended_at が nil の場合に true
   def active?
     in_progress? && ended_at.nil?
   end
 
-  # 監視ジョブの抽象ステータスを返す。フロントは Sidekiq の内部を知らなくて良い。
-  # - "running"  : ジョブが実行中または即時実行（scheduled_at が過去 or nil だが jid がある）
-  # - "scheduled": 監視ジョブが予約済み（scheduled_at が将来時刻）
+  # 監視ジョブの抽象ステータスを返す
+  # - "scheduled": scheduled_at が将来時刻で予約されている
+  # - "running"  : active_monitoring_jid が存在し、即時実行中または実行中と判断される
   # - "none"     : 監視ジョブが存在しない
   def monitoring_status
-    # まず scheduled_at が将来なら予約済みとみなす（JID が入っていても予約状態の可能性がある）
+    # 優先度: scheduled_at の未来 -> scheduled、次に JID による running
     return "scheduled" if scheduled_at.present? && scheduled_at > Time.current
 
-    # 次に JID が存在する場合は実行中または即時実行と判断
+    # JID があれば running
     return "running" if active_monitoring_jid.present?
 
     # 上記に該当しなければ監視ジョブは存在しない
@@ -59,14 +65,17 @@ class WorkSession < ApplicationRecord
 
   private
 
-  # 新規作成時に開始時刻とステータスのデフォルトを設定する（テストや外部入力がない場合に備える）。
+  # 新規作成時のデフォルト設定
+  # - started_at がなければ現在時刻を設定
+  # - status が未設定なら :in_progress を設定
   def set_default_started_at
     self.started_at ||= Time.current
     self.status ||= :in_progress
   end
 
-  # 30分後に監視ジョブをスケジュールし、その jid を保存する
-  # JID を保存することで、セッション終了時に確実にジョブをキャンセルできる（誤通知防止）
+  # 監視ジョブのスケジュール
+  # - MONITORING_DELAY 後にジョブを登録し、返却された JID と scheduled_at を DB に保存する
+  # - JID を保存しておくことで、終了時に正しく予約を取り消せる
   def schedule_monitoring_job
     scheduled_time = MONITORING_DELAY.from_now
 
@@ -84,7 +93,8 @@ class WorkSession < ApplicationRecord
     end
   end
 
-  # 予約済みジョブを Redis から削除し、DB上の JID もクリアする
+  # 予約ジョブの取消と DB のクリーンアップ
+  # - Redis(Sidekiq) 上の予約を削除し、active_monitoring_jid / scheduled_at を nil にする
   def cancel_scheduled_job
     jid = active_monitoring_jid
     return if jid.blank?
