@@ -90,7 +90,7 @@ module Api
           already_member: [:conflict, "api.v1.invitations.error.already_member"]
         }
 
-        status_sym, i18n_key = mapping[result.error_key] || [:unprocessable_content, "api.v1.invitations.error.create"]
+        status_sym, i18n_key = mapping[result.error_key] || [:unprocessable_entity, "api.v1.invitations.error.create"]
         render json: { error: I18n.t(i18n_key) }, status: status_sym
       end
 
