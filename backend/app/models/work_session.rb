@@ -47,11 +47,11 @@ class WorkSession < ApplicationRecord
   # - "scheduled": 監視ジョブが予約済み（scheduled_at が将来時刻）
   # - "none"     : 監視ジョブが存在しない
   def monitoring_status
-    # JID が存在する場合は実際にジョブが存在している（実行中または即時実行）と判断
-    return "running" if active_monitoring_jid.present?
-
-    # JID がない場合は scheduled_at を確認し、未来時刻なら予約済みとする
+    # まず scheduled_at が将来なら予約済みとみなす（JID が入っていても予約状態の可能性がある）
     return "scheduled" if scheduled_at.present? && scheduled_at > Time.current
+
+    # 次に JID が存在する場合は実行中または即時実行と判断
+    return "running" if active_monitoring_jid.present?
 
     # 上記に該当しなければ監視ジョブは存在しない
     "none"
