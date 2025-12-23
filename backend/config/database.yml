@@ -1,5 +1,5 @@
 default: &default
-  adapter: postgresql
+  adapter: postgis
   encoding: unicode
   host: <%= ENV.fetch("POSTGRES_HOST", File.exist?("/.dockerenv") ? "db" : "localhost") %>
   port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
