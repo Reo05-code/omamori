@@ -39,6 +39,12 @@ docker-compose exec backend rails db:create db:migrate
 # コンテナに入る
 docker-compose exec backend bash
 
+# NOTE: `ActiveRecord::Migration.maintain_test_schema!` は schema.rb の
+# geography/geometry 関数呼び出しでエラーになる環境があるため（PostGIS）
+# テスト実行時の自動スキーマ読み込みはここでは行わない。
+# テスト用 DB は手動でマイグレーションを適用しておいてください。
+# 例: `RAILS_ENV=test bin/rails db:drop db:create db:migrate`
+
 # テスト実行
 docker-compose exec backend rspec
 
