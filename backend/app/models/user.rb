@@ -2,8 +2,10 @@
 
 # ActiveRecord::Base から変更
 class User < ApplicationRecord
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  include HomeLocationable
+
+  # Devise の標準モジュールを有効化。他に利用可能なモジュール:
+  # :confirmable, :lockable, :timeoutable, :trackable, :omniauthable など
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
@@ -31,4 +33,5 @@ class User < ApplicationRecord
   validates :avatar_url, allow_blank: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]) }
   validates :notification_enabled, inclusion: { in: [true, false], allow_nil: true }
   validates :dark_mode, inclusion: { in: %w[on off], allow_nil: true }
+  validates :home_radius, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 end

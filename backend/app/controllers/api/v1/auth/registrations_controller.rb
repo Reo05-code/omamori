@@ -32,7 +32,8 @@ module Api
 
         # アカウント更新時に許可するパラメータを返す
         def account_update_params
-          params.permit(:email, :password, :password_confirmation, :name, :phone_number, :avatar_url)
+          params.permit(:email, :password, :password_confirmation, :name, :phone_number, :avatar_url,
+                        :home_latitude, :home_longitude, :home_radius)
         end
 
         protected

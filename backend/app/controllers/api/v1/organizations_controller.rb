@@ -19,20 +19,10 @@ module Api
       end
 
       def create
-        # 組織とそれに対する作成者の Membership を作成する
-        # どちらかの処理に失敗した場合はロールバックして不整合を防ぐため transaction を使用する
-        ActiveRecord::Base.transaction do
-          organization = Organization.create!(organization_params)
-          Membership.create!(
-            organization: organization,
-            user: current_user,
-            role: :admin
-          )
-          # 作成成功時に Location ヘッダを返す
-          render json: Api::V1::OrganizationSerializer.new(organization).as_json,
-                 status: :created,
-                 location: api_v1_organization_path(organization)
-        end
+        organization = create_organization_with_membership(organization_params)
+        render json: Api::V1::OrganizationSerializer.new(organization).as_json,
+               status: :created,
+               location: api_v1_organization_path(organization)
       rescue ActiveRecord::RecordInvalid => e
         # バリデーションエラーは詳細メッセージを優先して返し、なければ I18n の汎用メッセージへフォールバックする
         errs = e.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.error.create")]
@@ -40,6 +30,15 @@ module Api
       end
 
       private
+
+      def create_organization_with_membership(params)
+        ActiveRecord::Base.transaction do
+          organization = Organization.create!(params)
+          Membership.create!(organization: organization, user: current_user, role: :admin)
+          current_user.update!(onboarded: true)
+          organization
+        end
+      end
 
       def organization_params
         params.require(:organization).permit(:name)

@@ -7,7 +7,6 @@ on:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    # ブランチ指定なし＝全PRで実行（一般的です）
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
@@ -19,7 +18,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgis/postgis:15-3.4
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
