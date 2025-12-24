@@ -20,12 +20,11 @@ require "rspec/rails"
 # spec/support 配下のファイルを自動読み込み（設定ファイル分割用）
 Rails.root.glob("spec/support/**/*.rb").each { |f| require f }
 
-# 保留中のマイグレーションがあればテスト実行前に適用する
-begin
-  ActiveRecord::Migration.maintain_test_schema!
-rescue ActiveRecord::PendingMigrationError => e
-  abort e.to_s.strip
-end
+# NOTE: `ActiveRecord::Migration.maintain_test_schema!` は schema.rb の
+# geography/geometry 関数呼び出しでエラーになる環境があるため（PostGIS）
+# テスト実行時の自動スキーマ読み込みはここでは行わない。
+# テスト用 DB は手動でマイグレーションを適用しておいてください。
+# 例: `RAILS_ENV=test bin/rails db:drop db:create db:migrate`
 
 RSpec.configure do |config|
   # Fixtureのパス設定（FactoryBotを使うなら不要だが、一応残しておく）
