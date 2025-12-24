@@ -96,24 +96,24 @@ module HomeLocationable
 
   # 入力検証と home_location の生成を一箇所で行う
   def validate_and_compose_home_location
-    if input_provided?
-      handle_invalid_sentinels
-      return if errors.any?
+    return unless input_provided?
 
-      if explicit_delete?
-        self.home_location = nil
-        return
-      end
+    handle_invalid_sentinels
+    return if errors.any?
 
-      return unless both_coords_present?
-
-      lat, lon = parse_coords
-
-      validate_ranges(lat, lon)
-      return if errors.any?
-
-      compose_home_location(lat, lon)
+    if explicit_delete?
+      self.home_location = nil
+      return
     end
+
+    return unless both_coords_present?
+
+    lat, lon = parse_coords
+
+    validate_ranges(lat, lon)
+    return if errors.any?
+
+    compose_home_location(lat, lon)
   end
 
   # 座標から home_location を生成

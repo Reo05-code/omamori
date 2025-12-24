@@ -1,15 +1,15 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Api::V1::UserSerializer do
-  describe 'シリアライズ' do
+  describe "シリアライズ" do
     let(:user) { create(:user) }
 
-    it 'home_latitude/home_longitude/home_radius/onboarded/organizations_count を返す' do
+    it "home_latitude/home_longitude/home_radius/onboarded/organizations_count を返す" do
       org = create(:organization)
       create(:membership, organization: org, user: user, role: :worker)
       user.update!(onboarded: true, home_radius: 42)
 
-      hash = Api::V1::UserSerializer.new(user).as_json
+      hash = described_class.new(user).as_json
 
       expect(hash[:home_latitude]).to be_nil
       expect(hash[:home_longitude]).to be_nil
