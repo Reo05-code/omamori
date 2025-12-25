@@ -57,5 +57,8 @@ module App
 
     config.i18n.default_locale = :ja
 
+    # PostGIS を使用するため、schema.rb ではなく structure.sql でスキーマ管理
+    config.active_record.schema_format = :sql
+
   end
 end
