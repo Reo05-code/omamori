@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_24_070718) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_25_072559) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
@@ -47,6 +47,23 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_24_070718) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "safety_logs", force: :cascade do |t|
+    t.bigint "work_session_id", null: false
+    t.datetime "logged_at", null: false
+    t.integer "battery_level", null: false
+    t.integer "trigger_type", default: 0, null: false, comment: "0=heartbeat, 1=sos, 2=check_in"
+    t.boolean "is_offline_sync", default: false, null: false
+    t.float "gps_accuracy"
+    t.float "weather_temp"
+    t.string "weather_condition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.geometry "lonlat", limit: {:srid=>4326, :type=>"st_point"}, null: false
+    t.index ["lonlat"], name: "index_safety_logs_on_lonlat", using: :gist
+    t.index ["work_session_id", "logged_at"], name: "index_safety_logs_on_work_session_id_and_logged_at", order: { logged_at: :desc }
+    t.check_constraint "battery_level >= 0 AND battery_level <= 100", name: "battery_level_range"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "provider", default: "email", null: false
     t.string "uid", default: "", null: false
@@ -63,7 +80,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_24_070718) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "settings", default: {}, null: false
-    t.geometry "home_location", limit: {:srid=>4326, :type=>"st_point"}
+    t.geography "home_location", limit: {:srid=>0, :type=>"geometry", :geographic=>true}
     t.integer "home_radius", default: 50, null: false
     t.boolean "onboarded", default: false, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -94,6 +111,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_24_070718) do
   add_foreign_key "invitations", "users", column: "inviter_id"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
+  add_foreign_key "safety_logs", "work_sessions"
   add_foreign_key "work_sessions", "organizations"
   add_foreign_key "work_sessions", "users"
 end
