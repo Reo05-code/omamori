@@ -7,6 +7,7 @@ end
 class WorkSession < ApplicationRecord
   belongs_to :user
   belongs_to :organization
+  has_many :safety_logs, dependent: :destroy
 
   enum :status, { in_progress: 0, completed: 1, cancelled: 2 }
 
