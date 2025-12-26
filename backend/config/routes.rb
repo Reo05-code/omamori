@@ -36,6 +36,9 @@ Rails.application.routes.draw do
           post :finish
           post :cancel
         end
+
+        # SafetyLog（生存報告ログ）
+        resources :safety_logs, only: %i[index create]
       end
     end
   end
