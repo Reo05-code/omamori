@@ -1,8 +1,8 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
+-- SET TRANSACTION_TIMEOUT = 0;
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
@@ -603,4 +603,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251213071341'),
 ('20251202041352'),
 ('20251201063103');
-
