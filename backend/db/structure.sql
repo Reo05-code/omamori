@@ -2,6 +2,7 @@ SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
+-- SET TRANSACTION_TIMEOUT = 0;
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
@@ -231,7 +232,7 @@ CREATE TABLE public.users (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     settings jsonb DEFAULT '{}'::jsonb NOT NULL,
-    home_location public.geography,
+    home_location public.geography(Point,4326),
     home_radius integer DEFAULT 50 NOT NULL,
     onboarded boolean DEFAULT false NOT NULL
 );
@@ -588,9 +589,9 @@ ALTER TABLE ONLY public.work_sessions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251226080843'),
 ('20251225072559'),
 ('20251225072458'),
-('20251224093537'),
 ('20251224070718'),
 ('20251223133448'),
 ('20251221080452'),

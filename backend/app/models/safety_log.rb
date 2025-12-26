@@ -14,6 +14,7 @@ class SafetyLog < ApplicationRecord
   validates :logged_at, presence: true
   # バッテリーは 1% から100%
   validates :battery_level, presence: true, numericality: { only_integer: true, in: 0..100 }
+  validates :lonlat, presence: true
   validates :trigger_type, presence: true
   validates :gps_accuracy, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
