@@ -2,7 +2,7 @@ class RiskAssessmentScorer
   def initialize(safety_log)
     @safety_log = safety_log
   end
-  include RiskAssessment::Helpers
+  include RiskAssessmentHelpers
 
   def factors
     # factorsが未定義なら計算して保存
@@ -86,7 +86,8 @@ class RiskAssessmentScorer
     score = location_score
     return [] if score.zero?
 
-    score == -50 ? ["in_home_area"] : ["outside_home"]
+    # in_home_area (-50) はポジティブな理由なので返さない
+    score == -50 ? [] : ["outside_home"]
   end
 
   def movement_reasons
@@ -114,7 +115,7 @@ class RiskAssessmentScorer
     case battery_score
     when 20 then ["low_battery"]
     when 10 then ["battery_caution"]
-    when -10 then ["battery_ok"]
+    # battery_ok (-10) はリスク理由ではないので空配列を返す
     else []
     end
   end
