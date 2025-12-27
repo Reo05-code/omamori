@@ -1,16 +1,5 @@
 # frozen_string_literal: true
 
-#
-# details jsonb スキーマ:
-# {
-#   reasons: ["high_temperature", "low_battery", ...], # 判定理由コード配列
-#   factors: {                                         # スコア配分内訳（分析用）
-#     "temp_score": 40,
-#     "battery_score": 10,
-#     "movement_score": 30
-#   }
-# }
-#
 class RiskAssessment < ApplicationRecord
   belongs_to :safety_log
   has_one :work_session, through: :safety_log
@@ -18,7 +7,10 @@ class RiskAssessment < ApplicationRecord
   enum :level, { safe: 0, caution: 1, danger: 2 }
 
   REASON_CODES = %w[
-    high_temperature low_temperature low_battery long_inactive
+    high_temperature moderate_heat low_temperature
+    low_battery battery_caution
+    long_inactive short_inactive
+    outside_home
     rapid_acceleration sos_trigger offline_too_long poor_gps_accuracy
   ].freeze
 

@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
-# SafetyLog のリスク判定を行い、RiskAssessmentレコードとして永続化するサービス
-# 将来的にバッテリー残量、気温、GPS精度、移動距離などを総合的に評価してリスクレベルを判定する
 class RiskAssessmentService
-  # リスクレベルの定数（信号機に合わせた3段階）
-  RISK_LEVEL_SAFE = "safe"       # 緑: 安全
-  RISK_LEVEL_CAUTION = "caution" # 黄: 注意
-  RISK_LEVEL_DANGER = "danger"   # 赤: 危険
+  # リスクレベル定数
+  RISK_LEVEL_SAFE = "safe"
+  RISK_LEVEL_CAUTION = "caution"
+  RISK_LEVEL_DANGER = "danger"
 
-  # デフォルトのポーリング間隔（秒）
+  # 閾値
+  DANGER_THRESHOLD = 80
+  CAUTION_THRESHOLD = 40
+
+  # ポーリング間隔
   DEFAULT_POLL_INTERVAL = 60
   CAUTION_POLL_INTERVAL = 45
   DANGER_POLL_INTERVAL = 15
@@ -19,14 +21,15 @@ class RiskAssessmentService
     @safety_log = safety_log
   end
 
-  # リスク判定を実行して結果を返し、RiskAssessmentレコードとして永続化する
-  # @return [Hash] { risk_level: String, risk_reasons: Array<String>, next_poll_interval: Integer }
   def call
-    risk_level = calculate_risk_level
-    risk_reasons = calculate_risk_reasons
-    total_score = calculate_total_score
+    scorer = RiskAssessmentScorer.new(safety_log)
+    factors = scorer.factors
+    total_score = [factors.values.sum, 0].max
 
-    save_risk_assessment(risk_level, risk_reasons, total_score)
+    risk_reasons = scorer.reasons
+    risk_level = determine_level(total_score, risk_reasons)
+
+    save_risk_assessment(risk_level, risk_reasons, total_score, factors)
 
     {
       risk_level: risk_level,
@@ -37,60 +40,35 @@ class RiskAssessmentService
 
   private
 
-  # 現在はプレースホルダ実装（常にsafeを返す）
-  def calculate_risk_level
-    # 将来の実装例：
-    # - SOSトリガー → danger
-    # - バッテリー残量が10%以下 → caution
-    # - 気温が35度以上または5度以下 → caution
-    # - GPS精度が50m以上 → 位置情報信頼度低下の警告
-    # - 一定時間移動なし → 状況確認必要
+  # リスクレベルを点数で判定(SOSが来たら即DANGER)
+  def determine_level(score, reasons)
+    return RISK_LEVEL_DANGER if reasons.include?("sos_trigger")
+    return RISK_LEVEL_DANGER if score >= DANGER_THRESHOLD
+    return RISK_LEVEL_CAUTION if score >= CAUTION_THRESHOLD
+
     RISK_LEVEL_SAFE
   end
 
-  # 判定理由コード配列を生成（国際化対応のため英語コードを使用）
-  def calculate_risk_reasons
-    # 将来の実装例：
-    # reasons = []
-    # reasons << "sos_trigger" if safety_log.trigger_type_sos?
-    # reasons << "low_battery" if safety_log.battery_level <= 10
-    # reasons << "high_temperature" if safety_log.temperature && safety_log.temperature >= 35
-    # reasons << "low_temperature" if safety_log.temperature && safety_log.temperature <= 5
-    # reasons << "poor_gps_accuracy" if safety_log.gps_accuracy && safety_log.gps_accuracy >= 50
-    # reasons
-    []
-  end
-
-  # スコア合計を計算
-  def calculate_total_score
-    # 将来の実装例：各要因のスコアを合算
-    # battery_score + temperature_score + movement_score + ...
-    0
-  end
-
-  # リスクレベルに応じたポーリング間隔を返す
-  def poll_interval_for(risk_level)
-    case risk_level
-    when RISK_LEVEL_DANGER
-      DANGER_POLL_INTERVAL
-    when RISK_LEVEL_CAUTION
-      CAUTION_POLL_INTERVAL
-    else
-      DEFAULT_POLL_INTERVAL
+  def poll_interval_for(level)
+    case level
+    when RISK_LEVEL_DANGER  then DANGER_POLL_INTERVAL
+    when RISK_LEVEL_CAUTION then CAUTION_POLL_INTERVAL
+    else                         DEFAULT_POLL_INTERVAL
     end
   end
 
-  # RiskAssessment を見つけて更新、なければ初期化して保存する
-  def save_risk_assessment(risk_level, risk_reasons, total_score)
-    ra = RiskAssessment.find_or_initialize_by(safety_log_id: safety_log.id)
-    ra.assign_attributes(
-      score: total_score,
-      level: RiskAssessment.levels[risk_level],
-      details: {
-        reasons: risk_reasons,
-        factors: {}
-      }
+  def save_risk_assessment(level, reasons, score, factors)
+    # details カラムには検索用の reasons と、分析用の factors を両方入れる
+    details_payload = {
+      reasons: reasons,
+      factors: factors
+    }
+
+    # あれば更新、なければ新規作成(createだと重複エラーになる)
+    RiskAssessment.find_or_initialize_by(safety_log_id: @safety_log.id).update!(
+      score: score,
+      level: level,
+      details: details_payload
     )
-    ra.save!
   end
 end
