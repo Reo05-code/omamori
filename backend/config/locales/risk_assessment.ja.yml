@@ -1,0 +1,15 @@
+ja:
+  risk_assessment:
+    reasons:
+      high_temperature: "高温"
+      low_temperature: "低温"
+      low_battery: "バッテリー残量低下"
+      long_inactive: "長時間不動"
+      rapid_acceleration: "転倒・衝突の疑い"
+      sos_trigger: "SOS"
+      offline_too_long: "長時間オフライン"
+      poor_gps_accuracy: "位置情報精度低下"
+    levels:
+      safe: "安全"
+      caution: "注意"
+      danger: "危険"
