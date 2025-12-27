@@ -2,6 +2,7 @@
 
 class SafetyLog < ApplicationRecord
   belongs_to :work_session
+  has_one :risk_assessment, dependent: :destroy
 
   # lonlatの仮想属性として緯度経度を定義
   attribute :latitude, :float
