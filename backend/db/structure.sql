@@ -1,8 +1,14 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.8 (Debian 15.8-1.pgdg110+1)
+-- Dumped by pg_dump version 15.8 (Debian 15.8-1.pgdg110+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
--- SET TRANSACTION_TIMEOUT = 0;
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
@@ -153,6 +159,40 @@ CREATE SEQUENCE public.organizations_id_seq
 --
 
 ALTER SEQUENCE public.organizations_id_seq OWNED BY public.organizations.id;
+
+
+--
+-- Name: risk_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.risk_assessments (
+    id bigint NOT NULL,
+    safety_log_id bigint NOT NULL,
+    score integer DEFAULT 0 NOT NULL,
+    level integer DEFAULT 0 NOT NULL,
+    details jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: risk_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.risk_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: risk_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.risk_assessments_id_seq OWNED BY public.risk_assessments.id;
 
 
 --
@@ -316,6 +356,13 @@ ALTER TABLE ONLY public.organizations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: risk_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.risk_assessments ALTER COLUMN id SET DEFAULT nextval('public.risk_assessments_id_seq'::regclass);
+
+
+--
 -- Name: safety_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -366,6 +413,14 @@ ALTER TABLE ONLY public.memberships
 
 ALTER TABLE ONLY public.organizations
     ADD CONSTRAINT organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: risk_assessments risk_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.risk_assessments
+    ADD CONSTRAINT risk_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -440,6 +495,13 @@ CREATE INDEX index_memberships_on_user_id ON public.memberships USING btree (use
 --
 
 CREATE UNIQUE INDEX index_memberships_on_user_id_and_organization_id ON public.memberships USING btree (user_id, organization_id);
+
+
+--
+-- Name: index_risk_assessments_on_safety_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_risk_assessments_on_safety_log_id ON public.risk_assessments USING btree (safety_log_id);
 
 
 --
@@ -567,6 +629,14 @@ ALTER TABLE ONLY public.invitations
 
 
 --
+-- Name: risk_assessments fk_rails_8c63bb3a09; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.risk_assessments
+    ADD CONSTRAINT fk_rails_8c63bb3a09 FOREIGN KEY (safety_log_id) REFERENCES public.safety_logs(id);
+
+
+--
 -- Name: memberships fk_rails_99326fb65d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -586,20 +656,3 @@ ALTER TABLE ONLY public.work_sessions
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('20251226080843'),
-('20251225072559'),
-('20251225072458'),
-('20251224070718'),
-('20251223133448'),
-('20251221080452'),
-('20251220124602'),
-('20251220124601'),
-('20251214070214'),
-('20251214070206'),
-('20251214070158'),
-('20251213071341'),
-('20251202041352'),
-('20251201063103');
