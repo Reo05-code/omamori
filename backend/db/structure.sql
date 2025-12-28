@@ -1,13 +1,7 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 15.8 (Debian 15.8-1.pgdg110+1)
--- Dumped by pg_dump version 15.8 (Debian 15.8-1.pgdg110+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+-- SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -33,6 +27,42 @@ COMMENT ON EXTENSION postgis IS 'PostGIS geometry and geography spatial types an
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.alerts (
+    id bigint NOT NULL,
+    work_session_id bigint NOT NULL,
+    safety_log_id bigint,
+    handled_by_user_id bigint,
+    alert_type character varying NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    resolved_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.alerts_id_seq OWNED BY public.alerts.id;
+
 
 --
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
@@ -335,6 +365,13 @@ ALTER SEQUENCE public.work_sessions_id_seq OWNED BY public.work_sessions.id;
 
 
 --
+-- Name: alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts ALTER COLUMN id SET DEFAULT nextval('public.alerts_id_seq'::regclass);
+
+
+--
 -- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -381,6 +418,14 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 ALTER TABLE ONLY public.work_sessions ALTER COLUMN id SET DEFAULT nextval('public.work_sessions_id_seq'::regclass);
+
+
+--
+-- Name: alerts alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT alerts_pkey PRIMARY KEY (id);
 
 
 --
@@ -453,6 +498,48 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.work_sessions
     ADD CONSTRAINT work_sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_alerts_on_alert_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_alert_type ON public.alerts USING btree (alert_type);
+
+
+--
+-- Name: index_alerts_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_created_at ON public.alerts USING btree (created_at);
+
+
+--
+-- Name: index_alerts_on_handled_by_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_handled_by_user_id ON public.alerts USING btree (handled_by_user_id);
+
+
+--
+-- Name: index_alerts_on_safety_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_safety_log_id ON public.alerts USING btree (safety_log_id);
+
+
+--
+-- Name: index_alerts_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_status ON public.alerts USING btree (status);
+
+
+--
+-- Name: index_alerts_on_work_session_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_work_session_id ON public.alerts USING btree (work_session_id);
 
 
 --
@@ -613,11 +700,35 @@ ALTER TABLE ONLY public.safety_logs
 
 
 --
+-- Name: alerts fk_rails_5de5ae72d1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT fk_rails_5de5ae72d1 FOREIGN KEY (handled_by_user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: alerts fk_rails_6293374c83; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT fk_rails_6293374c83 FOREIGN KEY (work_session_id) REFERENCES public.work_sessions(id);
+
+
+--
 -- Name: memberships fk_rails_64267aab58; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships
     ADD CONSTRAINT fk_rails_64267aab58 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: alerts fk_rails_65a79e646f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT fk_rails_65a79e646f FOREIGN KEY (safety_log_id) REFERENCES public.safety_logs(id);
 
 
 --
@@ -656,3 +767,22 @@ ALTER TABLE ONLY public.work_sessions
 -- PostgreSQL database dump complete
 --
 
+SET search_path TO "$user", public;
+
+INSERT INTO "schema_migrations" (version) VALUES
+('20251228203224'),
+('20251226134358'),
+('20251226080843'),
+('20251225072559'),
+('20251225072458'),
+('20251224070718'),
+('20251223133448'),
+('20251221080452'),
+('20251220124602'),
+('20251220124601'),
+('20251214070214'),
+('20251214070206'),
+('20251214070158'),
+('20251213071341'),
+('20251202041352'),
+('20251201063103');
