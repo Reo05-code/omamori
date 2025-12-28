@@ -40,6 +40,7 @@ gem "sidekiq"
 
 # ===== Development & Test =====
 group :development, :test do
+  gem "bullet", "~> 7.1"
   gem "debug", platforms: %i[mri windows]
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.2"

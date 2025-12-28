@@ -1,0 +1,7 @@
+# 例外を許可するBulletの設定例
+# - type: n_plus_one_query
+#   class_name: User
+#   association: posts
+
+# とりあえず空にする
+[]

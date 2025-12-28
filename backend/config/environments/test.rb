@@ -65,4 +65,13 @@ Rails.application.configure do
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
+
+  # Bullet (N+1 検出) のテスト/CI用設定
+  config.after_initialize do
+    if defined?(Bullet)
+      Bullet.enable        = true
+      Bullet.bullet_logger = true
+      Bullet.raise         = true
+    end
+  end
 end
