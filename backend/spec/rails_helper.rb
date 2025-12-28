@@ -66,8 +66,9 @@ RSpec.configure do |config|
     end
 
     config.after do
-      Bullet.perform_out_of_channel_notifications if Bullet.notification?
+      # if Bullet.notification? を消して確実に通知を届けるように変更
+      Bullet.perform_out_of_channel_notifications
       Bullet.end_request
     end
   end
-end
+end ensure Bullet delivers notifications (and raises when configured)
