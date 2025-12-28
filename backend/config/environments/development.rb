@@ -87,4 +87,16 @@ Rails.application.configure do
       # ローカル開発環境では letter_opener を使用してブラウザで開く
       config.action_mailer.delivery_method = :letter_opener
     end
+
+  # Bullet (N+1 検出) の設定
+  config.after_initialize do
+    if defined?(Bullet)
+      Bullet.enable        = true
+      Bullet.alert         = true
+      Bullet.bullet_logger = true
+      Bullet.console       = true
+      Bullet.rails_logger  = true
+      Bullet.add_footer    = true
+    end
+  end
 end

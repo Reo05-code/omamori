@@ -58,4 +58,16 @@ RSpec.configure do |config|
     ActionMailer::Base.deliveries.clear
     ActionMailer::Base.perform_deliveries = true
   end
+
+  # Bullet をテスト中に有効にして N+1 を検出するためのフック
+  if defined?(Bullet)
+    config.before do
+      Bullet.start_request
+    end
+
+    config.after do
+      Bullet.perform_out_of_channel_notifications if Bullet.notification?
+      Bullet.end_request
+    end
+  end
 end
