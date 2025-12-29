@@ -41,7 +41,8 @@ CREATE TABLE public.alerts (
     status integer DEFAULT 0 NOT NULL,
     resolved_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    severity integer DEFAULT 0 NOT NULL
 );
 
 
@@ -529,6 +530,13 @@ CREATE INDEX index_alerts_on_safety_log_id ON public.alerts USING btree (safety_
 
 
 --
+-- Name: index_alerts_on_severity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_alerts_on_severity ON public.alerts USING btree (severity);
+
+
+--
 -- Name: index_alerts_on_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -770,6 +778,8 @@ ALTER TABLE ONLY public.work_sessions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251229184728'),
+('20251229184201'),
 ('20251228203224'),
 ('20251226134358'),
 ('20251226080843'),
