@@ -35,4 +35,5 @@ class
 
   scope :unresolved, -> { where(status: [:open, :in_progress]) }
   scope :notifiable, -> { where(severity: [:high, :critical]).unresolved }
+  scope :order_by_priority, -> { order(status: :asc, created_at: :desc) }
 end
