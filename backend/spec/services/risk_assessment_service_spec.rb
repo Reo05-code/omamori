@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "RiskAssessmentService" do
+RSpec.describe RiskAssessmentService do
   let(:user) { create(:user) }
   let(:organization) { create(:organization) }
   let(:work_session) { create(:work_session, user: user, organization: organization) }

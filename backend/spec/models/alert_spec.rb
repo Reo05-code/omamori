@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Alert" do
+RSpec.describe Alert do
   describe "Factory" do
     it "有効なファクトリを持つこと" do
       expect(build(:alert)).to be_valid
