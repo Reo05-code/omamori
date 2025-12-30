@@ -13,40 +13,45 @@ class AlertCreationService
     end
   end
 
-  def initialize(work_session:, alert_type:, severity:, safety_log_id: nil, lat: nil, lon: nil)
+  def initialize(work_session:, alert_type:, severity:, **opts)
     @work_session = work_session
     @alert_type = alert_type
     @severity = severity
-    @safety_log_id = safety_log_id
-    @lat = lat
-    @lon = lon
+    @safety_log_id = opts[:safety_log_id]
+    @lat = opts[:lat]
+    @lon = opts[:lon]
   end
 
   def call
-    if duplicate_alert_exists?
-      @result = Result.new(alert: @existing_alert, duplicate: true, success: false)
-      return @result
-    end
+    return duplicate_result if duplicate_alert_exists?
 
     # SOS用ログ作成
     ensure_safety_log_exists!
 
-    # アラート作成
-    alert = @work_session.alerts.build(
+    alert = build_alert
+    save_alert(alert)
+  end
+
+  def duplicate_result
+    Result.new(alert: @existing_alert, duplicate: true, success: false)
+  end
+
+  def build_alert
+    @work_session.alerts.build(
       alert_type: @alert_type,
       severity: @severity,
       status: :open,
       safety_log_id: @safety_log_id
     )
+  end
 
+  def save_alert(alert)
     if alert.save
       notify_if_needed(alert)
-      @result = Result.new(alert: alert, duplicate: false, success: true)
+      Result.new(alert: alert, duplicate: false, success: true)
     else
-      @result = Result.new(alert: alert, duplicate: false, success: false)
+      Result.new(alert: alert, duplicate: false, success: false)
     end
-
-    @result
   end
 
   private
@@ -81,6 +86,7 @@ class AlertCreationService
 
   def notify_if_needed(alert)
     return unless Alert.notifiable.exists?(id: alert.id)
+
     Rails.logger.info "Notification triggered for Alert ##{alert.id}"
   end
 end

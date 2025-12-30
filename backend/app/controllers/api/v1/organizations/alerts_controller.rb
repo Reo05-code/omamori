@@ -11,9 +11,9 @@ module Api
         # GET /api/v1/organizations/:organization_id/alerts
         def index
           alerts = Alert.joins(:work_session)
-                .where(work_sessions: { organization_id: @organization.id })
-                .includes(work_session: :user)
-                .order_by_priority
+                        .where(work_sessions: { organization_id: @organization.id })
+                        .includes(work_session: :user)
+                        .order_by_priority
 
           render json: alerts
         end
@@ -32,7 +32,7 @@ module Api
             if @alert.update(update_params)
               render json: @alert, status: :ok
             else
-              render json: { errors: @alert.errors.full_messages }, status: :unprocessable_entity
+              render json: { errors: @alert.errors.full_messages }, status: :unprocessable_content
             end
           end
         end

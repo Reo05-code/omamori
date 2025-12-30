@@ -79,8 +79,6 @@ class RiskAssessmentService
                      { type: :risk_high, severity: :high }
                    when RISK_LEVEL_CAUTION
                      { type: :risk_medium, severity: :medium }
-                   else
-                     nil
                    end
 
     return unless alert_config
