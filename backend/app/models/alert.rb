@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-class
-   Alert < ApplicationRecord
+class Alert < ApplicationRecord
   belongs_to :work_session
   belongs_to :safety_log, optional: true
   belongs_to :handled_by_user, class_name: "User", optional: true
@@ -28,6 +27,8 @@ class
   }, prefix: true
 
   ALERT_TYPES = alert_types.keys.freeze
+
+  validates :alert_type, presence: true
 
   scope :unresolved, -> { where(status: %i[open in_progress]) }
   scope :notifiable, -> { where(severity: %i[high critical]).unresolved }

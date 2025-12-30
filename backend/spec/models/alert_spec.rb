@@ -16,8 +16,9 @@ RSpec.describe Alert do
   describe "Validations" do
     it { is_expected.to validate_presence_of(:alert_type) }
 
-    # 定義外の type が弾かれることを確認
-    it { is_expected.to validate_inclusion_of(:alert_type).in_array(Alert::ALERT_TYPES) }
+    it "定義外の alert types はエラーになること" do
+      expect { build(:alert, alert_type: "invalid_type") }.to raise_error(ArgumentError)
+    end
   end
 
   describe "Enum status" do
