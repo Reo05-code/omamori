@@ -29,10 +29,6 @@ class
 
   ALERT_TYPES = alert_types.keys.freeze
 
-  validates :alert_type, presence: true
-  validates :severity, presence: true
-  validates :status, presence: true
-
   scope :unresolved, -> { where(status: [:open, :in_progress]) }
   scope :notifiable, -> { where(severity: [:high, :critical]).unresolved }
   scope :order_by_priority, -> { order(status: :asc, created_at: :desc) }
