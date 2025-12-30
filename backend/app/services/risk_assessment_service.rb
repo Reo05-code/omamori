@@ -30,6 +30,7 @@ class RiskAssessmentService
     risk_level = determine_level(total_score, risk_reasons)
 
     save_risk_assessment(risk_level, risk_reasons, total_score, factors)
+    handle_alert_creation(risk_level)
 
     {
       risk_level: risk_level,
@@ -70,5 +71,26 @@ class RiskAssessmentService
       level: level,
       details: details_payload
     )
+  end
+
+  def handle_alert_creation(risk_level)
+    alert_config = case risk_level
+                   when RISK_LEVEL_DANGER
+                     { type: :risk_high, severity: :high }
+                   when RISK_LEVEL_CAUTION
+                     { type: :risk_medium, severity: :medium }
+                   else
+                     nil
+                   end
+
+    return unless alert_config
+
+    # AlertCreationServiceを呼び出してアラート作成
+    AlertCreationService.new(
+      work_session: @safety_log.work_session,
+      alert_type: alert_config[:type],
+      severity: alert_config[:severity],
+      safety_log_id: @safety_log.id
+    ).call
   end
 end
