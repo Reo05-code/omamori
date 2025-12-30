@@ -20,24 +20,35 @@ module Api
 
         # PATCH /api/v1/organizations/:organization_id/alerts/:id
         def update
-          @alert.with_lock do
-            update_params = alert_update_params
-
-            # statusがresolvedになる場合、handled_by_userとresolved_atをセット
-            if update_params[:status]&.to_sym == :resolved
-              update_params[:handled_by_user_id] = current_user.id
-              update_params[:resolved_at] = Time.current
-            end
-
-            if @alert.update(update_params)
-              render json: @alert, status: :ok
-            else
-              render json: { errors: @alert.errors.full_messages }, status: :unprocessable_content
-            end
-          end
+          @alert.with_lock { update_alert_with_lock }
         end
 
         private
+
+        def update_alert_with_lock
+          update_params = alert_update_params
+
+          apply_resolution_fields_if_needed(update_params)
+
+          update_and_render(update_params)
+        rescue ArgumentError => e
+          render json: { errors: [e.message] }, status: :unprocessable_content
+        end
+
+        def apply_resolution_fields_if_needed(update_params)
+          return unless update_params[:status]&.to_sym == :resolved
+
+          update_params[:handled_by_user_id] = current_user.id
+          update_params[:resolved_at] = Time.current
+        end
+
+        def update_and_render(update_params)
+          if @alert.update(update_params)
+            render json: @alert, status: :ok
+          else
+            render json: { errors: @alert.errors.full_messages }, status: :unprocessable_content
+          end
+        end
 
         def set_organization
           @organization = current_user.organizations.find(params[:organization_id])
