@@ -22,6 +22,8 @@ Rails.application.routes.draw do
       resources :organizations, only: %i[index create show] do
         resources :memberships, only: %i[index update destroy]
         resources :invitations, only: %i[index create]
+        # 管理者用: 組織内のアラート管理
+        resources :alerts, only: %i[index update], controller: "organizations/alerts"
       end
 
       # 未ログインユーザが招待を受け入れるためのエンドポイント
@@ -42,6 +44,9 @@ Rails.application.routes.draw do
 
         # RiskAssessment（リスク判定履歴）
         resources :risk_assessments, only: %i[index]
+
+        # 作業者用: SOSアラートの作成
+        resources :alerts, only: %i[create]
       end
     end
   end
