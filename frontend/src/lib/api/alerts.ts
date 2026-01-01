@@ -7,9 +7,7 @@ export async function createSosAlert(
   coords?: { latitude: number; longitude: number },
 ): Promise<{ duplicate: boolean; alert: AlertResponse | null }> {
   // 位置情報があれば body に含める
-  const body = coords
-    ? { latitude: coords.latitude, longitude: coords.longitude }
-    : undefined;
+  const body = coords ? { latitude: coords.latitude, longitude: coords.longitude } : undefined;
 
   // 新規作成か重複かに関わらず AlertResponse またはメッセージを返す
   const res = await api.post<AlertResponse | { message: string; alert: AlertResponse }>(

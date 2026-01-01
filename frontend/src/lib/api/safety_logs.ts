@@ -29,7 +29,10 @@ export async function createSafetyLog(
     },
   };
 
-  const res = await api.post<CreateSafetyLogResponse>(API_PATHS.WORK_SESSIONS.SAFETY_LOGS(workSessionId), body);
+  const res = await api.post<CreateSafetyLogResponse>(
+    API_PATHS.WORK_SESSIONS.SAFETY_LOGS(workSessionId),
+    body,
+  );
 
   if (res.error || res.data === null) {
     throw new Error(res.error || `failed to create safety log: status=${res.status}`);
