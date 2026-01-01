@@ -56,6 +56,68 @@ RSpec.describe "Api::V1::WorkSessions" do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    context "Admin による代理作成" do
+      let(:admin_user) { create(:user) }
+      let(:worker_user) { create(:user) }
+      let(:organization) { create(:organization) }
+
+      before do
+        create(:membership, organization: organization, user: admin_user, role: :admin)
+        create(:membership, organization: organization, user: worker_user, role: :worker)
+      end
+
+      it "Admin が同じ組織の Worker のセッションを作成できる" do
+        post "/api/v1/work_sessions",
+             params: { work_session: { organization_id: organization.id, user_id: worker_user.id } },
+             headers: admin_user.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["user_id"]).to eq(worker_user.id)
+        expect(json["organization_id"]).to eq(organization.id)
+      end
+
+      it "作成時の created_by_user_id は admin_user になる" do
+        post "/api/v1/work_sessions",
+             params: { work_session: { organization_id: organization.id, user_id: worker_user.id } },
+             headers: admin_user.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["created_by_user_id"]).to eq(admin_user.id)
+
+        ws = WorkSession.find(json["id"])
+        expect(ws.created_by_user_id).to eq(admin_user.id)
+      end
+
+      it "Admin が他の組織の Worker のセッションを作成できない (404)" do
+        other_org = create(:organization)
+        other_worker = create(:user)
+        create(:membership, organization: other_org, user: other_worker, role: :worker)
+
+        post "/api/v1/work_sessions",
+             params: { work_session: { organization_id: organization.id, user_id: other_worker.id } },
+             headers: admin_user.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "Worker が他の Worker のセッションを作成しようとすると 403" do
+        another_worker = create(:user)
+        create(:membership, organization: organization, user: another_worker, role: :worker)
+
+        post "/api/v1/work_sessions",
+             params: { work_session: { organization_id: organization.id, user_id: another_worker.id } },
+             headers: worker_user.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
   end
 
   describe "GET /api/v1/work_sessions/current (進行中取得)" do
@@ -113,6 +175,27 @@ RSpec.describe "Api::V1::WorkSessions" do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    context "Admin による代理終了" do
+      let(:admin_user) { create(:user) }
+      let(:worker_user) { create(:user) }
+
+      before do
+        create(:membership, organization: organization, user: admin_user, role: :admin)
+        create(:membership, organization: organization, user: worker_user, role: :worker)
+      end
+
+      it "Admin が同じ組織の Worker のセッションを終了できる" do
+        ws = create(:work_session, user: worker_user, organization: organization)
+
+        post "/api/v1/work_sessions/#{ws.id}/finish", headers: admin_user.create_new_auth_token, as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["status"]).to eq("completed")
+        expect(json["ended_at"]).to be_present
+      end
+    end
   end
 
   describe "POST /api/v1/work_sessions/:id/cancel (キャンセル)" do
@@ -132,6 +215,27 @@ RSpec.describe "Api::V1::WorkSessions" do
       json = response.parsed_body
       expect(json["status"]).to eq("cancelled")
       expect(json["ended_at"]).to be_present
+    end
+
+    context "Admin による代理キャンセル" do
+      let(:admin_user) { create(:user) }
+      let(:worker_user) { create(:user) }
+
+      before do
+        create(:membership, organization: organization, user: admin_user, role: :admin)
+        create(:membership, organization: organization, user: worker_user, role: :worker)
+      end
+
+      it "Admin が同じ組織の Worker のセッションをキャンセルできる" do
+        ws = create(:work_session, user: worker_user, organization: organization)
+
+        post "/api/v1/work_sessions/#{ws.id}/cancel", headers: admin_user.create_new_auth_token, as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["status"]).to eq("cancelled")
+        expect(json["ended_at"]).to be_present
+      end
     end
   end
 
@@ -154,6 +258,36 @@ RSpec.describe "Api::V1::WorkSessions" do
       expect(json["monitoring_job"]).to be_present
       expect(json["monitoring_job"]["status"]).to eq("scheduled")
       expect(json["monitoring_job"]["scheduled_at"]).to be_present
+    end
+
+    it "他ユーザーのセッションは 404" do
+      other = create(:user)
+      create(:membership, organization: organization, user: other)
+      ws = create(:work_session, user: other, organization: organization)
+
+      get "/api/v1/work_sessions/#{ws.id}", headers: user.create_new_auth_token, as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    context "Admin による閲覧" do
+      let(:admin_user) { create(:user) }
+      let(:worker_user) { create(:user) }
+
+      before do
+        create(:membership, organization: organization, user: admin_user, role: :admin)
+        create(:membership, organization: organization, user: worker_user, role: :worker)
+      end
+
+      it "Admin が同じ組織の Worker のセッション詳細を閲覧できる" do
+        ws = create(:work_session, user: worker_user, organization: organization)
+
+        get "/api/v1/work_sessions/#{ws.id}", headers: admin_user.create_new_auth_token, as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["id"]).to eq(ws.id)
+      end
     end
   end
 end

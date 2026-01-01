@@ -342,7 +342,8 @@ CREATE TABLE public.work_sessions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     active_monitoring_jid character varying,
-    scheduled_at timestamp(6) without time zone
+    scheduled_at timestamp(6) without time zone,
+    created_by_user_id bigint
 );
 
 
@@ -649,6 +650,13 @@ CREATE UNIQUE INDEX index_work_sessions_on_active_monitoring_jid ON public.work_
 
 
 --
+-- Name: index_work_sessions_on_created_by_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_work_sessions_on_created_by_user_id ON public.work_sessions USING btree (created_by_user_id);
+
+
+--
 -- Name: index_work_sessions_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -765,12 +773,21 @@ ALTER TABLE ONLY public.work_sessions
 
 
 --
+-- Name: work_sessions fk_rails_c93a3a131e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.work_sessions
+    ADD CONSTRAINT fk_rails_c93a3a131e FOREIGN KEY (created_by_user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251231141114'),
 ('20251230100109'),
 ('20251229184728'),
 ('20251229184201'),
