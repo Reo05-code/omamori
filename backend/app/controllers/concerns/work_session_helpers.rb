@@ -3,6 +3,10 @@
 module WorkSessionHelpers
   extend ActiveSupport::Concern
 
+  # 内容:
+  # - パラメータ抽出、作成前チェック、保存時の排他制御、エラーレスポンス生成などを提供する。
+  # - ポリシー判定やシリアライザ呼び出しはコントローラ側で行い、このモジュールは補助的な役割にとどめる。
+
   # ActiveRecord::RecordInvalid のエラーメッセージを JSON で返す
   def render_validation_errors(error, fallback:)
     messages = error.record.errors.full_messages.presence || [fallback]
@@ -22,8 +26,9 @@ module WorkSessionHelpers
   end
 
   # 既に進行中のセッションがあれば JSON でエラーを返す
-  def render_active_session_exists?
-    if current_user.work_sessions.active.exists?
+  # target_user 指定に対応
+  def render_active_session_exists?(target_user = current_user)
+    if target_user.work_sessions.active.exists?
       render json: { errors: ["既に進行中の作業セッションがあります"] }, status: :unprocessable_content
       return true
     end
@@ -45,6 +50,33 @@ module WorkSessionHelpers
 
     if work_session.completed?
       render json: { errors: ["作業セッションは既に終了しています"] }, status: :unprocessable_content
+      return false
+    end
+
+    true
+  end
+
+  def build_new_work_session(org, target_user)
+    target_user.work_sessions.build(
+      organization: org,
+      started_at: started_at_param.presence || Time.current,
+      status: :in_progress,
+      created_by_user: current_user
+    )
+  end
+
+  def policy_create_status(work_session)
+    result = WorkSessionPolicy.new(current_user, work_session).create
+    return :forbidden if result.error_key == :forbidden
+    return :not_found if result.error_key == :not_found
+
+    :ok
+  end
+
+  def ensure_authorized_for?(action, work_session)
+    result = WorkSessionPolicy.new(current_user, work_session).public_send(action)
+    unless result.allowed?
+      render_work_session_not_found
       return false
     end
 

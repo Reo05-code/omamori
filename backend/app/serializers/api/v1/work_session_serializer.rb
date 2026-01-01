@@ -13,6 +13,7 @@ module Api
           id: @work_session.id,
           user_id: @work_session.user_id,
           organization_id: @work_session.organization_id,
+          created_by_user_id: @work_session.created_by_user_id,
           status: @work_session.status,
           started_at: @work_session.started_at,
           ended_at: @work_session.ended_at
