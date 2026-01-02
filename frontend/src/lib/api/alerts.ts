@@ -1,5 +1,5 @@
 import type { AlertResponse } from './types';
-import { api } from './client';
+import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
 export async function createSosAlert(
@@ -16,7 +16,7 @@ export async function createSosAlert(
   );
 
   if (res.error) {
-    throw new Error(res.error);
+    throw new ApiError(res.error, res.status, res.errorBody);
   }
 
   if (!res.data) return { duplicate: false, alert: null };

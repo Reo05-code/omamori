@@ -3,7 +3,7 @@ import type {
   CreateSafetyLogResponse,
   SafetyLogTriggerType,
 } from './types';
-import { api } from './client';
+import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
 export async function createSafetyLog(
@@ -35,7 +35,11 @@ export async function createSafetyLog(
   );
 
   if (res.error || res.data === null) {
-    throw new Error(res.error || `failed to create safety log: status=${res.status}`);
+    throw new ApiError(
+      res.error || `failed to create safety log: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
   }
 
   return res.data;

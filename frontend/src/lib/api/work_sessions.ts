@@ -1,5 +1,5 @@
 import type { GetCurrentWorkSessionResponse, WorkSession } from './types';
-import { api } from './client';
+import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
 export async function getCurrentSession(signal?: AbortSignal): Promise<WorkSession | null> {
@@ -10,7 +10,7 @@ export async function getCurrentSession(signal?: AbortSignal): Promise<WorkSessi
   });
 
   if (res.error) {
-    throw new Error(res.error);
+    throw new ApiError(res.error, res.status, res.errorBody);
   }
 
   if (!res.data) return null;
@@ -24,7 +24,11 @@ export async function startSession(organizationId: number): Promise<WorkSession>
   });
 
   if (res.error || res.data === null) {
-    throw new Error(res.error || `failed to start session: status=${res.status}`);
+    throw new ApiError(
+      res.error || `failed to start session: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
   }
 
   return res.data;
@@ -35,7 +39,11 @@ export async function finishSession(workSessionId: number): Promise<WorkSession>
   const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.FINISH(workSessionId));
 
   if (res.error || res.data === null) {
-    throw new Error(res.error || `failed to finish session: status=${res.status}`);
+    throw new ApiError(
+      res.error || `failed to finish session: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
   }
 
   return res.data;
