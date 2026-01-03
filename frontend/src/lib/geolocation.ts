@@ -86,10 +86,7 @@ export async function getDeviceInfoWithLocation(): Promise<
   (GeolocationResult & DeviceInfo) | null
 > {
   try {
-    const [position, batteryLevel] = await Promise.all([
-      getCurrentPosition(),
-      getBatteryLevel(),
-    ]);
+    const [position, batteryLevel] = await Promise.all([getCurrentPosition(), getBatteryLevel()]);
 
     return {
       ...position,
