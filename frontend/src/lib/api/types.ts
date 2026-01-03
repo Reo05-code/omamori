@@ -135,3 +135,86 @@ export interface CreateInvitationResponse {
   created_at: string;
   updated_at: string;
 }
+
+// Organization API 組織一覧などで利用）
+export interface Organization {
+  id: number;
+  name: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 作業セッションの状態を表す
+// - 'in_progress': 見守り中
+// - 'completed': 正常終了
+// - 'cancelled': 管理者などによるキャンセル
+export type WorkSessionStatus = 'in_progress' | 'completed' | 'cancelled';
+
+// WorkSession の API 表現（/api/v1/work_sessions 系のレスポンス）
+// フロントではこれを保持して現在の見守り状態を判定する
+export interface WorkSession {
+  id: number;
+  user_id: number;
+  organization_id: number;
+  // 作成者（管理者が代行した場合に入り得る）
+  created_by_user_id?: number;
+  status: WorkSessionStatus;
+  started_at: string;
+  // 終了時刻（未終了なら null/undefined）
+  ended_at?: string | null;
+}
+
+// GET /api/v1/work_sessions/current のレスポンス型
+// - work_session が null の場合は現在進行中のセッション無し
+export interface GetCurrentWorkSessionResponse {
+  work_session: WorkSession | null;
+}
+
+// SafetyLog の trigger_type を表す（モデルの enum に対応）
+// - 'heartbeat': 定期的な生存確認
+// - 'sos': 緊急発信
+// - 'check_in': ユーザによる手動の元気タッチ等
+export type SafetyLogTriggerType = 'heartbeat' | 'sos' | 'check_in';
+
+// POST /api/v1/work_sessions/:id/safety_logs に送るリクエスト型
+export interface CreateSafetyLogRequest {
+  safety_log: {
+    latitude: number;
+    longitude: number;
+    battery_level: number;
+    trigger_type: SafetyLogTriggerType;
+    gps_accuracy?: number;
+    logged_at?: string;
+  };
+}
+
+// SafetyLogが作成された際のAPIレスポンス型
+export interface SafetyLogResponse {
+  id: number;
+  work_session_id: number;
+  battery_level: number;
+  trigger_type: SafetyLogTriggerType;
+  latitude?: number | null;
+  longitude?: number | null;
+  logged_at: string;
+}
+
+// SafetyLog 作成 API の成功レスポンス（RiskAssessment を含む）
+export interface CreateSafetyLogResponse {
+  status: 'success';
+  safety_log: SafetyLogResponse;
+  risk_level: 'safe' | 'caution' | 'danger';
+  risk_reasons: string[];
+  next_poll_interval: number;
+}
+
+// POST /api/v1/work_sessions/:id/alerts の戻り値で使用
+export interface AlertResponse {
+  id: number;
+  work_session_id: number;
+  alert_type: string;
+  severity: string;
+  status: string;
+  safety_log_id?: number | null;
+  created_at?: string;
+}

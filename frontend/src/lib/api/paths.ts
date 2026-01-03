@@ -25,4 +25,15 @@ export const API_PATHS = {
   INVITATIONS: {
     ACCEPT: '/api/v1/invitations/accept',
   },
+
+  // WorkSession / Worker actions
+  WORK_SESSIONS: {
+    BASE: '/api/v1/work_sessions',
+    CURRENT: '/api/v1/work_sessions/current',
+    CREATE: '/api/v1/work_sessions',
+    FINISH: (id: string | number) => `/api/v1/work_sessions/${id}/finish`,
+    SAFETY_LOGS: (workSessionId: string | number) =>
+      `/api/v1/work_sessions/${workSessionId}/safety_logs`,
+    ALERTS: (workSessionId: string | number) => `/api/v1/work_sessions/${workSessionId}/alerts`,
+  },
 } as const;

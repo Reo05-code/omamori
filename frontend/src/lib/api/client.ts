@@ -26,6 +26,26 @@ interface ApiResponse<T> {
 }
 
 /**
+ * API 呼び出しで発生したエラー
+ * - status: HTTP ステータス（ネットワークエラー時は 0）
+ * - errorBody: サーバが返したエラーJSON（可能な場合）
+ */
+export class ApiError extends Error {
+  status: number;
+  errorBody?: unknown | null;
+
+  constructor(message: string, status: number, errorBody?: unknown | null) {
+    super(message);
+
+    Object.setPrototypeOf(this, ApiError.prototype);
+
+    this.name = 'ApiError';
+    this.status = status;
+    this.errorBody = errorBody;
+  }
+}
+
+/**
  * API のコア実行関数
  * - fetch の共通設定
  * - JSON / NoContent / 非JSON を安全に処理
