@@ -123,7 +123,7 @@ export default function LongPressButton({
       startTimeRef.current = Date.now();
       animationRef.current = window.requestAnimationFrame(updateProgress);
     },
-    [isDisabled, updateProgress]
+    [isDisabled, updateProgress],
   );
 
   /**
@@ -138,7 +138,7 @@ export default function LongPressButton({
         handleStart();
       }
     },
-    [isDisabled, pressing, handleStart]
+    [isDisabled, pressing, handleStart],
   );
 
   /**
@@ -151,7 +151,7 @@ export default function LongPressButton({
         handleCancel();
       }
     },
-    [handleCancel]
+    [handleCancel],
   );
 
   // コンポーネントのアンマウント時に確実にタイマーを破棄

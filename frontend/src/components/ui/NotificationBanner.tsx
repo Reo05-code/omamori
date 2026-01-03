@@ -44,12 +44,7 @@ export default function NotificationBanner({
         ? 'bg-danger/95 text-white'
         : 'bg-blue-500/95 text-white';
 
-  const iconName =
-    type === 'success'
-      ? 'check_circle'
-      : type === 'error'
-        ? 'error'
-        : 'info';
+  const iconName = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
 
   return (
     <div

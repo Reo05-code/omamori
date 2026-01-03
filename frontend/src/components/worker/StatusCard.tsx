@@ -10,7 +10,12 @@ type Props = {
   isWorking?: boolean;
 };
 
-export default function StatusCard({ title, statusLabel, statusSubLabel, isWorking = false }: Props) {
+export default function StatusCard({
+  title,
+  statusLabel,
+  statusSubLabel,
+  isWorking = false,
+}: Props) {
   const iconClass = isWorking ? 'text-secondary' : 'text-warm-orange';
   const ringClass = isWorking ? 'ring-secondary/30' : 'ring-warm-brown-200/50';
 

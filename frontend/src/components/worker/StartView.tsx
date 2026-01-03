@@ -27,9 +27,7 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
             <span className="material-icons-outlined text-warm-brown-800">shield</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-warm-brown-800 mb-1">
-              見守りを開始しましょう
-            </h2>
+            <h2 className="text-lg font-bold text-warm-brown-800 mb-1">見守りを開始しましょう</h2>
             <p className="text-sm text-warm-brown-600">
               作業を開始すると、定期的な安否確認と緊急時のSOS発信ができるようになります。
             </p>

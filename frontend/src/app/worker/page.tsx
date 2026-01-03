@@ -69,7 +69,9 @@ export default function WorkerHomePage() {
     await checkIn(params);
 
     if (!sessionError) {
-      setLastCheckInTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }));
+      setLastCheckInTime(
+        new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+      );
       setNotification({ message: '安否を報告しました', type: 'success' });
     }
   }, [checkIn, sessionError]);

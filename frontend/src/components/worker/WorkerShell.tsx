@@ -17,7 +17,9 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
           </div>
           <span className="text-lg font-bold">{title}</span>
         </div>
-        <div className="text-xs text-warm-brown-600">{new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div className="text-xs text-warm-brown-600">
+          {new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+        </div>
       </header>
 
       <section className="flex-1 px-4 pb-24">{children}</section>

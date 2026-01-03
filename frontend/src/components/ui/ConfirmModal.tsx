@@ -61,35 +61,32 @@ export default function ConfirmModal({
   }, [open, onCancel]);
 
   // モーダルが開いている間はフォーカスをモーダル内に閉じ込める（Tab/Shift+Tab でモーダル内を循環）
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab') return;
 
-      const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
+    const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
 
-      if (!focusableElements || focusableElements.length === 0) return;
+    if (!focusableElements || focusableElements.length === 0) return;
 
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
 
-      if (e.shiftKey) {
-        // Shift+Tab: 最初の要素なら最後へ
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement.focus();
-        }
-      } else {
-        // Tab: 最後の要素なら最初へ
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement.focus();
-        }
+    if (e.shiftKey) {
+      // Shift+Tab: 最初の要素なら最後へ
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
       }
-    },
-    [],
-  );
+    } else {
+      // Tab: 最後の要素なら最初へ
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, []);
 
   if (!open) return null;
 
@@ -118,16 +115,10 @@ export default function ConfirmModal({
         ref={dialogRef}
         className="relative bg-warm-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 z-10 border border-warm-brown-200/30"
       >
-        <h3
-          id="confirm-modal-title"
-          className="text-lg font-bold text-warm-brown-800 mb-2"
-        >
+        <h3 id="confirm-modal-title" className="text-lg font-bold text-warm-brown-800 mb-2">
           {title}
         </h3>
-        <p
-          id="confirm-modal-description"
-          className="text-sm text-warm-brown-600 mb-6"
-        >
+        <p id="confirm-modal-description" className="text-sm text-warm-brown-600 mb-6">
           {description}
         </p>
 
