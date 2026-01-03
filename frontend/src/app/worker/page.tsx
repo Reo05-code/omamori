@@ -9,6 +9,7 @@ import ConfirmModal from '../../components/ui/ConfirmModal';
 import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
 import { useWorkerSession } from '../../hooks/useWorkerSession';
+import { getDeviceInfoWithLocation, getBatteryLevel } from '../../lib/geolocation';
 
 type Notification = {
   message: string;
@@ -57,12 +58,26 @@ export default function WorkerHomePage() {
   }, [organizationId, start, sessionError]);
 
   const handleCheckIn = useCallback(async () => {
-    // 位置情報取得（簡易実装：実際は navigator.geolocation を使用）
+    // 位置情報とバッテリーレベルを取得
+    const deviceInfo = await getDeviceInfoWithLocation();
+
+    if (!deviceInfo) {
+      setNotification({
+        message: '位置情報の取得に失敗しました。設定を確認してください',
+        type: 'error',
+      });
+      return;
+    }
+
+    // バッテリー情報が取得できない場合は0を送信（バックエンドで判断させる）
+    const batteryLevel = deviceInfo.batteryLevel ?? 0;
+
     const params = {
-      latitude: 35.6812,
-      longitude: 139.7671,
-      batteryLevel: 80,
+      latitude: deviceInfo.latitude,
+      longitude: deviceInfo.longitude,
+      batteryLevel,
       triggerType: 'check_in' as const,
+      gpsAccuracy: deviceInfo.accuracy,
       loggedAt: new Date().toISOString(),
     };
 
@@ -86,11 +101,14 @@ export default function WorkerHomePage() {
       return;
     }
 
-    // 位置情報取得（簡易実装）
-    const coords = {
-      latitude: 35.6812,
-      longitude: 139.7671,
-    };
+    // 位置情報取得（取得失敗してもSOSは送信する）
+    const deviceInfo = await getDeviceInfoWithLocation();
+    const coords = deviceInfo
+      ? {
+          latitude: deviceInfo.latitude,
+          longitude: deviceInfo.longitude,
+        }
+      : undefined;
 
     await sendSos(coords);
 
