@@ -1,63 +1,180 @@
 'use client';
 
-import React from 'react';
-
-import ErrorView from '../../components/common/ErrorView';
-import PrimaryButton from '../../components/ui/PrimaryButton';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import WorkerShell from '../../components/worker/WorkerShell';
-import StatusCard from '../../components/worker/StatusCard';
+import StartView from '../../components/worker/StartView';
+import MonitoringView from '../../components/worker/MonitoringView';
+import ConfirmModal from '../../components/ui/ConfirmModal';
+import NotificationBanner from '../../components/ui/NotificationBanner';
+import Spinner from '../../components/ui/Spinner';
+import { useWorkerSession } from '../../hooks/useWorkerSession';
+
+type Notification = {
+  message: string;
+  type: 'success' | 'error' | 'info';
+};
 
 export default function WorkerHomePage() {
-  // Step 1: まずはUIの骨組みだけ作ってレビュー → 次StepでuseWorkerSession接続
-  const error: string | null = null;
+  const params = useParams();
+  const organizationId = params?.id ? Number(params.id) : null;
 
-  // 稼働中（見守り中）かどうかで色を切り替える
-  // Step 2 以降で useWorkerSession の session 有無に接続する
-  const isWorking = true;
+  const {
+    session,
+    loadingSession,
+    actionLoading,
+    error: sessionError,
+    start,
+    finish,
+    sendSos,
+    checkIn,
+    refreshCurrent,
+  } = useWorkerSession();
 
-  const statusLabel = isWorking ? '見守り中' : '待機中';
-  const statusSubLabel = isWorking ? '最終確認：2分前' : '見守りを開始してください';
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
+  const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
 
-  const genkiRingClass = isWorking ? 'ring-secondary/30' : 'ring-warm-brown-200/50';
-  const genkiAccentBgClass = isWorking ? 'bg-secondary/15' : 'bg-warm-orange-light/30';
-  const genkiAccentTextClass = isWorking ? 'text-secondary' : 'text-warm-brown-800';
+  // セッションエラーを通知バナーに変換
+  useEffect(() => {
+    if (sessionError) {
+      setNotification({ message: sessionError, type: 'error' });
+    }
+  }, [sessionError]);
+
+  // 見守り開始
+  const handleStart = useCallback(async () => {
+    if (!organizationId) {
+      setNotification({ message: '組織IDが取得できませんでした', type: 'error' });
+      return;
+    }
+
+    await start(organizationId);
+
+    if (!sessionError) {
+      setNotification({ message: '見守りを開始しました', type: 'success' });
+    }
+  }, [organizationId, start, sessionError]);
+
+  const handleCheckIn = useCallback(async () => {
+    // 位置情報取得（簡易実装：実際は navigator.geolocation を使用）
+    const params = {
+      latitude: 35.6812,
+      longitude: 139.7671,
+      batteryLevel: 80,
+      triggerType: 'check_in' as const,
+      loggedAt: new Date().toISOString(),
+    };
+
+    await checkIn(params);
+
+    if (!sessionError) {
+      setLastCheckInTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }));
+      setNotification({ message: '安否を報告しました', type: 'success' });
+    }
+  }, [checkIn, sessionError]);
+
+  // SOS送信
+  const handleSos = useCallback(async () => {
+    if (!session) {
+      setNotification({
+        message: '見守りを開始してからSOSを送信してください',
+        type: 'info',
+      });
+      return;
+    }
+
+    // 位置情報取得（簡易実装）
+    const coords = {
+      latitude: 35.6812,
+      longitude: 139.7671,
+    };
+
+    await sendSos(coords);
+
+    if (!sessionError) {
+      setNotification({ message: 'SOSを送信しました', type: 'success' });
+    } else if (sessionError.includes('既に')) {
+      setNotification({ message: '既に同様のSOSが送信されています', type: 'info' });
+    }
+  }, [session, sendSos, sessionError]);
+
+  // 終了確認モーダルを開く
+  const handleFinishRequest = useCallback(() => {
+    setShowFinishModal(true);
+  }, []);
+
+  // 終了実行
+  const handleFinishConfirm = useCallback(async () => {
+    setShowFinishModal(false);
+    await finish();
+
+    if (!sessionError) {
+      setNotification({ message: '見守りを終了しました', type: 'success' });
+    } else if (sessionError.includes('既に終了')) {
+      setNotification({ message: '作業セッションは既に終了されています', type: 'info' });
+      // refreshCurrent で session=null にする
+      await refreshCurrent();
+    }
+  }, [finish, sessionError, refreshCurrent]);
+
+  // 通知を閉じる
+  const handleDismissNotification = useCallback(() => {
+    setNotification(null);
+  }, []);
+
+  // 初回読み込み中
+  if (loadingSession && !session) {
+    return (
+      <WorkerShell>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" label="読み込み中..." />
+        </div>
+      </WorkerShell>
+    );
+  }
 
   return (
     <WorkerShell>
-      <div className="space-y-5">
-        <ErrorView message={error} />
-
-        <StatusCard
-          title="現在のステータス"
-          statusLabel={statusLabel}
-          statusSubLabel={statusSubLabel}
-          isWorking={isWorking}
+      {/* 通知バナー */}
+      {notification && (
+        <NotificationBanner
+          message={notification.message}
+          type={notification.type}
+          onDismiss={handleDismissNotification}
         />
+      )}
 
-        <button
-          type="button"
-          className={`w-full rounded-full bg-warm-surface/80 backdrop-blur-sm shadow-soft ring-1 ${genkiRingClass} aspect-square flex flex-col items-center justify-center text-center`}
-          aria-label="元気タッチ"
-        >
-          <div
-            className={`w-12 h-12 rounded-full ${genkiAccentBgClass} flex items-center justify-center mb-4`}
-          >
-            <span className={`material-icons-outlined ${genkiAccentTextClass}`}>check</span>
-          </div>
-          <div className="text-2xl font-extrabold">元気タッチ</div>
-          <div className="mt-2 text-sm text-warm-brown-600">ここをタップして安否を報告</div>
-        </button>
+      {/* セッション有無で画面切替 */}
+      {session ? (
+        <MonitoringView
+          lastCheckInTime={lastCheckInTime}
+          onCheckIn={handleCheckIn}
+          onSos={handleSos}
+          onFinish={handleFinishRequest}
+          checkInLoading={actionLoading.checkIn}
+          sosLoading={actionLoading.sos}
+        />
+      ) : (
+        <StartView
+          onStart={handleStart}
+          onSos={handleSos}
+          loading={actionLoading.start}
+          sosLoading={actionLoading.sos}
+        />
+      )}
 
-        <PrimaryButton
-          className="bg-danger hover:bg-red-600 shadow-md shadow-danger/30 focus:ring-danger"
-          type="button"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <span className="material-icons-outlined">warning</span>
-            <span>緊急事態 / SOS</span>
-          </span>
-        </PrimaryButton>
-      </div>
+      {/* 終了確認モーダル */}
+      <ConfirmModal
+        open={showFinishModal}
+        title="見守りを終了しますか？"
+        description="終了すると、元気タッチやSOS発信ができなくなります。"
+        confirmText="終了"
+        cancelText="キャンセル"
+        confirmDanger={true}
+        onConfirm={handleFinishConfirm}
+        onCancel={() => setShowFinishModal(false)}
+      />
     </WorkerShell>
   );
 }
