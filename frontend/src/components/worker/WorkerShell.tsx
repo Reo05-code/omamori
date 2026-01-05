@@ -1,6 +1,6 @@
-'use client';
-
 import React from 'react';
+import AppIcon from '../ui/AppIcon';
+import CurrentTime from './CurrentTime';
 
 type Props = {
   title?: string;
@@ -13,13 +13,11 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
       <header className="px-4 pt-6 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-warm-orange-light/40 flex items-center justify-center">
-            <span className="material-icons-outlined text-warm-brown-800">shield</span>
+            <AppIcon name="shield" className="text-warm-brown-800 text-xl" />
           </div>
           <span className="text-lg font-bold">{title}</span>
         </div>
-        <div className="text-xs text-warm-brown-600">
-          {new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
-        </div>
+        <CurrentTime />
       </header>
 
       <section className="flex-1 px-4 pb-24">{children}</section>
@@ -27,15 +25,15 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
       <nav className="fixed bottom-0 left-0 right-0 bg-warm-surface/90 backdrop-blur border-t border-warm-brown-200/40">
         <div className="mx-auto max-w-md grid grid-cols-3 px-6 py-3 text-xs text-warm-brown-700">
           <button className="flex flex-col items-center gap-1" type="button" aria-current="page">
-            <span className="material-icons-outlined text-base">home</span>
+            <AppIcon name="home" className="text-base" />
             <span>ホーム</span>
           </button>
           <button className="flex flex-col items-center gap-1" type="button">
-            <span className="material-icons-outlined text-base">settings</span>
+            <AppIcon name="settings" className="text-base" />
             <span>設定</span>
           </button>
           <button className="flex flex-col items-center gap-1" type="button">
-            <span className="material-icons-outlined text-base">help_outline</span>
+            <AppIcon name="help_outline" className="text-base" />
             <span>ヘルプ</span>
           </button>
         </div>
