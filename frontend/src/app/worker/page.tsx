@@ -10,6 +10,9 @@ import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
 import { useWorkerSession } from '../../hooks/useWorkerSession';
 import { getDeviceInfoWithLocation, getBatteryLevel } from '../../lib/geolocation';
+import { api } from '../../lib/api/client';
+import { API_PATHS } from '../../lib/api/paths';
+import type { Organization } from '../../types';
 
 type Notification = {
   message: string;
@@ -18,7 +21,10 @@ type Notification = {
 
 export default function WorkerHomePage() {
   const params = useParams();
-  const organizationId = params?.id ? Number(params.id) : null;
+  const [organizationId, setOrganizationId] = useState<number | null>(
+    params?.id ? Number(params.id) : null,
+  );
+  const [loadingOrg, setLoadingOrg] = useState<boolean>(!params?.id);
 
   const {
     session,
@@ -35,6 +41,43 @@ export default function WorkerHomePage() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
+
+  // 組織IDがない場合は最初の組織を取得
+  useEffect(() => {
+    if (!organizationId && !params?.id) {
+      const ctrl = new AbortController();
+      setLoadingOrg(true);
+
+      async function fetchOrgs() {
+        try {
+          const res = await api.get<Organization[]>(API_PATHS.ORGANIZATIONS.BASE, {
+            signal: ctrl.signal,
+          });
+
+          if (res.error) {
+            throw new Error(res.error);
+          }
+
+          const orgs = res.data || [];
+
+          if (orgs.length === 0) {
+            setNotification({ message: '組織が見つかりません', type: 'error' });
+          } else {
+            setOrganizationId(orgs[0].id);
+          }
+        } catch (e: any) {
+          if (e?.name === 'AbortError') return;
+          console.error('failed to fetch organizations', e);
+          setNotification({ message: '組織の取得に失敗しました', type: 'error' });
+        } finally {
+          setLoadingOrg(false);
+        }
+      }
+
+      fetchOrgs();
+      return () => ctrl.abort();
+    }
+  }, [organizationId, params?.id]);
 
   // セッションエラーを通知バナーに変換
   useEffect(() => {
@@ -143,8 +186,8 @@ export default function WorkerHomePage() {
     setNotification(null);
   }, []);
 
-  // 初回読み込み中
-  if (loadingSession && !session) {
+  // 初回読み込み中（組織情報またはセッション情報）
+  if ((loadingOrg || loadingSession) && !session) {
     return (
       <WorkerShell>
         <div className="flex items-center justify-center py-12">
