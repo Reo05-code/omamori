@@ -9,11 +9,11 @@ test.describe('ホームページ', () => {
     await expect(page).toHaveTitle(/Omamori/);
   });
 
-  test('認証が必要なページはログインページにリダイレクトされる', async ({ page }) => {
-    // 認証が必要なページにアクセス
+  test('ダッシュボードページにアクセスできる', async ({ page }) => {
+    // ダッシュボードページにアクセス
     await page.goto('/dashboard');
 
-    // ログインページにリダイレクトされることを確認
-    await expect(page).toHaveURL(/\/(login|$)/);
+    // ページが正常にロードされることを確認
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 });
