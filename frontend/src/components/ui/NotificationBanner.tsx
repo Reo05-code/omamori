@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import AppIcon, { type AppIconName } from './AppIcon';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -44,7 +45,8 @@ export default function NotificationBanner({
         ? 'bg-danger/95 text-white'
         : 'bg-blue-500/95 text-white';
 
-  const iconName = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+  const iconName: AppIconName =
+    type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
 
   return (
     <div
@@ -53,9 +55,7 @@ export default function NotificationBanner({
       aria-live="polite"
       aria-atomic="true"
     >
-      <span className="material-icons-outlined text-xl" aria-hidden="true">
-        {iconName}
-      </span>
+      <AppIcon name={iconName} className="text-xl" />
       <p className="flex-1 text-sm font-medium">{message}</p>
       <button
         type="button"
@@ -63,7 +63,7 @@ export default function NotificationBanner({
         className="text-white/80 hover:text-white transition-colors"
         aria-label="通知を閉じる"
       >
-        <span className="material-icons-outlined text-xl">close</span>
+        <AppIcon name="close" className="text-xl" />
       </button>
     </div>
   );

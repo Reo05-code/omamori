@@ -4,6 +4,7 @@ import React from 'react';
 import PrimaryButton from '../ui/PrimaryButton';
 import LongPressButton from '../ui/LongPressButton';
 import StatusCard from './StatusCard';
+import AppIcon from '../ui/AppIcon';
 
 type Props = {
   lastCheckInTime?: string | null;
@@ -53,14 +54,14 @@ export default function MonitoringView({
         {checkInLoading ? (
           <div className="flex flex-col items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center animate-pulse">
-              <span className="material-icons-outlined text-secondary">refresh</span>
+              <AppIcon name="refresh" className="text-secondary text-2xl" />
             </div>
             <div className="text-lg font-bold text-warm-brown-800">送信中...</div>
           </div>
         ) : (
           <>
             <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center mb-4">
-              <span className="material-icons-outlined text-secondary">check</span>
+              <AppIcon name="check" className="text-secondary text-2xl" />
             </div>
             <div className="text-2xl font-extrabold text-warm-brown-800">元気タッチ</div>
             <div className="mt-2 text-sm text-warm-brown-600">ここをタップして安否を報告</div>
@@ -77,7 +78,7 @@ export default function MonitoringView({
         className="w-full rounded-lg bg-danger hover:bg-red-600 text-white py-4 px-4 text-base font-bold shadow-md shadow-danger/30 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
       >
         <span className="flex items-center justify-center gap-2">
-          <span className="material-icons-outlined text-xl">warning</span>
+          <AppIcon name="warning" className="text-xl" />
           <span>緊急事態 / SOS（長押し）</span>
         </span>
       </LongPressButton>
@@ -89,7 +90,7 @@ export default function MonitoringView({
           className="w-auto bg-warm-brown-200 hover:bg-warm-brown-300 text-warm-brown-800 shadow-sm"
         >
           <span className="flex items-center gap-1.5 text-sm">
-            <span className="material-icons-outlined text-base">stop_circle</span>
+            <AppIcon name="stop_circle" className="text-base" />
             <span>見守りを終了</span>
           </span>
         </PrimaryButton>

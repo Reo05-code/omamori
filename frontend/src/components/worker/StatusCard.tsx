@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import AppIcon from '../ui/AppIcon';
 
 type Props = {
   title: string;
@@ -25,7 +26,7 @@ export default function StatusCard({
     >
       <div className="text-center text-sm font-bold mb-3">{title}</div>
       <div className="flex items-center justify-center gap-2 text-lg font-bold">
-        <span className={`material-icons-outlined ${iconClass}`}>check_circle</span>
+        <AppIcon name="check_circle" className={iconClass} />
         <span>{statusLabel}</span>
       </div>
       {statusSubLabel ? (

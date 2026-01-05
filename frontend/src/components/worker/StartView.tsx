@@ -3,6 +3,7 @@
 import React from 'react';
 import PrimaryButton from '../ui/PrimaryButton';
 import LongPressButton from '../ui/LongPressButton';
+import AppIcon from '../ui/AppIcon';
 
 type Props = {
   onStart: () => void;
@@ -24,7 +25,7 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
       <div className="bg-warm-surface/80 backdrop-blur-sm rounded-2xl shadow-soft ring-1 ring-warm-brown-200/30 p-6">
         <div className="flex items-start gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-warm-orange-light/40 flex items-center justify-center flex-shrink-0">
-            <span className="material-icons-outlined text-warm-brown-800">shield</span>
+            <AppIcon name="shield" className="text-warm-brown-800 text-xl" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-warm-brown-800 mb-1">見守りを開始しましょう</h2>
@@ -36,21 +37,15 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
 
         <ul className="space-y-2 text-sm text-warm-brown-700">
           <li className="flex items-start gap-2">
-            <span className="material-icons-outlined text-base text-secondary mt-0.5">
-              check_circle
-            </span>
+            <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
             <span>元気タッチで定期的に安否を報告</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="material-icons-outlined text-base text-secondary mt-0.5">
-              check_circle
-            </span>
+            <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
             <span>緊急時は長押しでSOS発信</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="material-icons-outlined text-base text-secondary mt-0.5">
-              check_circle
-            </span>
+            <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
             <span>管理者が位置情報を確認</span>
           </li>
         </ul>
@@ -59,7 +54,7 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
       {/* 開始ボタン */}
       <PrimaryButton onClick={onStart} loading={loading} disabled={loading}>
         <span className="flex items-center justify-center gap-2">
-          <span className="material-icons-outlined">play_circle</span>
+          <AppIcon name="play_circle" className="text-xl" />
           <span className="text-base font-bold">見守りを開始</span>
         </span>
       </PrimaryButton>
@@ -77,7 +72,7 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
           className="w-full rounded-lg bg-danger hover:bg-red-600 text-white py-3 px-4 text-sm font-medium shadow-md shadow-danger/30 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
         >
           <span className="flex items-center justify-center gap-2">
-            <span className="material-icons-outlined">warning</span>
+            <AppIcon name="warning" className="text-xl" />
             <span>緊急SOS（長押し）</span>
           </span>
         </LongPressButton>
