@@ -27,8 +27,35 @@ export default function Page() {
         return;
       }
 
-      // ログイン成功: ダッシュボードへリダイレクト
-      router.push('/dashboard');
+      // ログイン成功: ユーザーのロールに応じて遷移先を決定
+      if (res.data?.data) {
+        const user = res.data.data;
+        const memberships = user.memberships || [];
+
+        // ロールによる分岐処理
+        // adminロールを持っているか確認
+        const hasAdminRole = memberships.some((m) => m.role === 'admin');
+        // workerロールのみ持っているか確認
+        const hasOnlyWorkerRole =
+          memberships.length > 0 && memberships.every((m) => m.role === 'worker') && !hasAdminRole;
+
+        if (hasAdminRole) {
+          // 管理者権限があればダッシュボードへ
+          router.push('/dashboard');
+        } else if (hasOnlyWorkerRole) {
+          // 作業員のみの権限ならworker画面へ直行
+          router.push('/worker');
+        } else if (memberships.length === 0) {
+          // メンバーシップがない場合もダッシュボードへ（組織作成画面が表示される）
+          router.push('/dashboard');
+        } else {
+          // それ以外の場合もダッシュボードへ
+          router.push('/dashboard');
+        }
+      } else {
+        // レスポンスにユーザー情報がない場合はダッシュボードへ
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       console.error('login error', err);
       setError(err?.message || '通信エラーが発生しました');
