@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import AlertItem from '../../../components/common/AlertItem';
+import AppIcon from '../../../components/ui/AppIcon';
 
 export default function Page() {
   return (
@@ -10,15 +11,13 @@ export default function Page() {
         <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">稼働中の作業員</h3>
-            <span className="material-icons-outlined text-gray-400 dark:text-gray-500 text-2xl">
-              group
-            </span>
+            <AppIcon name="group" className="text-gray-400 dark:text-gray-500 text-2xl" />
           </div>
           <div className="flex items-baseline">
             <span className="text-4xl font-bold text-gray-900 dark:text-white">12</span>
           </div>
           <div className="mt-2 text-sm text-green-600 flex items-center">
-            <span className="material-icons-outlined text-base mr-1">check_circle</span>
+            <AppIcon name="check_circle" className="text-base mr-1" />
             全員安全
           </div>
         </div>
@@ -31,15 +30,13 @@ export default function Page() {
           />
           <div className="flex items-center justify-between mb-4 pl-4">
             <h3 className="text-sm font-medium text-primary">未対応アラート</h3>
-            <span className="material-icons-outlined text-primary text-2xl">
-              notifications_active
-            </span>
+            <AppIcon name="notifications_active" className="text-primary text-2xl" />
           </div>
           <div className="flex items-baseline pl-4">
             <span className="text-4xl font-bold text-danger">3</span>
           </div>
           <div className="mt-2 text-sm text-danger flex items-center font-semibold pl-4">
-            <span className="material-icons-outlined text-base mr-1 text-danger">warning</span>
+            <AppIcon name="warning" className="text-base mr-1 text-danger" />
             <span className="text-danger font-semibold">要対応</span>
           </div>
         </div>
@@ -48,9 +45,7 @@ export default function Page() {
         <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">稼働中の現場</h3>
-            <span className="material-icons-outlined text-gray-400 dark:text-gray-500 text-2xl">
-              map
-            </span>
+            <AppIcon name="map" className="text-gray-400 dark:text-gray-500 text-2xl" />
           </div>
           <div className="flex items-baseline">
             <span className="text-4xl font-bold text-gray-900 dark:text-white">4</span>
@@ -65,7 +60,8 @@ export default function Page() {
         <div className="lg:col-span-2 bg-white shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col h-full min-h-[400px]">
           <div className="p-5 border-b border-border-light dark:border-border-dark flex justify-between items-center">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-              <span className="material-icons-outlined mr-2">map</span>リアルタイムマップ
+              <AppIcon name="map" className="mr-2" />
+              リアルタイムマップ
             </h2>
             <button className="text-sm text-secondary hover:text-green-600 font-medium">
               全画面表示

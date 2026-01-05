@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './dashboard/Sidebar';
 import { useAuthContext } from '../context/AuthContext';
+import AppIcon from './ui/AppIcon';
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/';
@@ -25,14 +26,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
               className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"
               type="button"
             >
-              <span className="material-icons-outlined">menu</span>
+              <AppIcon name="menu" className="text-xl" />
             </button>
             <div className="flex-1 flex justify-center lg:justify-start lg:ml-6">
               <div className="w-full max-w-lg lg:max-w-xs relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="material-icons-outlined text-warm-brown-600 text-lg">
-                    search
-                  </span>
+                  <AppIcon name="search" className="text-warm-brown-600 text-lg" />
                 </div>
                 <input
                   id="search"
@@ -52,7 +51,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
         <div className="fixed bottom-6 right-6">
           <button className="bg-primary hover:bg-gray-800 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-            <span className="material-icons-outlined">help_outline</span>
+            <AppIcon name="help_outline" className="text-xl" />
           </button>
         </div>
       </div>

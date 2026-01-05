@@ -7,6 +7,7 @@ import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
 import type { Organization } from '../../types';
 import { usePathname } from 'next/navigation';
+import AppIcon from '../ui/AppIcon';
 
 export default function Sidebar({
   sidebarCollapsed,
@@ -71,9 +72,7 @@ export default function Sidebar({
             href="/dashboard"
             aria-current={pathname === '/dashboard' ? 'page' : undefined}
           >
-            <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
-              {loading ? ' ' : 'dashboard'}
-            </span>
+            <AppIcon name="dashboard" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
               (loading ? (
                 <span className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -86,9 +85,7 @@ export default function Sidebar({
             href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
             aria-current={pathname?.startsWith('/dashboard/organizations') ? 'page' : undefined}
           >
-            <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
-              {loading ? ' ' : 'people'}
-            </span>
+            <AppIcon name="people" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
               (loading ? (
                 <span className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -100,9 +97,7 @@ export default function Sidebar({
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href="#"
           >
-            <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
-              {loading ? ' ' : 'article'}
-            </span>
+            <AppIcon name="article" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
               (loading ? (
                 <span className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -115,9 +110,10 @@ export default function Sidebar({
             href="#"
           >
             <div className="flex items-center">
-              <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
-                {loading ? ' ' : 'notifications'}
-              </span>
+              <AppIcon
+                name="notifications"
+                className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`}
+              />
               {!sidebarCollapsed &&
                 (loading ? (
                   <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -152,9 +148,10 @@ export default function Sidebar({
                   : 'w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white border border-border-light text-sm font-medium text-gray-600 hover:bg-gray-100 transition'
               }
             >
-              <span className="material-icons-outlined">
-                {loading ? ' ' : sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
-              </span>
+              <AppIcon
+                name={sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
+                className="text-xl"
+              />
               {!sidebarCollapsed && <span className="ml-2"></span>}
             </button>
           </div>
@@ -165,9 +162,7 @@ export default function Sidebar({
           className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all`}
           href="#"
         >
-          <span className={`${sidebarCollapsed ? '' : 'mr-3'} material-icons-outlined text-xl`}>
-            {loading ? ' ' : 'settings'}
-          </span>
+          <AppIcon name="settings" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
           {!sidebarCollapsed &&
             (loading ? (
               <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
