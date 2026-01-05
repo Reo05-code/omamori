@@ -5,3 +5,9 @@ build
 coverage
 /*.log
 /.turbo
+
+# Test related
+playwright-report
+test-results
+.nyc_output
+package-lock.json

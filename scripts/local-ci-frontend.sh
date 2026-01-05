@@ -16,4 +16,10 @@ docker compose exec frontend npm run lint
 echo "--- Running TypeScript type check ---"
 docker compose exec frontend npm run type-check
 
+echo "--- Running Jest tests ---"
+docker compose exec frontend npm run test
+
+echo "--- Running Playwright E2E tests ---"
+docker compose exec frontend npm run test:e2e
+
 echo "Frontend CI checks passed!"
