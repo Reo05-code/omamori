@@ -5,15 +5,44 @@ import { useParams } from 'next/navigation';
 import type { Membership } from '@/lib/api/types';
 import { fetchMemberships } from '@/lib/api/memberships';
 import { InviteMemberModal } from '@/components/organization/InviteMemberModal';
-import { getMemberWorkStatusLabel } from '@/lib/memberWorkStatus';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { finishSession, startRemoteSession } from '@/lib/api/work_sessions';
+import { MemberActionToggle } from '@/components/organization/MemberActionToggle';
+import { WorkStatusBadge } from '@/components/organization/WorkStatusBadge';
+
+type PendingAction =
+  | {
+      kind: 'start';
+      membership: Membership;
+    }
+  | {
+      kind: 'finish';
+      membership: Membership;
+      workSessionId: number;
+    };
 
 export default function MembersPage(): JSX.Element {
   const params = useParams();
   const orgId = (params as { id?: string })?.id;
+  // URL パラメータを数値に変換し、バリデーション（冒頭で1回のみ実行）
+  const numericOrgId = orgId ? Number(orgId) : null;
+  const organizationId = numericOrgId !== null && !Number.isNaN(numericOrgId) ? numericOrgId : null;
   const [members, setMembers] = useState<Membership[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  // 操作中のメンバーIDを記録
+  const [processingMemberIds, setProcessingMemberIds] = useState<Record<number, boolean>>({});
+  // リモート開始/終了時の操作エラー
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // メンバー一覧をサーバーから再取得（楽観的更新後の同期用）
+  const refetchMembers = async () => {
+    if (!orgId) return;
+    const data = await fetchMemberships(orgId);
+    setMembers(data);
+  };
 
   useEffect(() => {
     if (!orgId) {
@@ -40,9 +69,78 @@ export default function MembersPage(): JSX.Element {
   const handleInviteSuccess = () => {
     // 招待成功後、メンバー一覧を再取得（オプション）
     if (orgId) {
-      fetchMemberships(orgId)
-        .then((data) => setMembers(data))
-        .catch((e) => console.error('メンバー一覧の再取得に失敗:', e));
+      refetchMembers().catch((e) => console.error('メンバー一覧の再取得に失敗:', e));
+    }
+  };
+
+  //「開始」か「終了」かを判断して確認画面を出す
+  const openConfirm = (m: Membership) => {
+    setActionError(null);
+
+    if (m.active_work_session?.active) {
+      const workSessionId = m.active_work_session.id;
+      if (typeof workSessionId !== 'number') {
+        setActionError('稼働中セッションIDの取得に失敗しました。時間をおいて再度お試しください。');
+        return;
+      }
+      setPendingAction({ kind: 'finish', membership: m, workSessionId });
+      return;
+    }
+
+    setPendingAction({ kind: 'start', membership: m });
+  };
+
+  const setProcessing = (membershipId: number, next: boolean) => {
+    setProcessingMemberIds((prev) => ({ ...prev, [membershipId]: next }));
+  };
+
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+    if (!organizationId) {
+      setActionError('組織IDの取得に失敗しました。ページを再読み込みしてください。');
+      setPendingAction(null);
+      return;
+    }
+
+    const action = pendingAction;
+    const membershipId = action.membership.id;
+    setProcessing(membershipId, true);
+    setPendingAction(null);
+    setActionError(null);
+
+    try {
+      // 楽観的更新: API成功を待ってから即座にローカルstateを更新し、UXを高速化
+      if (action.kind === 'start') {
+        const started = await startRemoteSession(organizationId, action.membership.user_id);
+        setMembers((prevMembers) => {
+          if (!prevMembers) return prevMembers;
+          return prevMembers.map((m) =>
+            m.id === action.membership.id
+              ? { ...m, active_work_session: { active: true, id: started.id } }
+              : m,
+          );
+        });
+      } else {
+        await finishSession(action.workSessionId);
+        setMembers((prevMembers) => {
+          if (!prevMembers) return prevMembers;
+          return prevMembers.map((m) =>
+            m.id === action.membership.id ? { ...m, active_work_session: undefined } : m,
+          );
+        });
+      }
+
+      // 裏で正式なデータを再取得（サーバー側で遅延がある場合に備える）
+      void refetchMembers().catch((e) => console.error('メンバー一覧の再取得に失敗:', e));
+    } catch (e) {
+      console.error('リモート開始/終了に失敗:', e);
+      setActionError(
+        action.kind === 'start'
+          ? '開始に失敗しました。時間をおいて再度お試しください。'
+          : '終了に失敗しました。時間をおいて再度お試しください。',
+      );
+    } finally {
+      setProcessing(membershipId, false);
     }
   };
 
@@ -58,8 +156,11 @@ export default function MembersPage(): JSX.Element {
         </button>
       </div>
 
+      <p className="text-sm text-gray-500 mb-4">操作結果の反映に数秒かかる場合があります。</p>
+
       {loading && <p>読み込み中です...</p>}
       {error && <p className="text-red-600">{error}</p>}
+      {actionError && <p className="text-red-600">{actionError}</p>}
 
       {!loading && !error && (
         <div className="overflow-x-auto bg-white shadow rounded">
@@ -78,6 +179,9 @@ export default function MembersPage(): JSX.Element {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ステータス
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -90,21 +194,21 @@ export default function MembersPage(): JSX.Element {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{m.role}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      <span
-                        className={
-                          m.active_work_session?.active
-                            ? 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'
-                            : 'bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs'
-                        }
-                      >
-                        {getMemberWorkStatusLabel(m.active_work_session)}
-                      </span>
+                      <WorkStatusBadge session={m.active_work_session} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <MemberActionToggle
+                        member={m}
+                        name={renderName(m)}
+                        isProcessing={!!processingMemberIds[m.id]}
+                        onToggle={openConfirm}
+                      />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                     メンバーが見つかりません。
                   </td>
                 </tr>
@@ -123,6 +227,25 @@ export default function MembersPage(): JSX.Element {
           onSuccess={handleInviteSuccess}
         />
       )}
+
+      <ConfirmModal
+        open={!!pendingAction}
+        title={
+          pendingAction?.kind === 'start' ? '見守りを開始しますか？' : '見守りを終了しますか？'
+        }
+        description={
+          pendingAction?.kind === 'start'
+            ? '開始後、状態反映に数秒かかる場合があります。'
+            : '終了後、状態反映に数秒かかる場合があります。'
+        }
+        confirmText={pendingAction?.kind === 'start' ? '開始' : '終了'}
+        cancelText="キャンセル"
+        confirmDanger={pendingAction?.kind === 'finish'}
+        onConfirm={() => {
+          void confirmAction();
+        }}
+        onCancel={() => setPendingAction(null)}
+      />
     </div>
   );
 }

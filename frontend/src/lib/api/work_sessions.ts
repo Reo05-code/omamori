@@ -34,6 +34,26 @@ export async function startSession(organizationId: number): Promise<WorkSession>
   return res.data;
 }
 
+// ダッシュボードから指定ユーザーの作業セッションを開始する
+export async function startRemoteSession(
+  organizationId: number,
+  userId: number,
+): Promise<WorkSession> {
+  const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.CREATE, {
+    work_session: { organization_id: organizationId, user_id: userId },
+  });
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to start remote session: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
+}
+
 // 作業セッションを終了する
 export async function finishSession(workSessionId: number): Promise<WorkSession> {
   const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.FINISH(workSessionId));

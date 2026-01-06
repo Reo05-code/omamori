@@ -65,6 +65,37 @@ module WorkSessionHelpers
     )
   end
 
+  # 対象ユーザーを決定（user_id パラメータがある場合は指定ユーザー、なければ自分）
+  # 代理操作には組織内のadmin権限が必要（なりすまし防止）
+  # 権限がない場合は nil を返す
+  def determine_target_user(organization)
+    user_id = raw_user_id
+
+    # 指定がなければ自分自身
+    return current_user if own_user?(user_id)
+
+    # 組織内のadmin権限がなければ nil を返す
+    return nil unless current_user_admin_in_org?(organization)
+
+    # 権限があれば検索して返す
+    organization.users.find(user_id)
+  end
+
+  private
+
+  def raw_user_id
+    params.dig(:work_session, :user_id) || params[:user_id]
+  end
+
+  def own_user?(user_id)
+    user_id.blank? || user_id.to_s == current_user.id.to_s
+  end
+
+  def current_user_admin_in_org?(organization)
+    membership = current_user.memberships.find_by(organization_id: organization.id)
+    membership&.admin?
+  end
+
   def policy_create_status(work_session)
     result = WorkSessionPolicy.new(current_user, work_session).create
     return :forbidden if result.error_key == :forbidden

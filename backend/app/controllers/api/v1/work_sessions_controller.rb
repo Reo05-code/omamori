@@ -31,6 +31,8 @@ module Api
         org = find_user_organization!(organization_id_param)
         target_user = determine_target_user(org)
 
+        return render json: { errors: ["この操作を実行する権限がありません"] }, status: :forbidden unless target_user
+
         perform_create(org, target_user)
       rescue ActiveRecord::RecordNotFound
         render json: { errors: ["組織が見つかりません"] }, status: :not_found
@@ -116,21 +118,6 @@ module Api
 
       def render_work_session_not_found
         render_not_found("作業セッションが見つかりません")
-      end
-
-      # helper methods moved to WorkSessionHelpers concern
-
-      # 対象ユーザーを決定（user_id パラメータがある場合は指定ユーザー、なければ自分）
-      def determine_target_user(organization)
-        user_id = params.dig(:work_session, :user_id) || params[:user_id]
-
-        if user_id.present?
-          # user_id が指定されている場合は組織内から検索
-          organization.users.find(user_id)
-        else
-          # 指定がなければ自分自身
-          current_user
-        end
       end
 
       # 保存専用メソッド（排他ロックで重複作成を防止）
