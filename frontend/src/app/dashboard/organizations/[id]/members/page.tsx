@@ -2,27 +2,33 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import type { Membership } from '../../../../../lib/api/types';
-import { fetchMemberships } from '../../../../../lib/api/memberships';
-import { InviteMemberModal } from '../../../../../components/organization/InviteMemberModal';
+import type { Membership } from '@/lib/api/types';
+import { fetchMemberships } from '@/lib/api/memberships';
+import { InviteMemberModal } from '@/components/organization/InviteMemberModal';
+import { getMemberWorkStatusLabel } from '@/lib/memberWorkStatus';
 
 export default function MembersPage(): JSX.Element {
   const params = useParams();
   const orgId = (params as { id?: string })?.id;
   const [members, setMembers] = useState<Membership[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!orgId) return;
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
     fetchMemberships(orgId)
       .then((data) => setMembers(data))
-      .catch((e) => setError(String(e)))
+      .catch((e) => {
+        console.error('メンバー一覧の取得に失敗:', e);
+        setError('読み込みに失敗しました。時間をおいて再度お試しください。');
+      })
       .finally(() => setLoading(false));
   }, [orgId]);
 
@@ -52,8 +58,8 @@ export default function MembersPage(): JSX.Element {
         </button>
       </div>
 
-      {loading && <p>読み込み中...</p>}
-      {error && <p className="text-red-600">エラー: {error}</p>}
+      {loading && <p>読み込み中です...</p>}
+      {error && <p className="text-red-600">{error}</p>}
 
       {!loading && !error && (
         <div className="overflow-x-auto bg-white shadow rounded">
@@ -69,6 +75,9 @@ export default function MembersPage(): JSX.Element {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ロール
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ステータス
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -80,11 +89,22 @@ export default function MembersPage(): JSX.Element {
                       {m.email ?? '—'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{m.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <span
+                        className={
+                          m.active_work_session?.active
+                            ? 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'
+                            : 'bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs'
+                        }
+                      >
+                        {getMemberWorkStatusLabel(m.active_work_session)}
+                      </span>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
                     メンバーが見つかりません。
                   </td>
                 </tr>

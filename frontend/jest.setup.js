@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 
 // Next.js のルーターをモック
 jest.mock('next/navigation', () => ({
+  useParams: jest.fn(() => ({})),
   useRouter() {
     return {
       push: jest.fn(),
