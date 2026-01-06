@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
 
+  outputDir: '.playwright/test-results',
+
   /* テストファイルを並列で実行する */
   fullyParallel: true,
 
@@ -15,7 +17,7 @@ export default defineConfig({
   /* CI 上ではワーカー数を抑制する */
   workers: process.env.CI ? 1 : undefined,
 
-  reporter: 'html',
+  reporter: [['html', { outputFolder: '.playwright/report', open: 'never' }]],
 
   /* プロジェクト共通の設定 */
   use: {
@@ -45,16 +47,6 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */
