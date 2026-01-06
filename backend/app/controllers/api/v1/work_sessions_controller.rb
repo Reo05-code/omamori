@@ -31,6 +31,10 @@ module Api
         org = find_user_organization!(organization_id_param)
         target_user = determine_target_user(org)
 
+        unless target_user
+          return render json: { errors: ["この操作を実行する権限がありません"] }, status: :forbidden
+        end
+
         perform_create(org, target_user)
       rescue ActiveRecord::RecordNotFound
         render json: { errors: ["組織が見つかりません"] }, status: :not_found
@@ -121,11 +125,18 @@ module Api
       # helper methods moved to WorkSessionHelpers concern
 
       # 対象ユーザーを決定（user_id パラメータがある場合は指定ユーザー、なければ自分）
+      # 代理操作には組織内のadmin権限が必要（なりすまし防止）
+      # 権限がない場合は nil を返す
       def determine_target_user(organization)
         user_id = params.dig(:work_session, :user_id) || params[:user_id]
 
-        if user_id.present?
-          # user_id が指定されている場合は組織内から検索
+        # user_id が指定されており、かつ「自分以外」であるか判定
+        if user_id.present? && user_id.to_s != current_user.id.to_s
+          # 組織内のadmin権限を確認
+          membership = current_user.memberships.find_by(organization_id: organization.id)
+          return nil unless membership&.admin?
+
+          # 権限があれば検索して返す
           organization.users.find(user_id)
         else
           # 指定がなければ自分自身
