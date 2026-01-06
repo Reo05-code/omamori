@@ -3,11 +3,26 @@ module Api
     class MembershipsController < ApplicationController
       before_action :authenticate_user!
       before_action :set_organization
-      before_action :set_current_membership, only: %i[update destroy]
+      before_action :set_current_membership, only: %i[index update destroy]
 
       def index
+        unless @current_membership&.admin?
+          render json: { error: error_message_for(:forbidden) }, status: :forbidden
+          return
+        end
+
         memberships = @organization.memberships.includes(:user)
-        render json: memberships.map { |m| Api::V1::MembershipSerializer.new(m).as_json }
+
+        user_ids = memberships.map(&:user_id)
+
+        active_work_sessions_by_user_id = WorkSession.active
+                                                     .where(organization_id: @organization.id, user_id: user_ids)
+                                                     .select(:id, :user_id)
+                                                     .index_by(&:user_id)
+
+        render json: memberships.map { |m|
+          Api::V1::MembershipSerializer.new(m, active_work_sessions_by_user_id: active_work_sessions_by_user_id).as_json
+        }
       end
 
       def update
@@ -38,6 +53,8 @@ module Api
 
       def set_organization
         @organization = current_user.organizations.find(params[:organization_id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: I18n.t("api.v1.organizations.error.not_found") }, status: :not_found
       end
 
       # 現在ユーザーの membership を1度取得して保持する
