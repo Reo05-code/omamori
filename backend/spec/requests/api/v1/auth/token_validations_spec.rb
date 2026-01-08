@@ -8,6 +8,7 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
 
   describe "GET /api/v1/auth/validate_token (トークン有効性確認)" do
     context "有効なトークンの場合" do
+      let!(:membership) { create(:membership, user: user, role: :admin) }
       let(:auth_headers) { user.create_new_auth_token }
 
       it "成功レスポンスを返す" do
@@ -39,6 +40,14 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
         json = response.parsed_body
         expect(json["data"]).to be_present
         expect(json["data"]["email"]).to eq(user.email)
+        expect(json["data"]["memberships"]).to be_present
+        expect(json["data"]["memberships"]).to include(
+          a_hash_including(
+            "id" => membership.id,
+            "organization_id" => membership.organization_id,
+            "role" => membership.role
+          )
+        )
       end
     end
 

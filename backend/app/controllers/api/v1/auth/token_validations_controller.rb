@@ -84,8 +84,15 @@ module Api
         def render_validate_token_success
           render json: {
             status: "success",
-            data: @resource.as_json(except: %i[tokens created_at updated_at])
-          }
+            data: @resource.as_json(
+              except: [:tokens],
+              include: {
+                memberships: {
+                  only: %i[id organization_id role]
+                }
+              }
+            )
+          }, status: :ok
         end
 
         # トークン検証失敗レスポンスを返す（401）

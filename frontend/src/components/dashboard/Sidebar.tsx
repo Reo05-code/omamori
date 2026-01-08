@@ -69,7 +69,7 @@ export default function Sidebar({
         <nav aria-label="サイドバー ナビゲーション" className="mt-6 px-3 space-y-1">
           <Link
             className={`relative group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-bold rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href="/dashboard"
+            href={orgId ? `/dashboard/organizations/${orgId}` : '/dashboard'}
             aria-current={pathname === '/dashboard' ? 'page' : undefined}
           >
             <AppIcon name="dashboard" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
