@@ -40,8 +40,14 @@ export default function Page() {
           memberships.length > 0 && memberships.every((m) => m.role === 'worker') && !hasAdminRole;
 
         if (hasAdminRole) {
-          // 管理者権限があればダッシュボードへ
-          router.push('/dashboard');
+          // 管理者権限があれば組織ダッシュボードへ（可能なら所属組織の1つ目へ）
+          const adminMembership = memberships.find((m) => m.role === 'admin');
+          const orgId = adminMembership?.organization_id ?? null;
+          if (orgId) {
+            router.push(`/dashboard/organizations/${orgId}`);
+          } else {
+            router.push('/dashboard');
+          }
         } else if (hasOnlyWorkerRole) {
           // 作業員のみの権限ならworker画面へ直行
           router.push('/worker');

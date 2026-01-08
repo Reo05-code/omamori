@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { login as loginApi, logout as logoutApi, validateToken } from '../lib/api/auth';
+import type { UserResponse } from '../lib/api/types';
 
 // 認証フック
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<UserResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // 初期化: サーバー側の Cookie ベース認証を検証して認証状態を決定
   useEffect(() => {
@@ -14,9 +17,14 @@ export const useAuth = () => {
         const validateRes = await validateToken();
         if (mounted && !validateRes.error && validateRes.data) {
           setIsAuthenticated(true);
+          setUser(validateRes.data.data);
         }
       } catch (e) {
         // 非同期検証が失敗しても特にエラーを投げない
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -38,12 +46,15 @@ export const useAuth = () => {
         const validateRes = await validateToken();
         if (!validateRes.error && validateRes.data) {
           setIsAuthenticated(true);
+          setUser(validateRes.data.data);
         } else {
           // 成功レスポンスが得られない場合は認証フラグを false のままにする
           setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (e) {
         setIsAuthenticated(false);
+        setUser(null);
       }
 
       return res;
@@ -64,7 +75,8 @@ export const useAuth = () => {
     // サーバー側でセッションを破棄（Set-Cookie による削除）した上でクライアント状態を初期化
     setToken(null);
     setIsAuthenticated(false);
+    setUser(null);
   };
 
-  return { isAuthenticated, token, login, logout } as const;
+  return { isAuthenticated, token, user, loading, login, logout } as const;
 };

@@ -98,6 +98,7 @@ export interface Membership {
   user_id: number;
   email?: string | null;
   role: string;
+  working?: boolean;
   // 管理者向け: そのユーザーに進行中の作業セッションがあるか
   // GET /api/v1/organizations/:id/memberships のレスポンスに含まれる
   active_work_session?: ActiveWorkSessionSummary;
