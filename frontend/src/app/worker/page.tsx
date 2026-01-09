@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import WorkerShell from '../../components/worker/WorkerShell';
 import StartView from '../../components/worker/StartView';
 import MonitoringView from '../../components/worker/MonitoringView';
@@ -20,11 +19,8 @@ type Notification = {
 };
 
 export default function WorkerHomePage() {
-  const params = useParams();
-  const [organizationId, setOrganizationId] = useState<number | null>(
-    params?.id ? Number(params.id) : null,
-  );
-  const [loadingOrg, setLoadingOrg] = useState<boolean>(!params?.id);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [loadingOrg, setLoadingOrg] = useState<boolean>(true);
 
   const {
     session,
@@ -42,9 +38,17 @@ export default function WorkerHomePage() {
   const [notification, setNotification] = useState<Notification | null>(null);
   const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
 
+  // 進行中セッションがあれば組織IDは確定できる
+  useEffect(() => {
+    if (!organizationId && session?.organization_id) {
+      setOrganizationId(session.organization_id);
+      setLoadingOrg(false);
+    }
+  }, [organizationId, session?.organization_id]);
+
   // 組織IDがない場合は最初の組織を取得
   useEffect(() => {
-    if (!organizationId && !params?.id) {
+    if (!organizationId && !session) {
       const ctrl = new AbortController();
       setLoadingOrg(true);
 
@@ -77,7 +81,10 @@ export default function WorkerHomePage() {
       fetchOrgs();
       return () => ctrl.abort();
     }
-  }, [organizationId, params?.id]);
+    if (organizationId) {
+      setLoadingOrg(false);
+    }
+  }, [organizationId, session]);
 
   // セッションエラーを通知バナーに変換
   useEffect(() => {
