@@ -20,6 +20,9 @@ export const API_PATHS = {
     MEMBERSHIP: (orgId: string, membershipId: string) =>
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
     CREATE_INVITATION: (id: string) => `/api/v1/organizations/${id}/invitations`,
+    ALERTS: (id: string | number) => `/api/v1/organizations/${id}/alerts`,
+    ALERT: (organizationId: string | number, alertId: string | number) =>
+      `/api/v1/organizations/${organizationId}/alerts/${alertId}`,
   },
   // 招待受諾
   INVITATIONS: {
@@ -34,6 +37,8 @@ export const API_PATHS = {
     FINISH: (id: string | number) => `/api/v1/work_sessions/${id}/finish`,
     SAFETY_LOGS: (workSessionId: string | number) =>
       `/api/v1/work_sessions/${workSessionId}/safety_logs`,
+    RISK_ASSESSMENTS: (workSessionId: string | number) =>
+      `/api/v1/work_sessions/${workSessionId}/risk_assessments`,
     ALERTS: (workSessionId: string | number) => `/api/v1/work_sessions/${workSessionId}/alerts`,
   },
 } as const;

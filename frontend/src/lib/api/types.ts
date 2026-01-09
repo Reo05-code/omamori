@@ -205,6 +205,10 @@ export interface SafetyLogResponse {
   trigger_type: SafetyLogTriggerType;
   latitude?: number | null;
   longitude?: number | null;
+  gps_accuracy?: number | null;
+  weather_temp?: number | null;
+  weather_condition?: string | null;
+  is_offline_sync?: boolean | null;
   logged_at: string;
 }
 
@@ -218,12 +222,37 @@ export interface CreateSafetyLogResponse {
 }
 
 // POST /api/v1/work_sessions/:id/alerts の戻り値で使用
+export type AlertType = 'sos' | 'risk_high' | 'risk_medium' | 'battery_low' | 'timeout';
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertStatus = 'open' | 'in_progress' | 'resolved';
+
 export interface AlertResponse {
   id: number;
   work_session_id: number;
-  alert_type: string;
-  severity: string;
-  status: string;
+  alert_type: AlertType;
+  severity: AlertSeverity;
+  status: AlertStatus;
   safety_log_id?: number | null;
+  handled_by_user_id?: number | null;
+  resolved_at?: string | null;
   created_at?: string;
+  updated_at?: string;
+}
+
+// GET /api/v1/work_sessions/:work_session_id/risk_assessments の要素
+export type RiskAssessmentLevel = 'safe' | 'caution' | 'danger';
+
+export interface RiskAssessmentResponse {
+  id: number;
+  logged_at: string | null;
+  score: number;
+  level: RiskAssessmentLevel;
+  details: Record<string, unknown>;
+}
+
+// PATCH /api/v1/organizations/:organization_id/alerts/:id
+export interface UpdateOrganizationAlertRequest {
+  alert: {
+    status: AlertStatus;
+  };
 }
