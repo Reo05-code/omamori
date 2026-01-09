@@ -12,7 +12,8 @@ module AuthCookieHelper
       secure: Rails.env.production?,
       same_site: (Rails.env.production? ? :none : :lax),
       expires: 2.weeks.from_now,
-      domain: ENV["COOKIE_DOMAIN"].presence,
+      # 開発環境では localhost を明示的に設定してポート間でCookieを共有
+      domain: ENV["COOKIE_DOMAIN"].presence || (Rails.env.development? ? "localhost" : nil),
       path: "/"
     }
   end

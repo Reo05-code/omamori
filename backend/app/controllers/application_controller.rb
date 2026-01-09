@@ -24,9 +24,12 @@ class ApplicationController < ActionController::API
     origin = request.headers["Origin"]
     referer = request.headers["Referer"]
 
+    Rails.logger.debug("[verify_origin!] Method: #{request.method}, Origin: #{origin}, Referer: #{referer}")
+
     return if origin_allowed?(origin)
     return if referer_allowed?(referer)
 
+    Rails.logger.warn("[verify_origin!] FORBIDDEN - Origin: #{origin}, Referer: #{referer}")
     render json: { error: "Forbidden origin" }, status: :forbidden
   end
 
@@ -90,4 +93,9 @@ class ApplicationController < ActionController::API
   # TokenAuthenticatable で current_user エイリアスが定義されていないため追加
   alias current_user current_api_v1_user
   alias authenticate_user! authenticate_api_v1_user!
+
+  # デバッグ用: 認証失敗時のログ
+  def log_auth_failure(reason)
+    Rails.logger.warn("[AUTH FAILURE] #{reason} - Path: #{request.path}, Method: #{request.method}")
+  end
 end
