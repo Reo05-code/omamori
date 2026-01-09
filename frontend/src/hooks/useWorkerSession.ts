@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createSosAlert } from '../lib/api/alerts';
 import { createSafetyLog } from '../lib/api/safety_logs';
 import { finishSession, getCurrentSession, startSession } from '../lib/api/work_sessions';
-import type { SafetyLogTriggerType, WorkSession } from '../lib/api/types';
+import type { ApiId, SafetyLogTriggerType, WorkSession } from '../lib/api/types';
 import { ApiError } from '../lib/api/client';
 
 type ActionLoading = {
@@ -89,7 +89,7 @@ export function useWorkerSession() {
   }, []);
 
   const start = useCallback(
-    async (organizationId: number) => {
+    async (organizationId: ApiId) => {
       setAction('start', true);
       setError(null);
 

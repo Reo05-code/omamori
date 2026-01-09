@@ -3,6 +3,18 @@
  * APIレスポンス・リクエストに関する型をここに集約
  */
 
+export type ApiId = number | string;
+
+export function toNumberId(id: ApiId, name = 'id'): number {
+  const numeric = typeof id === 'string' ? Number(id) : id;
+
+  if (!Number.isFinite(numeric)) {
+    throw new Error(`${name} must be a finite number (got: ${JSON.stringify(id)})`);
+  }
+
+  return numeric;
+}
+
 // ユーザーのAPIレスポンス型
 export interface UserResponse {
   id: number;

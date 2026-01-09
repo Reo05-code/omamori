@@ -13,7 +13,7 @@ import { API_PATHS } from './paths';
  * @returns 作成された招待情報
  */
 export async function createInvitation(
-  organizationId: string,
+  organizationId: string | number,
   email: string,
   role: 'worker' | 'admin',
 ): Promise<CreateInvitationResponse> {

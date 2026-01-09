@@ -1,4 +1,4 @@
-import type { RiskAssessmentResponse } from './types';
+import type { ApiId, RiskAssessmentResponse } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
@@ -25,7 +25,7 @@ function buildQuery(params?: FetchRiskAssessmentsParams): string {
 }
 
 export async function fetchRiskAssessments(
-  workSessionId: number,
+  workSessionId: ApiId,
   params?: FetchRiskAssessmentsParams,
 ): Promise<RiskAssessmentResponse[]> {
   // URLの組み立て

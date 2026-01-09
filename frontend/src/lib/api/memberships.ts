@@ -3,7 +3,7 @@ import type { Membership } from '../api/types';
 import { api } from './client';
 import { API_PATHS } from './paths';
 
-export async function fetchMemberships(organizationId: string): Promise<Membership[]> {
+export async function fetchMemberships(organizationId: string | number): Promise<Membership[]> {
   const path = API_PATHS.ORGANIZATIONS.MEMBERSHIPS(organizationId);
 
   const res = await api.get<Membership[]>(path);
@@ -16,8 +16,8 @@ export async function fetchMemberships(organizationId: string): Promise<Membersh
 }
 
 export async function updateMembership(
-  organizationId: string,
-  membershipId: string,
+  organizationId: string | number,
+  membershipId: string | number,
   body: unknown,
 ): Promise<Membership> {
   const path = API_PATHS.ORGANIZATIONS.MEMBERSHIP(organizationId, membershipId);
@@ -31,8 +31,8 @@ export async function updateMembership(
 }
 
 export async function deleteMembership(
-  organizationId: string,
-  membershipId: string,
+  organizationId: string | number,
+  membershipId: string | number,
 ): Promise<void> {
   const path = API_PATHS.ORGANIZATIONS.MEMBERSHIP(organizationId, membershipId);
   const res = await api.delete<{ message?: string }>(path);

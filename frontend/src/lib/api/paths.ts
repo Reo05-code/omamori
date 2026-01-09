@@ -15,11 +15,11 @@ export const API_PATHS = {
   // Organization 関連のパス
   ORGANIZATIONS: {
     BASE: '/api/v1/organizations',
-    SHOW: (id: string) => `/api/v1/organizations/${id}`,
-    MEMBERSHIPS: (id: string) => `/api/v1/organizations/${id}/memberships`,
-    MEMBERSHIP: (orgId: string, membershipId: string) =>
+    SHOW: (id: string | number) => `/api/v1/organizations/${id}`,
+    MEMBERSHIPS: (id: string | number) => `/api/v1/organizations/${id}/memberships`,
+    MEMBERSHIP: (orgId: string | number, membershipId: string | number) =>
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
-    CREATE_INVITATION: (id: string) => `/api/v1/organizations/${id}/invitations`,
+    CREATE_INVITATION: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
     ALERTS: (id: string | number) => `/api/v1/organizations/${id}/alerts`,
     ALERT: (organizationId: string | number, alertId: string | number) =>
       `/api/v1/organizations/${organizationId}/alerts/${alertId}`,

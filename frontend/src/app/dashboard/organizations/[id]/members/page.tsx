@@ -24,9 +24,6 @@ type PendingAction =
 export default function MembersPage(): JSX.Element {
   const params = useParams();
   const orgId = (params as { id?: string })?.id;
-  // URL パラメータを数値に変換し、バリデーション（冒頭で1回のみ実行）
-  const numericOrgId = orgId ? Number(orgId) : null;
-  const organizationId = numericOrgId !== null && !Number.isNaN(numericOrgId) ? numericOrgId : null;
   const [members, setMembers] = useState<Membership[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +93,7 @@ export default function MembersPage(): JSX.Element {
 
   const confirmAction = async () => {
     if (!pendingAction) return;
-    if (!organizationId) {
+    if (!orgId) {
       setActionError('組織IDの取得に失敗しました。ページを再読み込みしてください。');
       setPendingAction(null);
       return;
@@ -111,7 +108,7 @@ export default function MembersPage(): JSX.Element {
     try {
       // 楽観的更新: API成功を待ってから即座にローカルstateを更新し、UXを高速化
       if (action.kind === 'start') {
-        const started = await startRemoteSession(organizationId, action.membership.user_id);
+        const started = await startRemoteSession(orgId, action.membership.user_id);
         setMembers((prevMembers) => {
           if (!prevMembers) return prevMembers;
           return prevMembers.map((m) =>
