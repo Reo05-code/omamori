@@ -34,8 +34,18 @@ module TokenAuthenticatable
 
     return if current_api_v1_user
 
-    Rails.logger.warn("[authenticate_api_v1_user!] UNAUTHORIZED - Headers: uid=#{request.headers['uid'].present?}, client=#{request.headers['client'].present?}, access-token=#{request.headers['access-token'].present?}")
+    log_unauthorized_request
     render json: { errors: ["Unauthorized"] }, status: :unauthorized and return
+  end
+
+  def log_unauthorized_request
+    uid = request.headers["uid"].present?
+    client = request.headers["client"].present?
+    token = request.headers["access-token"].present?
+    Rails.logger.warn(
+      "[authenticate_api_v1_user!] UNAUTHORIZED - Headers: " \
+      "uid=#{uid}, client=#{client}, access-token=#{token}"
+    )
   end
 
   def user_signed_in?

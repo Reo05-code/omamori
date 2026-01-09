@@ -24,7 +24,7 @@ class ApplicationController < ActionController::API
     origin = request.headers["Origin"]
     referer = request.headers["Referer"]
 
-    Rails.logger.debug("[verify_origin!] Method: #{request.method}, Origin: #{origin}, Referer: #{referer}")
+    Rails.logger.debug { "[verify_origin!] Method: #{request.method}, Origin: #{origin}, Referer: #{referer}" }
 
     return if origin_allowed?(origin)
     return if referer_allowed?(referer)
