@@ -1,4 +1,4 @@
-import type { AlertResponse } from './types';
+import type { AlertResponse, AlertStatus, UpdateOrganizationAlertRequest } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
@@ -28,4 +28,44 @@ export async function createSosAlert(
 
   // 201 created: alert JSON（新規作成の場合）
   return { duplicate: false, alert: res.data as AlertResponse };
+}
+
+// GET /api/v1/organizations/:organization_id/alerts
+export async function fetchOrganizationAlerts(
+  organizationId: string | number,
+): Promise<AlertResponse[]> {
+  const res = await api.get<AlertResponse[]>(API_PATHS.ORGANIZATIONS.ALERTS(organizationId));
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to fetch alerts: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
+}
+
+// PATCH /api/v1/organizations/:organization_id/alerts/:id
+export async function updateOrganizationAlertStatus(
+  organizationId: string | number,
+  alertId: string | number,
+  status: AlertStatus,
+): Promise<AlertResponse> {
+  const body: UpdateOrganizationAlertRequest = { alert: { status } };
+  const res = await api.patch<AlertResponse>(
+    API_PATHS.ORGANIZATIONS.ALERT(organizationId, alertId),
+    body,
+  );
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to update alert: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
 }

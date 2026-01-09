@@ -1,10 +1,27 @@
 import type {
   CreateSafetyLogRequest,
   CreateSafetyLogResponse,
+  SafetyLogResponse,
   SafetyLogTriggerType,
 } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
+
+export async function fetchSafetyLogs(workSessionId: number): Promise<SafetyLogResponse[]> {
+  const res = await api.get<SafetyLogResponse[]>(
+    API_PATHS.WORK_SESSIONS.SAFETY_LOGS(workSessionId),
+  );
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to fetch safety logs: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
+}
 
 export async function createSafetyLog(
   // 指定された作業セッション
