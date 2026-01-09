@@ -1,9 +1,9 @@
-import type { AlertResponse, AlertStatus, UpdateOrganizationAlertRequest } from './types';
+import type { AlertResponse, AlertStatus, ApiId, UpdateOrganizationAlertRequest } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
 export async function createSosAlert(
-  workSessionId: number,
+  workSessionId: ApiId,
   coords?: { latitude: number; longitude: number },
 ): Promise<{ duplicate: boolean; alert: AlertResponse | null }> {
   // 位置情報があれば body に含める

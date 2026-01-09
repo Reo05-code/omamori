@@ -3,11 +3,12 @@ import type {
   CreateSafetyLogResponse,
   SafetyLogResponse,
   SafetyLogTriggerType,
+  ApiId,
 } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
-export async function fetchSafetyLogs(workSessionId: number): Promise<SafetyLogResponse[]> {
+export async function fetchSafetyLogs(workSessionId: ApiId): Promise<SafetyLogResponse[]> {
   const res = await api.get<SafetyLogResponse[]>(
     API_PATHS.WORK_SESSIONS.SAFETY_LOGS(workSessionId),
   );
@@ -25,7 +26,7 @@ export async function fetchSafetyLogs(workSessionId: number): Promise<SafetyLogR
 
 export async function createSafetyLog(
   // 指定された作業セッション
-  workSessionId: number,
+  workSessionId: ApiId,
   params: {
     latitude: number;
     longitude: number;

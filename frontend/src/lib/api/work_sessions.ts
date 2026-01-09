@@ -1,4 +1,5 @@
-import type { GetCurrentWorkSessionResponse, WorkSession } from './types';
+import type { ApiId, GetCurrentWorkSessionResponse, WorkSession } from './types';
+import { toNumberId } from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
@@ -18,9 +19,9 @@ export async function getCurrentSession(signal?: AbortSignal): Promise<WorkSessi
 }
 
 // 作業セッションを開始する
-export async function startSession(organizationId: number): Promise<WorkSession> {
+export async function startSession(organizationId: ApiId): Promise<WorkSession> {
   const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.CREATE, {
-    work_session: { organization_id: organizationId },
+    work_session: { organization_id: toNumberId(organizationId, 'organizationId') },
   });
 
   if (res.error || res.data === null) {
@@ -36,11 +37,14 @@ export async function startSession(organizationId: number): Promise<WorkSession>
 
 // ダッシュボードから指定ユーザーの作業セッションを開始する
 export async function startRemoteSession(
-  organizationId: number,
-  userId: number,
+  organizationId: ApiId,
+  userId: ApiId,
 ): Promise<WorkSession> {
   const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.CREATE, {
-    work_session: { organization_id: organizationId, user_id: userId },
+    work_session: {
+      organization_id: toNumberId(organizationId, 'organizationId'),
+      user_id: toNumberId(userId, 'userId'),
+    },
   });
 
   if (res.error || res.data === null) {
@@ -55,7 +59,7 @@ export async function startRemoteSession(
 }
 
 // 作業セッションを終了する
-export async function finishSession(workSessionId: number): Promise<WorkSession> {
+export async function finishSession(workSessionId: ApiId): Promise<WorkSession> {
   const res = await api.post<WorkSession>(API_PATHS.WORK_SESSIONS.FINISH(workSessionId));
 
   if (res.error || res.data === null) {
