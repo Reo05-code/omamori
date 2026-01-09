@@ -93,9 +93,14 @@ export default function Sidebar({
                 <>メンバー</>
               ))}
           </Link>
-          <a
-            className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href="#"
+          <Link
+            className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all ${
+              pathname.includes('/work_logs')
+                ? 'bg-warm-orange text-white'
+                : 'bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white'
+            }`}
+            href={orgId ? `/dashboard/organizations/${orgId}/work_logs` : '/dashboard'}
+            aria-current={pathname.includes('/work_logs') ? 'page' : undefined}
           >
             <AppIcon name="article" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
@@ -104,7 +109,7 @@ export default function Sidebar({
               ) : (
                 <>作業ログ</>
               ))}
-          </a>
+          </Link>
           <a
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href="#"
