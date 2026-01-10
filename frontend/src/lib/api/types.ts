@@ -108,6 +108,8 @@ export interface PasswordUpdateResponse {
 export interface Membership {
   id: number;
   user_id: number;
+  // memberships API が返す user.name（要件: email ではなく name を表示）
+  name?: string | null;
   email?: string | null;
   role: string;
   working?: boolean;
