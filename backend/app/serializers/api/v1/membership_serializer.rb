@@ -13,6 +13,8 @@ module Api
         {
           id: @membership.id,
           user_id: @membership.user_id,
+          # フロントでのメンバー選択表示に利用する（要件: email ではなく name を表示）
+          name: user&.name,
           email: user&.email,
           role: @membership.role,
           active_work_session: {
