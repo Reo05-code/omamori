@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Membership } from '@/lib/api/types';
 import { fetchMemberships } from '@/lib/api/memberships';
@@ -194,12 +195,22 @@ export default function MembersPage(): JSX.Element {
                       <WorkStatusBadge session={m.active_work_session} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      <MemberActionToggle
-                        member={m}
-                        name={renderName(m)}
-                        isProcessing={!!processingMemberIds[m.id]}
-                        onToggle={openConfirm}
-                      />
+                      <div className="flex flex-col gap-2">
+                        <MemberActionToggle
+                          member={m}
+                          name={renderName(m)}
+                          isProcessing={!!processingMemberIds[m.id]}
+                          onToggle={openConfirm}
+                        />
+                        {orgId && (
+                          <Link
+                            href={`/dashboard/organizations/${orgId}/work_logs?tab=safety_logs&userId=${m.user_id}`}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            作業ログ（移動履歴）
+                          </Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
