@@ -22,6 +22,10 @@ type CheckInParams = {
   loggedAt?: string;
 };
 
+type SosSendResult =
+  | { ok: true; duplicate: boolean }
+  | { ok: false; message: string; status?: number };
+
 function normalizeErrorMessage(err: unknown): { message: string; status?: number } {
   if (err instanceof ApiError) {
     if (err.status === 0) return { message: 'ネットワークエラーが発生しました', status: 0 };
@@ -139,21 +143,25 @@ export function useWorkerSession() {
   }, [session, setAction]);
 
   const sendSos = useCallback(
-    async (coords?: { latitude: number; longitude: number }) => {
+    async (coords?: { latitude: number; longitude: number }): Promise<SosSendResult> => {
       if (!session) {
-        setError('作業セッションが開始されていません');
-        return;
+        const message = '作業セッションが開始されていません';
+        setError(message);
+        return { ok: false, message };
       }
 
       setAction('sos', true);
       setError(null);
 
       try {
-        await createSosAlert(session.id, coords);
+        const result = await createSosAlert(session.id, coords);
+        return { ok: true, duplicate: result.duplicate };
       } catch (err) {
-        if (!mountedRef.current) return;
-        const { message } = normalizeErrorMessage(err);
-        setError(message);
+        const normalized = normalizeErrorMessage(err);
+        if (mountedRef.current) {
+          setError(normalized.message);
+        }
+        return { ok: false, message: normalized.message, status: normalized.status };
       } finally {
         if (mountedRef.current) setAction('sos', false);
       }

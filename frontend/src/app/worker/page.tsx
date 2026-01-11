@@ -8,7 +8,7 @@ import ConfirmModal from '../../components/ui/ConfirmModal';
 import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
 import { useWorkerSession } from '../../hooks/useWorkerSession';
-import { getDeviceInfoWithLocation, getBatteryLevel } from '../../lib/geolocation';
+import { getCurrentPositionBestEffort, getDeviceInfoWithLocation } from '../../lib/geolocation';
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
 import type { Organization } from '../../types';
@@ -151,23 +151,30 @@ export default function WorkerHomePage() {
       return;
     }
 
-    // 位置情報取得（取得失敗してもSOSは送信する）
-    const deviceInfo = await getDeviceInfoWithLocation();
-    const coords = deviceInfo
-      ? {
-          latitude: deviceInfo.latitude,
-          longitude: deviceInfo.longitude,
-        }
+    // 位置情報（ベストエフォート取得）
+    // SOSでは「送信できないこと」が最悪のリスクなので、短時間で取得を諦めてもアラート自体は送信する
+    const position = await getCurrentPositionBestEffort({ timeoutMs: 4000 });
+    const coords = position
+      ? { latitude: position.latitude, longitude: position.longitude }
       : undefined;
 
-    await sendSos(coords);
+    const result = await sendSos(coords);
 
-    if (!sessionError) {
-      setNotification({ message: 'SOSを送信しました', type: 'success' });
-    } else if (sessionError.includes('既に')) {
-      setNotification({ message: '既に同様のSOSが送信されています', type: 'info' });
+    if (!result.ok) {
+      setNotification({ message: result.message, type: 'error' });
+      return;
     }
-  }, [session, sendSos, sessionError]);
+
+    if (result.duplicate) {
+      setNotification({ message: 'SOSは送信済みです。安全な場所で待機してください', type: 'info' });
+      return;
+    }
+
+    setNotification({
+      message: 'SOSを送信しました。安全な場所で待機してください',
+      type: 'success',
+    });
+  }, [session, sendSos]);
 
   // 終了確認モーダルを開く
   const handleFinishRequest = useCallback(() => {
@@ -226,12 +233,7 @@ export default function WorkerHomePage() {
           sosLoading={actionLoading.sos}
         />
       ) : (
-        <StartView
-          onStart={handleStart}
-          onSos={handleSos}
-          loading={actionLoading.start}
-          sosLoading={actionLoading.sos}
-        />
+        <StartView onStart={handleStart} loading={actionLoading.start} />
       )}
 
       {/* 終了確認モーダル */}

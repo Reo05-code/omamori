@@ -91,7 +91,7 @@ export default function ConfirmModal({
   if (!open) return null;
 
   const confirmButtonClass = confirmDanger
-    ? 'px-4 py-2 bg-danger hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2'
+    ? 'px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
     : 'px-4 py-2 bg-warm-orange hover:bg-warm-orange-light text-white rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-warm-orange focus:ring-offset-2';
 
   return (

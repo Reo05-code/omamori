@@ -75,7 +75,7 @@ export default function MonitoringView({
         ariaLabel="緊急SOS（長押し）"
         loading={sosLoading}
         disabled={sosLoading}
-        className="w-full rounded-lg bg-danger hover:bg-red-600 text-white py-4 px-4 text-base font-bold shadow-md shadow-danger/30 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
+        className="w-full rounded-lg bg-red-500/80 hover:bg-red-600 text-white py-4 px-4 text-base font-bold shadow-md shadow-red-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >
         <span className="flex items-center justify-center gap-2">
           <AppIcon name="warning" className="text-xl" />
