@@ -30,7 +30,17 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm install
+        run: npm ci
+
+      # Next.js Build Cache
+      - name: Restore .next/cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/.next/cache
+          key: nextjs-cache-${{ hashFiles('frontend/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nextjs-cache-${{ hashFiles('frontend/package-lock.json') }}-
+            nextjs-cache-
 
       - name: Run Prettier Check
         working-directory: frontend
@@ -48,8 +58,6 @@ jobs:
         run: npm run type-check
 
       # Build (Next.js)
-      # 環境変数がなくてもビルドが通る構成ならこれでOK
-      # もし "API URL missing" 等のエラーが出る場合のみ、envを復活させてください
       - name: Run Build
         working-directory: frontend
         run: npm run build
@@ -60,6 +68,14 @@ jobs:
         run: npm run test
 
       # E2E Tests (Playwright)
+      - name: Restore Playwright Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            playwright-browsers-
+
       - name: Install Playwright Browsers
         working-directory: frontend
         run: npx playwright install --with-deps
