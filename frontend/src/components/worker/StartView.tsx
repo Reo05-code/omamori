@@ -2,23 +2,19 @@
 
 import React from 'react';
 import PrimaryButton from '../ui/PrimaryButton';
-import LongPressButton from '../ui/LongPressButton';
 import AppIcon from '../ui/AppIcon';
 
 type Props = {
   onStart: () => void;
-  onSos: () => void;
   loading?: boolean;
-  sosLoading?: boolean;
 };
 
 /**
  * 見守り開始前の画面
  * - 説明カード
  * - 開始ボタン（大）
- * - SOS（小、セッション無しで押すと開始を促す）
  */
-export default function StartView({ onStart, onSos, loading = false, sosLoading = false }: Props) {
+export default function StartView({ onStart, loading = false }: Props) {
   return (
     <div className="space-y-6">
       {/* 説明カード */}
@@ -58,25 +54,6 @@ export default function StartView({ onStart, onSos, loading = false, sosLoading 
           <span className="text-base font-bold">見守りを開始</span>
         </span>
       </PrimaryButton>
-
-      {/* 小さめのSOSボタン（セッション無しの場合は開始を促す） */}
-      <div className="pt-4">
-        <p className="text-xs text-warm-brown-600 mb-3 text-center">
-          緊急時は下のボタンを長押ししてください
-        </p>
-        <LongPressButton
-          onLongPress={onSos}
-          ariaLabel="緊急SOS（長押し）"
-          loading={sosLoading}
-          disabled={sosLoading}
-          className="w-full rounded-lg bg-danger hover:bg-red-600 text-white py-3 px-4 text-sm font-medium shadow-md shadow-danger/30 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <AppIcon name="warning" className="text-xl" />
-            <span>緊急SOS（長押し）</span>
-          </span>
-        </LongPressButton>
-      </div>
     </div>
   );
 }
