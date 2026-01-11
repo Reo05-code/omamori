@@ -251,6 +251,17 @@ export interface AlertResponse {
   resolved_at?: string | null;
   created_at?: string;
   updated_at?: string;
+
+  // GET /api/v1/organizations/:organization_id/alerts では、
+  // 管理画面で「誰のアラートか」を表示するため、関連情報をネストで返す。
+  work_session?: {
+    id: number;
+    user?: {
+      id: number;
+      name: string;
+      email?: string;
+    };
+  };
 }
 
 // GET /api/v1/work_sessions/:work_session_id/risk_assessments の要素
