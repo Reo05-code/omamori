@@ -145,12 +145,12 @@ export default function OrganizationAlertsPage() {
         <h1 className="text-xl font-semibold text-warm-gray-900 dark:text-warm-gray-100">
           アラート一覧
         </h1>
-        <Link
+        {/* <Link
           href={`/dashboard/organizations/${orgId}`}
           className="text-sm text-warm-orange hover:underline"
         >
           組織トップへ
-        </Link>
+        </Link> */}
       </div>
 
       {loading && <p className="mt-4">読み込み中です...</p>}
