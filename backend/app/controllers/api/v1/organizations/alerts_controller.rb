@@ -6,6 +6,8 @@ module Api
       class AlertsController < ApplicationController
         before_action :authenticate_user!
         before_action :set_organization
+        before_action :set_current_membership
+        before_action :require_admin!
         before_action :set_alert, only: [:update]
 
         # GET /api/v1/organizations/:organization_id/alerts
@@ -15,7 +17,7 @@ module Api
                         .includes(work_session: :user)
                         .order_by_priority
 
-          render json: alerts
+          render json: alerts.map { |alert| Api::V1::OrganizationAlertSerializer.new(alert).as_json }
         end
 
         # PATCH /api/v1/organizations/:organization_id/alerts/:id
@@ -54,6 +56,16 @@ module Api
           @organization = current_user.organizations.find(params[:organization_id])
         rescue ActiveRecord::RecordNotFound
           render json: { error: "Organization not found" }, status: :not_found
+        end
+
+        def set_current_membership
+          @current_membership = @organization.memberships.find_by(user: current_user)
+        end
+
+        def require_admin!
+          return if @current_membership&.admin?
+
+          render json: { error: I18n.t("api.v1.organizations.error.forbidden") }, status: :forbidden
         end
 
         def set_alert

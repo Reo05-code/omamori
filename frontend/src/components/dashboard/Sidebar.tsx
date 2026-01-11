@@ -1,13 +1,14 @@
-// サイドメニューのコンポーネント
 'use client';
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
 import type { Organization } from '../../types';
 import { usePathname } from 'next/navigation';
 import AppIcon from '../ui/AppIcon';
+import { useAuthContext } from '@/context/AuthContext';
+import { getUserRole } from '@/lib/permissions';
 
 export default function Sidebar({
   sidebarCollapsed,
@@ -20,6 +21,19 @@ export default function Sidebar({
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const pathname = usePathname();
+  const { user } = useAuthContext();
+
+  const currentOrgId = useMemo(() => {
+    // urlの中から組織IDを抽出
+    const match = pathname?.match(/^\/dashboard\/organizations\/(\d+)(?:\/|$)/);
+    if (match?.[1]) return match[1];
+    return orgId;
+  }, [pathname, orgId]);
+
+  const isAdminForCurrentOrg = useMemo(() => {
+    if (!currentOrgId) return false;
+    return getUserRole(user, currentOrgId) === 'admin';
+  }, [user, currentOrgId]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -110,33 +124,26 @@ export default function Sidebar({
                 <>作業ログ</>
               ))}
           </Link>
-          <a
-            className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
-            href="#"
-          >
-            <div className="flex items-center">
-              <AppIcon
-                name="notifications"
-                className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`}
-              />
-              {!sidebarCollapsed &&
-                (loading ? (
-                  <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                ) : (
-                  <>アラート</>
-                ))}
-            </div>
-            {!sidebarCollapsed &&
-              (loading ? (
-                <span className="inline-flex items-center justify-center px-2 py-0.5 ml-3 text-xs font-medium text-white bg-transparent rounded-full">
-                  <span className="h-3 w-3 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                </span>
-              ) : (
-                <span className="inline-flex items-center justify-center px-2 py-0.5 ml-3 text-xs font-medium text-white bg-danger rounded-full">
-                  3
-                </span>
-              ))}
-          </a>
+          {isAdminForCurrentOrg && (
+            <Link
+              className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
+              href={currentOrgId ? `/dashboard/organizations/${currentOrgId}/alerts` : '/dashboard'}
+              aria-current={pathname?.includes('/alerts') ? 'page' : undefined}
+            >
+              <div className="flex items-center">
+                <AppIcon
+                  name="notifications"
+                  className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`}
+                />
+                {!sidebarCollapsed &&
+                  (loading ? (
+                    <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                  ) : (
+                    <>アラート</>
+                  ))}
+              </div>
+            </Link>
+          )}
 
           {/* collapse toggle inserted inline so it appears under Alerts */}
           <div
