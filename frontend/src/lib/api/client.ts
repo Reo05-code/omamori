@@ -25,6 +25,12 @@ interface ApiResponse<T> {
   status: number;
 }
 
+// ページング等のため、レスポンスヘッダも参照したいケース向け。
+// 既存の ApiResponse を壊さないよう、別の戻り値型として定義する。
+export interface ApiResponseWithHeaders<T> extends ApiResponse<T> {
+  headers: Headers | null;
+}
+
 /**
  * API 呼び出しで発生したエラー
  * - status: HTTP ステータス（ネットワークエラー時は 0）
@@ -46,10 +52,8 @@ export class ApiError extends Error {
 }
 
 /**
- * API のコア実行関数
- * - fetch の共通設定
- * - JSON / NoContent / 非JSON を安全に処理
- * - エラーメッセージを統一
+ * APIコアリクエスト関数：BaseURL/認証ヘッダ/レスポンス解析を統一。
+ * JSON/NoContent/非JSONを安全に処理し、エラーメッセージを標準化して返す。
  */
 export async function apiRequest<T>(
   method: HttpMethod,
@@ -114,6 +118,62 @@ export async function apiRequest<T>(
       data: null,
       error: 'ネットワークエラーが発生しました',
       status: 0,
+    };
+  }
+}
+
+/**
+ * ページングヘッダ（X-Total-Count等）を参照したい用途向けのapiRequest。
+ * 基本的なエラーハンドリングは apiRequest と同じだが、レスポンスヘッダも返す。
+ */
+export async function apiRequestWithHeaders<T>(
+  method: HttpMethod,
+  path: string,
+  options: RequestOptions = {},
+): Promise<ApiResponseWithHeaders<T>> {
+  const url = `${API_BASE_URL}${path}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      credentials: 'include',
+      signal: options.signal,
+    });
+
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
+
+    if (!response.ok) {
+      const errorData = isJson ? await response.json() : null;
+      return {
+        data: null,
+        error: errorData?.errors?.[0] || `エラーが発生しました (${response.status})`,
+        errorBody: errorData,
+        status: response.status,
+        headers: response.headers,
+      };
+    }
+
+    const data = isJson ? await response.json() : null;
+    return {
+      data,
+      error: null,
+      status: response.status,
+      headers: response.headers,
+    };
+  } catch (_error) {
+    return {
+      data: null,
+      error: 'ネットワークエラーが発生しました',
+      status: 0,
+      headers: null,
     };
   }
 }
