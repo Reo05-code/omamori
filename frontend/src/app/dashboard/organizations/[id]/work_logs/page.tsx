@@ -7,6 +7,7 @@ import { BasicInfoTab } from './_components/tabs/BasicInfoTab';
 import { RiskAssessmentsTab } from './_components/tabs/RiskAssessmentsTab';
 import { SafetyLogsTab } from './_components/tabs/SafetyLogsTab';
 import { useMemberships } from './_hooks/useMemberships';
+import { useRiskAssessments } from './_hooks/useRiskAssessments';
 import { useSafetyLogs } from './_hooks/useSafetyLogs';
 
 type TabKey = 'basic' | 'safety_logs' | 'risk_assessments';
@@ -15,6 +16,10 @@ function isTabKey(value: string | null): value is TabKey {
   return value === 'basic' || value === 'safety_logs' || value === 'risk_assessments';
 }
 
+/**
+ * WorkLogsページ：タブUI（基本情報/移動履歴/リスク判定）で対象ユーザーの各種情報を表示。
+ * memberships取得 → ユーザー選択 → 稼働中セッションから各種ログを取得・表示。
+ */
 export default function WorkLogsPage() {
   const params = useParams();
   const orgId = (params as { id?: string })?.id;
@@ -58,6 +63,24 @@ export default function WorkLogsPage() {
     retry: retrySafetyLogs,
   } = useSafetyLogs({
     enabled: activeTab === 'safety_logs',
+    workSessionId: activeWorkSessionId,
+    resetKey: selectedUserId,
+  });
+
+  const {
+    riskAssessments,
+    loading: riskAssessmentsLoading,
+    error: riskAssessmentsError,
+    page: riskAssessmentsPage,
+    totalPages: riskAssessmentsTotalPages,
+    totalCount: riskAssessmentsTotalCount,
+    canPrev: riskAssessmentsCanPrev,
+    canNext: riskAssessmentsCanNext,
+    prevPage: riskAssessmentsPrevPage,
+    nextPage: riskAssessmentsNextPage,
+    retry: retryRiskAssessments,
+  } = useRiskAssessments({
+    enabled: activeTab === 'risk_assessments',
     workSessionId: activeWorkSessionId,
     resetKey: selectedUserId,
   });
@@ -136,6 +159,18 @@ export default function WorkLogsPage() {
             membershipsError={membershipsError}
             selectedUserId={selectedUserId}
             onSelectUserId={setSelectedUserId}
+            activeWorkSessionId={activeWorkSessionId}
+            riskAssessments={riskAssessments}
+            loading={riskAssessmentsLoading}
+            error={riskAssessmentsError}
+            page={riskAssessmentsPage}
+            totalPages={riskAssessmentsTotalPages}
+            totalCount={riskAssessmentsTotalCount}
+            canPrev={riskAssessmentsCanPrev}
+            canNext={riskAssessmentsCanNext}
+            onPrev={riskAssessmentsPrevPage}
+            onNext={riskAssessmentsNextPage}
+            onRetry={retryRiskAssessments}
           />
         )}
       </div>
