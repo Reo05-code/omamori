@@ -105,3 +105,45 @@ export async function getDeviceInfoOnly(): Promise<DeviceInfo> {
   const batteryLevel = await getBatteryLevel();
   return { batteryLevel };
 }
+
+type BestEffortPositionOptions = {
+  timeoutMs?: number;
+  enableHighAccuracy?: boolean;
+  maximumAge?: number;
+};
+
+/**
+ * SOS等「送信できないことが最悪」な導線向けの位置情報取得
+ * - 取得に失敗しても例外は投げず null を返す
+ * - timeout を短めに設定し、UI をブロックしすぎない
+ */
+export async function getCurrentPositionBestEffort(
+  options: BestEffortPositionOptions = {},
+): Promise<GeolocationResult | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    const { timeoutMs = 4000, enableHighAccuracy = true, maximumAge = 0 } = options;
+
+    const positionOptions: PositionOptions = {
+      enableHighAccuracy,
+      timeout: timeoutMs,
+      maximumAge,
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+      },
+      () => resolve(null),
+      positionOptions,
+    );
+  });
+}
