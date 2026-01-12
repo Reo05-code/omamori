@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Alert do
+  def create_alert_for_ordering(work_session:, status:, severity:, created_at:)
+    create(:alert, work_session: work_session, status: status, severity: severity, created_at: created_at)
+  end
+
   describe "Factory" do
     it "有効なファクトリを持つこと" do
       expect(build(:alert)).to be_valid
@@ -69,15 +73,40 @@ RSpec.describe Alert do
       expect(ids).to include(a1.id, a2.id)
     end
 
-    it "order_by_priority が status 昇順、その中で created_at 降順に並ぶこと" do
+    it "scope `urgent` が open かつ sos or critical を返すこと" do
       ws = create(:work_session)
-      a_open_old = create(:alert, work_session: ws, status: :open, created_at: 2.days.ago)
-      a_open_new = create(:alert, work_session: ws, status: :open, created_at: 1.day.ago)
-      a_inprog = create(:alert, work_session: ws, status: :in_progress, created_at: Time.current)
+      urgent_sos = create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :low)
+      urgent_critical = create(:alert, work_session: ws, status: :open, alert_type: :battery_low, severity: :critical)
+      _non_urgent_open = create(:alert, work_session: ws, status: :open, alert_type: :battery_low, severity: :high)
+      _non_urgent_inprog = create(:alert, work_session: ws, status: :in_progress, alert_type: :sos, severity: :critical)
 
-      ordered = described_class.order_by_priority.to_a
-      expect(ordered.index(a_open_new)).to be < ordered.index(a_open_old)
-      expect(ordered.index(a_open_old)).to be < ordered.index(a_inprog)
+      ids = described_class.urgent.pluck(:id)
+      expect(ids).to contain_exactly(urgent_sos.id, urgent_critical.id)
+    end
+
+    it "scope `not_urgent` が urgent を除外すること" do
+      ws = create(:work_session)
+      urgent_sos = create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :low)
+      normal = create(:alert, work_session: ws, status: :open, alert_type: :battery_low, severity: :low)
+
+      ids = described_class.not_urgent.pluck(:id)
+      expect(ids).to include(normal.id)
+      expect(ids).not_to include(urgent_sos.id)
+    end
+
+    it "order_by_priority が 未解決優先 → 重要度順 → created_at 降順に並ぶこと" do
+      ws = create(:work_session)
+
+      expected_ids = [
+        create_alert_for_ordering(work_session: ws, status: :open, severity: :critical, created_at: 3.days.ago).id,
+        create_alert_for_ordering(work_session: ws, status: :in_progress, severity: :high, created_at: 2.days.ago).id,
+        create_alert_for_ordering(work_session: ws, status: :open, severity: :medium, created_at: 1.hour.ago).id,
+        create_alert_for_ordering(work_session: ws, status: :open, severity: :medium, created_at: 2.hours.ago).id,
+        create_alert_for_ordering(work_session: ws, status: :open, severity: :low, created_at: Time.current).id,
+        create_alert_for_ordering(work_session: ws, status: :resolved, severity: :critical, created_at: 1.minute.ago).id
+      ]
+
+      expect(described_class.order_by_priority.pluck(:id).first(expected_ids.length)).to eq(expected_ids)
     end
   end
 end

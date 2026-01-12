@@ -32,5 +32,35 @@ class Alert < ApplicationRecord
 
   scope :unresolved, -> { where(status: %i[open in_progress]) }
   scope :notifiable, -> { where(severity: %i[high critical]).unresolved }
-  scope :order_by_priority, -> { order(status: :asc, created_at: :desc) }
+
+  scope :urgent, lambda {
+    where(status: :open).where(alert_type: :sos).or(where(status: :open).where(severity: :critical))
+  }
+
+  scope :not_urgent, -> { where.not(id: urgent.select(:id)) }
+
+  scope :order_by_priority, lambda {
+    unresolved_first = sanitize_sql_array([<<-SQL.squish, statuses[:open], statuses[:in_progress]])
+      CASE WHEN alerts.status IN (?, ?) THEN 0 ELSE 1 END
+    SQL
+
+    critical = severities[:critical]
+    high = severities[:high]
+    medium = severities[:medium]
+    low = severities[:low]
+
+    severity_rank = sanitize_sql_array([<<-SQL.squish, critical, high, medium, low])
+      CASE alerts.severity
+        WHEN ? THEN 0
+        WHEN ? THEN 1
+        WHEN ? THEN 2
+        WHEN ? THEN 3
+        ELSE 4
+      END
+    SQL
+
+    order(Arel.sql(unresolved_first))
+      .order(Arel.sql(severity_rank))
+      .order(created_at: :desc)
+  }
 end
