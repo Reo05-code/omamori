@@ -4,6 +4,10 @@ module Api
   module V1
     module Organizations
       class AlertsController < ApplicationController
+        DEFAULT_LIMIT = 20
+        MAX_LIMIT = 100
+        MIN_LIMIT = 1
+
         before_action :authenticate_user!
         before_action :set_organization
         before_action :set_current_membership
@@ -12,12 +16,13 @@ module Api
 
         # GET /api/v1/organizations/:organization_id/alerts
         def index
-          alerts = Alert.joins(:work_session)
-                        .where(work_sessions: { organization_id: @organization.id })
-                        .includes(work_session: :user)
-                        .order_by_priority
+          alerts = base_alerts_scope
+          alerts = apply_status_filter(alerts)
+          alerts = apply_urgent_filter(alerts)
 
-          render json: alerts.map { |alert| Api::V1::OrganizationAlertSerializer.new(alert).as_json }
+          alerts = alerts.order_by_priority.limit(parsed_limit)
+
+          render json: alerts, each_serializer: Api::V1::OrganizationAlertSerializer, status: :ok
         end
 
         # PATCH /api/v1/organizations/:organization_id/alerts/:id
@@ -55,7 +60,7 @@ module Api
         def set_organization
           @organization = current_user.organizations.find(params[:organization_id])
         rescue ActiveRecord::RecordNotFound
-          render json: { error: "Organization not found" }, status: :not_found
+          render json: { error: I18n.t("api.v1.organizations.not_found") }, status: :not_found
         end
 
         def set_current_membership
@@ -79,6 +84,45 @@ module Api
 
         def alert_update_params
           params.require(:alert).permit(:status)
+        end
+
+        def base_alerts_scope
+          Alert.joins(:work_session)
+               .where(work_sessions: { organization_id: @organization.id })
+               .includes(work_session: :user)
+        end
+
+        # リクエストを整形して安全なSQLにする
+        def apply_status_filter(scope)
+          raw = params[:status].to_s
+          return scope if raw.blank?
+
+          requested = raw.split(",").map(&:strip).compact_blank.uniq
+          valid_statuses = requested & Alert.statuses.keys
+
+          valid_statuses.any? ? scope.where(status: valid_statuses) : scope
+        end
+
+        # 緊急・非緊急の切り替え
+        def apply_urgent_filter(scope)
+          return scope unless params.key?(:urgent)
+
+          raw = params[:urgent]
+          return scope if raw.is_a?(String) && raw.strip == ""
+
+          urgent_value = ActiveModel::Type::Boolean.new.cast(raw)
+          urgent_value ? scope.urgent : scope.not_urgent
+        end
+
+        # 件数制限
+        def parsed_limit
+          raw = params[:limit]
+          return DEFAULT_LIMIT if raw.nil?
+
+          limit = Integer(raw)
+          limit.clamp(MIN_LIMIT, MAX_LIMIT)
+        rescue ArgumentError, TypeError
+          DEFAULT_LIMIT
         end
       end
     end
