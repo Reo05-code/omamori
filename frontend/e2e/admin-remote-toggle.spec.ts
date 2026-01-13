@@ -99,18 +99,72 @@ test.describe('Admin リモート開始/終了トグル', () => {
     // 初期状態確認
     await expect(page.getByText('停止')).toBeVisible();
 
-    // 開始操作
-    await page.getByTestId(`remote-toggle-${1}`).click(); // IDは適宜調整
-    await page.getByRole('button', { name: '開始' }).click();
+    const toggle = page.getByTestId(`remote-toggle-${1}`);
 
-    // 状態更新確認 (Re-fetchが走り、membershipsモックが active=true を返す)
+    // 開始操作: トグルクリック→ConfirmModal表示待ち
+    await toggle.click();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+
+    // 開始ボタンクリック→トグル処理中（disabled）→API完了→refetch→enabled復帰を待つ
+    const startButton = page.getByRole('button', { name: '開始' });
+    await expect(startButton).toBeVisible();
+
+    // APIレスポンスとrefetchを並行して待つ
+    const [startResponse, refetchResponse] = await Promise.all([
+      page.waitForResponse(
+        (resp) => resp.url().includes('/work_sessions') && resp.request().method() === 'POST',
+      ),
+      page.waitForResponse(
+        (resp) => resp.url().includes('/memberships') && resp.request().method() === 'GET',
+      ),
+      startButton.click(),
+    ]);
+
+    // API成功を確認
+    expect(startResponse.status()).toBe(201);
+    expect(refetchResponse.status()).toBe(200);
+
+    // モーダルが閉じることを確認
+    await expect(modal).not.toBeVisible();
+
+    // トグルがenabledに戻り、aria-checkedがtrueになることを確認
+    await expect(toggle).toBeEnabled();
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+
+    // 状態更新確認（稼働中表示）
     await expect(page.getByText('稼働中')).toBeVisible();
 
-    // 終了操作
-    await page.getByTestId(`remote-toggle-${1}`).click();
-    await page.getByRole('button', { name: '終了' }).click();
+    // 終了操作: トグルクリック→ConfirmModal表示待ち
+    await toggle.click();
+    await expect(modal).toBeVisible();
 
-    // 終了確認
+    // 終了ボタンクリック→API完了→refetch→enabled復帰を待つ
+    const finishButton = page.getByRole('button', { name: '終了' });
+    await expect(finishButton).toBeVisible();
+
+    const [finishResponse, refetchAfterFinish] = await Promise.all([
+      page.waitForResponse(
+        (resp) => resp.url().includes('/finish') && resp.request().method() === 'POST',
+      ),
+      page.waitForResponse(
+        (resp) => resp.url().includes('/memberships') && resp.request().method() === 'GET',
+      ),
+      finishButton.click(),
+    ]);
+
+    // API成功を確認
+    expect(finishResponse.status()).toBe(200);
+    expect(refetchAfterFinish.status()).toBe(200);
+
+    // モーダルが閉じることを確認
+    await expect(modal).not.toBeVisible();
+
+    // トグルがenabledに戻り、aria-checkedがfalseになることを確認
+    await expect(toggle).toBeEnabled();
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    // 終了確認（停止表示）
     await expect(page.getByText('停止')).toBeVisible();
   });
 
@@ -130,14 +184,42 @@ test.describe('Admin リモート開始/終了トグル', () => {
     await page.goto(`/dashboard/organizations/${ORG_ID}/members`);
     await expect(page.getByText('停止')).toBeVisible();
 
-    await page.getByTestId(`remote-toggle-${1}`).click();
-    await page.getByRole('button', { name: '開始' }).click();
+    const toggle = page.getByTestId(`remote-toggle-${1}`);
+
+    // 開始操作: トグルクリック→ConfirmModal表示待ち
+    await toggle.click();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+
+    // 開始ボタンクリック→API失敗レスポンス待ち
+    const startButton = page.getByRole('button', { name: '開始' });
+    await expect(startButton).toBeVisible();
+
+    // エラー時はrefetchが走らない可能性があるため、APIレスポンスのみ待つ
+    const errorResponsePromise = page.waitForResponse(
+      (resp) => resp.url().includes('/work_sessions') && resp.request().method() === 'POST',
+    );
+
+    await startButton.click();
+
+    const errorResponse = await errorResponsePromise;
+
+    // API失敗を確認
+    expect(errorResponse.status()).toBe(500);
+
+    // モーダルが閉じることを確認
+    await expect(modal).not.toBeVisible();
 
     // エラーメッセージの確認
     await expect(
       page.getByText('開始に失敗しました。時間をおいて再度お試しください。'),
     ).toBeVisible();
 
+    // トグルがenabledに戻り、aria-checkedがfalseのまま（開始失敗のため）
+    await expect(toggle).toBeEnabled();
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    // 停止状態を維持
     await expect(page.getByText('停止')).toBeVisible();
   });
 });
