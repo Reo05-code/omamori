@@ -30,6 +30,12 @@ module Api
           @alert.with_lock { update_alert_with_lock }
         end
 
+        # GET /api/v1/organizations/:organization_id/alerts/summary
+        # ダッシュボード用: 組織のアラート件数と内訳を集計して返す
+        def summary
+          render json: AlertSummaryBuilder.new(@organization).call, status: :ok
+        end
+
         private
 
         def update_alert_with_lock
