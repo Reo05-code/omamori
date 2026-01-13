@@ -186,10 +186,7 @@ export async function apiRequestWithHeaders<T>(
   }
 }
 
-/**
- * HTTP メソッド別の薄いラッパー
- * - 呼び出し側のコードを簡潔に保つための実務的パターン
- */
+//  HTTP メソッド別の薄いラッパー
 export const api = {
   get: <T>(path: string, options?: RequestOptions) => apiRequest<T>('GET', path, options),
 

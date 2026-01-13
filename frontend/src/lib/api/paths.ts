@@ -21,6 +21,7 @@ export const API_PATHS = {
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
     CREATE_INVITATION: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
     ALERTS: (id: string | number) => `/api/v1/organizations/${id}/alerts`,
+    ALERTS_SUMMARY: (id: string | number) => `/api/v1/organizations/${id}/alerts/summary`,
     ALERT: (organizationId: string | number, alertId: string | number) =>
       `/api/v1/organizations/${organizationId}/alerts/${alertId}`,
   },
