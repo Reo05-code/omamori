@@ -275,6 +275,22 @@ export interface RiskAssessmentResponse {
   details: Record<string, unknown>;
 }
 
+// GET /api/v1/organizations/:organization_id/alerts/summary
+export interface AlertSummaryResponse {
+  counts: {
+    unresolved: number;
+    open: number;
+    in_progress: number;
+    urgent_open: number;
+  };
+  breakdown: {
+    urgent: {
+      sos_open: number;
+      critical_open_non_sos: number;
+    };
+  };
+}
+
 // PATCH /api/v1/organizations/:organization_id/alerts/:id
 export interface UpdateOrganizationAlertRequest {
   alert: {

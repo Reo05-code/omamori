@@ -1,4 +1,10 @@
-import type { AlertResponse, AlertStatus, ApiId, UpdateOrganizationAlertRequest } from './types';
+import type {
+  AlertResponse,
+  AlertStatus,
+  AlertSummaryResponse,
+  ApiId,
+  UpdateOrganizationAlertRequest,
+} from './types';
 import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
@@ -100,6 +106,26 @@ export async function updateOrganizationAlertStatus(
   if (res.error || res.data === null) {
     throw new ApiError(
       res.error || `failed to update alert: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
+}
+
+// GET /api/v1/organizations/:organization_id/alerts/summary
+// ダッシュボードのカード表示用に、アラートの集計件数と内訳を取得
+export async function fetchOrganizationAlertsSummary(
+  organizationId: string | number,
+  signal?: AbortSignal,
+): Promise<AlertSummaryResponse> {
+  const path = API_PATHS.ORGANIZATIONS.ALERTS_SUMMARY(organizationId);
+  const res = await api.get<AlertSummaryResponse>(path, signal ? { signal } : undefined);
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to fetch alert summary: status=${res.status}`,
       res.status,
       res.errorBody,
     );
