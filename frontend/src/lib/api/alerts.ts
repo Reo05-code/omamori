@@ -30,11 +30,49 @@ export async function createSosAlert(
   return { duplicate: false, alert: res.data as AlertResponse };
 }
 
+// GET /api/v1/organizations/:organization_id/alerts のクエリパラメータ型
+// status: open/in_progress/resolved をCSV形式で複数指定可
+// urgent: true=緊急のみ、false=緊急以外
+// limit: 取得件数（デフォルト20、最小1、最大100）
+export type OrganizationAlertsQuery = {
+  status?: AlertStatus | AlertStatus[];
+  urgent?: boolean;
+  limit?: number;
+};
+
+// OrganizationAlertsQuery をURLクエリ文字列に変換する
+// クエリが無い場合は空文字列を返す
+export function buildOrganizationAlertsQuery(query?: OrganizationAlertsQuery): string {
+  if (!query) return '';
+
+  const params = new URLSearchParams();
+
+  const statusValue = Array.isArray(query.status) ? query.status.join(',') : query.status;
+  if (statusValue) params.set('status', statusValue);
+
+  if (typeof query.urgent === 'boolean') params.set('urgent', String(query.urgent));
+
+  if (typeof query.limit === 'number' && Number.isFinite(query.limit)) {
+    params.set('limit', String(query.limit));
+  }
+
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
 // GET /api/v1/organizations/:organization_id/alerts
+// query: status/urgent/limit フィルタを指定可（URLクエリとして API に渡される）
+// signal: AbortSignal で途中キャンセル可
 export async function fetchOrganizationAlerts(
   organizationId: string | number,
+  query?: OrganizationAlertsQuery,
+  signal?: AbortSignal,
 ): Promise<AlertResponse[]> {
-  const res = await api.get<AlertResponse[]>(API_PATHS.ORGANIZATIONS.ALERTS(organizationId));
+  const path = `${API_PATHS.ORGANIZATIONS.ALERTS(organizationId)}${buildOrganizationAlertsQuery(
+    query,
+  )}`;
+
+  const res = await api.get<AlertResponse[]>(path, signal ? { signal } : undefined);
 
   if (res.error || res.data === null) {
     throw new ApiError(
