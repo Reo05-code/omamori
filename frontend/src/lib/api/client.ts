@@ -113,7 +113,11 @@ export async function apiRequest<T>(
     const data = isJson ? await response.json() : null;
 
     return { data, error: null, status: response.status };
-  } catch (_error) {
+  } catch (error) {
+    // リクエストがAbortされた場合はエラーをそのまま投げる
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
     return {
       data: null,
       error: 'ネットワークエラーが発生しました',
@@ -168,7 +172,11 @@ export async function apiRequestWithHeaders<T>(
       status: response.status,
       headers: response.headers,
     };
-  } catch (_error) {
+  } catch (error) {
+    // リクエストがAbortされた場合はエラーをそのまま投げる
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
     return {
       data: null,
       error: 'ネットワークエラーが発生しました',
