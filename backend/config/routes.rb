@@ -7,13 +7,13 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       mount_devise_token_auth_for "User", at: "auth",
-        skip: [:omniauth_callbacks, :confirmations, :unlocks],
-        controllers: {
-          sessions: "api/v1/auth/sessions",
-          registrations: "api/v1/auth/registrations",
-          passwords: "api/v1/auth/passwords",
-          token_validations: "api/v1/auth/token_validations"
-        }
+                                          skip: %i[omniauth_callbacks confirmations unlocks],
+                                          controllers: {
+                                            sessions: "api/v1/auth/sessions",
+                                            registrations: "api/v1/auth/registrations",
+                                            passwords: "api/v1/auth/passwords",
+                                            token_validations: "api/v1/auth/token_validations"
+                                          }
       # SPA クライアント向け CSRF 取得エンドポイント（form_authenticity_token を返し、
       # XSRF-TOKEN クッキーをセットします）
       get "auth/csrf", to: "auth/csrf#show"
@@ -23,7 +23,11 @@ Rails.application.routes.draw do
         resources :memberships, only: %i[index update destroy]
         resources :invitations, only: %i[index create]
         # 管理者用: 組織内のアラート管理
-        resources :alerts, only: %i[index update], controller: "organizations/alerts"
+        resources :alerts, only: %i[index update], controller: "organizations/alerts" do
+          collection do
+            get :summary
+          end
+        end
       end
 
       # 未ログインユーザが招待を受け入れるためのエンドポイント

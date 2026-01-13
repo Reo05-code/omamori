@@ -148,4 +148,96 @@ RSpec.describe "API::V1::Organizations::Alerts (admin)" do
       expect(response).to have_http_status(:unprocessable_content)
     end
   end
+
+  describe "GET summary" do
+    def organization_alerts_summary
+      headers = admin.create_new_auth_token
+      get "/api/v1/organizations/#{org.id}/alerts/summary", headers: headers
+    end
+
+    it "組織のアラート集計を正しく返すこと" do # rubocop:disable RSpec/ExampleLength
+      ws = create(:work_session, organization: org)
+      # open: 3件（うちSOS:1, critical非SOS:1, 通常:1）
+      create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :critical)
+      create(:alert, work_session: ws, status: :open, alert_type: :risk_high, severity: :critical)
+      create(:alert, work_session: ws, status: :open, alert_type: :battery_low, severity: :medium)
+      # in_progress: 2件
+      create(:alert, work_session: ws, status: :in_progress, severity: :high)
+      create(:alert, work_session: ws, status: :in_progress, severity: :low)
+      # resolved: 1件（集計対象外）
+      create(:alert, work_session: ws, status: :resolved, severity: :critical)
+
+      organization_alerts_summary
+      expect(response).to have_http_status(:ok)
+
+      json = response.parsed_body
+      expect(json["counts"]["unresolved"]).to eq(5) # open:3 + in_progress:2
+      expect(json["counts"]["open"]).to eq(3)
+      expect(json["counts"]["in_progress"]).to eq(2)
+    end
+
+    it "urgent_openの集計が正しいこと" do
+      ws = create(:work_session, organization: org)
+      create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :critical)
+      create(:alert, work_session: ws, status: :open, alert_type: :risk_high, severity: :critical)
+
+      organization_alerts_summary
+      json = response.parsed_body
+      expect(json["counts"]["urgent_open"]).to eq(2)  # SOS:1 + critical非SOS:1
+    end
+
+    it "内訳の集計が正しいこと" do
+      ws = create(:work_session, organization: org)
+      create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :critical)
+      create(:alert, work_session: ws, status: :open, alert_type: :risk_high, severity: :critical)
+
+      organization_alerts_summary
+      json = response.parsed_body
+      expect(json["breakdown"]["urgent"]["sos_open"]).to eq(1)
+      expect(json["breakdown"]["urgent"]["critical_open_non_sos"]).to eq(1)
+    end
+
+    it "重複排除が正しく動作すること（SOS + critical_non_sos = urgent_open）" do
+      ws = create(:work_session, organization: org)
+      create(:alert, work_session: ws, status: :open, alert_type: :sos, severity: :critical)
+      create(:alert, work_session: ws, status: :open, alert_type: :risk_high, severity: :critical)
+
+      organization_alerts_summary
+      expect(response).to have_http_status(:ok)
+
+      json = response.parsed_body
+      sos = json["breakdown"]["urgent"]["sos_open"]
+      critical_non_sos = json["breakdown"]["urgent"]["critical_open_non_sos"]
+      urgent_total = json["counts"]["urgent_open"]
+
+      expect(sos + critical_non_sos).to eq(urgent_total)
+    end
+
+    it "worker権限では 403 を返すこと" do
+      headers = member.create_new_auth_token
+      get "/api/v1/organizations/#{org.id}/alerts/summary", headers: headers
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "所属していない組織では 404 を返すこと" do
+      other_org = create(:organization)
+      headers = admin.create_new_auth_token
+      get "/api/v1/organizations/#{other_org.id}/alerts/summary", headers: headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "in_progress の critical は urgent に含まれないこと" do
+      ws = create(:work_session, organization: org)
+      create(:alert, work_session: ws, status: :open, severity: :critical, alert_type: :risk_high)
+      create(:alert, work_session: ws, status: :in_progress, severity: :critical, alert_type: :risk_high)
+
+      organization_alerts_summary
+      expect(response).to have_http_status(:ok)
+
+      json = response.parsed_body
+      expect(json["counts"]["urgent_open"]).to eq(1)  # open の critical のみ
+    end
+  end
 end
