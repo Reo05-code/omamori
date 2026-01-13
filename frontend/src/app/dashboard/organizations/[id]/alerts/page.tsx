@@ -2,10 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 import type { AlertResponse, AlertStatus } from '@/lib/api/types';
-import { fetchOrganizationAlerts, updateOrganizationAlertStatus } from '@/lib/api/alerts';
+
+import {
+  fetchOrganizationAlerts,
+  updateOrganizationAlertStatus,
+  type OrganizationAlertsQuery,
+} from '@/lib/api/alerts';
 import { getUserRole } from '@/lib/permissions';
 import { useAuthContext } from '@/context/AuthContext';
 
@@ -64,7 +69,39 @@ function resolveConfirmMessage(alert: AlertResponse): string {
 export default function OrganizationAlertsPage() {
   const params = useParams();
   const orgId = (params as { id?: string })?.id;
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuthContext();
+
+  const filtersKey = searchParams?.toString() ?? '';
+
+  // URLクエリ（status/urgent/limit）を解析して初期フィルタを生成
+  const filters = useMemo<OrganizationAlertsQuery | undefined>(() => {
+    const p = new URLSearchParams(filtersKey);
+
+    const statusRaw = p.get('status') ?? undefined;
+    const urgentRaw = p.get('urgent') ?? undefined;
+    const limitRaw = p.get('limit') ?? undefined;
+
+    const allowedStatuses: AlertStatus[] = ['open', 'in_progress', 'resolved'];
+
+    const status = statusRaw
+      ? statusRaw
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s): s is AlertStatus => allowedStatuses.includes(s as AlertStatus))
+      : undefined;
+
+    const urgent = urgentRaw === 'true' ? true : urgentRaw === 'false' ? false : undefined;
+
+    const limit = limitRaw ? Number.parseInt(limitRaw, 10) : undefined;
+
+    const query: OrganizationAlertsQuery = {};
+    if (status && status.length > 0) query.status = status;
+    if (typeof urgent === 'boolean') query.urgent = urgent;
+    if (typeof limit === 'number' && Number.isFinite(limit)) query.limit = limit;
+
+    return Object.keys(query).length > 0 ? query : undefined;
+  }, [filtersKey]);
 
   const role = useMemo(() => {
     if (!orgId) return undefined;
@@ -81,15 +118,19 @@ export default function OrganizationAlertsPage() {
 
   useEffect(() => {
     if (!orgId) return;
+    if (authLoading) return;
     if (!canView) return;
 
     const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    fetchOrganizationAlerts(orgId)
+    fetchOrganizationAlerts(orgId, filters, controller.signal)
       .then((data) => setAlerts(data))
       .catch((e) => {
+        // AbortErrorの場合はエラー表示しない（クリーンアップによる正常な中断）
+        if (e.name === 'AbortError') return;
+
         console.error('failed to fetch organization alerts', e);
         setError('読み込みに失敗しました。時間をおいて再度お試しください。');
         setAlerts(null);
@@ -97,7 +138,7 @@ export default function OrganizationAlertsPage() {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [orgId, canView]);
+  }, [orgId, canView, authLoading, filters]);
 
   // アラート解決ボタンのハンドラ。確認ダイアログを表示後、APIで status を 'resolved' に更新する。
   const onResolve = async (alert: AlertResponse) => {
@@ -153,6 +194,36 @@ export default function OrganizationAlertsPage() {
         </Link> */}
       </div>
 
+      {filters && (
+        // URLクエリから適用されたフィルタを表示するバナー
+        // クリアボタンでフィルタなしの状態にリセット
+        <div className="mt-3 rounded border border-warm-gray-200 dark:border-warm-gray-700 bg-warm-gray-50 dark:bg-warm-gray-900/30 px-4 py-3 text-sm text-warm-gray-700 dark:text-warm-gray-200">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              フィルタ適用中
+              {filters.status && (
+                <span className="ml-2">
+                  status:{' '}
+                  {Array.isArray(filters.status) ? filters.status.join(',') : filters.status}
+                </span>
+              )}
+              {typeof filters.urgent === 'boolean' && (
+                <span className="ml-2">urgent: {String(filters.urgent)}</span>
+              )}
+              {typeof filters.limit === 'number' && (
+                <span className="ml-2">limit: {filters.limit}</span>
+              )}
+            </div>
+            <Link
+              href={`/dashboard/organizations/${orgId}/alerts`}
+              className="text-sm text-warm-orange hover:underline"
+            >
+              クリア
+            </Link>
+          </div>
+        </div>
+      )}
+
       {loading && <p className="mt-4">読み込み中です...</p>}
 
       {!loading && error && (
@@ -165,7 +236,7 @@ export default function OrganizationAlertsPage() {
               setAlerts(null);
               setError(null);
               setLoading(true);
-              fetchOrganizationAlerts(orgId)
+              fetchOrganizationAlerts(orgId, filters)
                 .then((data) => setAlerts(data))
                 .catch((e) => {
                   console.error('failed to fetch organization alerts', e);
