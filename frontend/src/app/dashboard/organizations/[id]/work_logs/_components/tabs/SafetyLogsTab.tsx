@@ -1,4 +1,5 @@
 import type { Membership, SafetyLogResponse } from '@/lib/api/types';
+import Skeleton from '@/components/ui/Skeleton';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -81,7 +82,9 @@ export function SafetyLogsTab({
       )}
 
       {selectedUserId !== null && activeWorkSessionId && loading && (
-        <p className="mt-4">読み込み中です...</p>
+        <div className="mt-4">
+          <Skeleton variant="table" rows={5} />
+        </div>
       )}
 
       {selectedUserId !== null && activeWorkSessionId && error && (

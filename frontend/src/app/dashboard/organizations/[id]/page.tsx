@@ -7,6 +7,7 @@ import { fetchMemberships } from '@/lib/api/memberships';
 import { fetchOrganizationAlertsSummary } from '@/lib/api/alerts';
 import type { Membership, AlertSummaryResponse } from '@/lib/api/types';
 import DashboardCard from '@/components/dashboard/DashboardCard';
+import Skeleton from '@/components/ui/Skeleton';
 import { useAuthContext } from '@/context/AuthContext';
 
 export default function OrganizationDashboard() {
@@ -74,45 +75,54 @@ function AdminView({ organizationId }: { organizationId: string }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* 稼働中メンバー */}
-        <DashboardCard
-          title="稼働中メンバー"
-          value={activeCount}
-          icon="group"
-          statusText={activeCount > 0 ? '稼働中' : '待機中'}
-          statusColor="text-green-600"
-          statusIcon="check_circle"
-          href={`/dashboard/organizations/${organizationId}/members`}
-          loading={loading}
-        />
+        {loading ? (
+          <Skeleton variant="card" />
+        ) : (
+          <DashboardCard
+            title="稼働中メンバー"
+            value={activeCount}
+            icon="group"
+            statusText={activeCount > 0 ? '稼働中' : '待機中'}
+            statusColor="text-green-600"
+            statusIcon="check_circle"
+            href={`/dashboard/organizations/${organizationId}/members`}
+          />
+        )}
 
         {/* 未対応アラート */}
-        <DashboardCard
-          title="未対応アラート"
-          value={alertSummary?.counts.unresolved ?? 0}
-          icon="notifications"
-          statusText={alertSummary ? `${alertSummary.counts.open}件 未対応` : undefined}
-          statusColor="text-gray-600 dark:text-gray-400"
-          href={`/dashboard/organizations/${organizationId}/alerts?status=open,in_progress`}
-          loading={alertsLoading}
-        />
+        {alertsLoading ? (
+          <Skeleton variant="card" />
+        ) : (
+          <DashboardCard
+            title="未対応アラート"
+            value={alertSummary?.counts.unresolved ?? 0}
+            icon="notifications"
+            statusText={alertSummary ? `${alertSummary.counts.open}件 未対応` : undefined}
+            statusColor="text-gray-600 dark:text-gray-400"
+            href={`/dashboard/organizations/${organizationId}/alerts?status=open,in_progress`}
+          />
+        )}
 
         {/* 緊急対応 */}
-        <DashboardCard
-          title="緊急対応"
-          value={alertSummary?.counts.urgent_open ?? 0}
-          valueColor="text-red-600 dark:text-red-400"
-          icon="warning"
-          iconColor="text-red-500"
-          statusText={
-            alertSummary
-              ? `SOS: ${alertSummary.breakdown.urgent.sos_open}件 / Critical: ${alertSummary.breakdown.urgent.critical_open_non_sos}件`
-              : undefined
-          }
-          statusColor="text-red-700 dark:text-red-300"
-          variant="alert"
-          href={`/dashboard/organizations/${organizationId}/alerts?status=open&urgent=true`}
-          loading={alertsLoading}
-        />
+        {alertsLoading ? (
+          <Skeleton variant="card" />
+        ) : (
+          <DashboardCard
+            title="緊急対応"
+            value={alertSummary?.counts.urgent_open ?? 0}
+            valueColor="text-red-600 dark:text-red-400"
+            icon="warning"
+            iconColor="text-red-500"
+            statusText={
+              alertSummary
+                ? `SOS: ${alertSummary.breakdown.urgent.sos_open}件 / Critical: ${alertSummary.breakdown.urgent.critical_open_non_sos}件`
+                : undefined
+            }
+            statusColor="text-red-700 dark:text-red-300"
+            variant="alert"
+            href={`/dashboard/organizations/${organizationId}/alerts?status=open&urgent=true`}
+          />
+        )}
       </div>
     </div>
   );

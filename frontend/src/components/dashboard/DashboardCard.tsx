@@ -17,7 +17,6 @@ interface DashboardCardProps {
   statusIcon?: IconName;
   href?: string;
   variant?: DashboardCardVariant;
-  loading?: boolean;
 }
 
 export default function DashboardCard({
@@ -31,7 +30,6 @@ export default function DashboardCard({
   statusIcon,
   href,
   variant = 'default',
-  loading = false,
 }: DashboardCardProps) {
   const cardContent = (
     <>
@@ -52,7 +50,7 @@ export default function DashboardCard({
         {icon && <AppIcon name={icon as any} className={`${iconColor} text-2xl`} />}
       </div>
       <div className={`flex items-baseline ${variant === 'alert' ? 'pl-4' : ''}`}>
-        <span className={`text-4xl font-bold ${valueColor}`}>{loading ? '…' : value}</span>
+        <span className={`text-4xl font-bold ${valueColor}`}>{value}</span>
       </div>
       {statusText && (
         <div
@@ -65,7 +63,7 @@ export default function DashboardCard({
     </>
   );
 
-  const cardClasses = `relative bg-white overflow-hidden ${variant === 'alert' ? 'shadow-lg' : 'shadow-sm'} rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6 ${href ? 'hover:shadow-md transition-shadow' : ''}`;
+  const cardClasses = `relative bg-white overflow-hidden shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6 ${href ? 'hover:shadow-md transition-shadow' : ''}`;
 
   if (href) {
     return (

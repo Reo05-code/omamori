@@ -13,6 +13,8 @@ import {
 } from '@/lib/api/alerts';
 import { getUserRole } from '@/lib/permissions';
 import { useAuthContext } from '@/context/AuthContext';
+import Skeleton from '@/components/ui/Skeleton';
+import { AlertFilters } from './_components/AlertFilters';
 
 // ISO形式の日時文字列を「YYYY-MM-DD HH:mm:ss」の日本語表記に変換する。
 function formatDateTime(raw: string | null | undefined): string {
@@ -194,37 +196,14 @@ export default function OrganizationAlertsPage() {
         </Link> */}
       </div>
 
-      {filters && (
-        // URLクエリから適用されたフィルタを表示するバナー
-        // クリアボタンでフィルタなしの状態にリセット
-        <div className="mt-3 rounded border border-warm-gray-200 dark:border-warm-gray-700 bg-warm-gray-50 dark:bg-warm-gray-900/30 px-4 py-3 text-sm text-warm-gray-700 dark:text-warm-gray-200">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              フィルタ適用中
-              {filters.status && (
-                <span className="ml-2">
-                  status:{' '}
-                  {Array.isArray(filters.status) ? filters.status.join(',') : filters.status}
-                </span>
-              )}
-              {typeof filters.urgent === 'boolean' && (
-                <span className="ml-2">urgent: {String(filters.urgent)}</span>
-              )}
-              {typeof filters.limit === 'number' && (
-                <span className="ml-2">limit: {filters.limit}</span>
-              )}
-            </div>
-            <Link
-              href={`/dashboard/organizations/${orgId}/alerts`}
-              className="text-sm text-warm-orange hover:underline"
-            >
-              クリア
-            </Link>
-          </div>
+      {/* フィルタUI */}
+      <AlertFilters />
+
+      {loading && (
+        <div className="mt-4">
+          <Skeleton variant="table" rows={5} />
         </div>
       )}
-
-      {loading && <p className="mt-4">読み込み中です...</p>}
 
       {!loading && error && (
         <div className="mt-4">

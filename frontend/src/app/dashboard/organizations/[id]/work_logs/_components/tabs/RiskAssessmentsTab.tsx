@@ -1,5 +1,6 @@
 import type { Membership } from '@/lib/api/types';
 import type { RiskAssessmentResponse } from '@/lib/api/types';
+import Skeleton from '@/components/ui/Skeleton';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -111,7 +112,9 @@ export function RiskAssessmentsTab({
       )}
 
       {selectedUserId !== null && activeWorkSessionId && loading && (
-        <p className="mt-4">読み込み中です...</p>
+        <div className="mt-4">
+          <Skeleton variant="table" rows={5} />
+        </div>
       )}
 
       {selectedUserId !== null && activeWorkSessionId && error && (
