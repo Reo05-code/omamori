@@ -22,7 +22,7 @@ module Api
 
           alerts = alerts.order_by_priority.limit(parsed_limit)
 
-          render json: alerts, each_serializer: Api::V1::OrganizationAlertSerializer, status: :ok
+          render json: alerts.map { |alert| Api::V1::OrganizationAlertSerializer.new(alert).as_json }, status: :ok
         end
 
         # PATCH /api/v1/organizations/:organization_id/alerts/:id

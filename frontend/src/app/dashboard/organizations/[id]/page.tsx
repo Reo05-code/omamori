@@ -9,6 +9,7 @@ import type { Membership, AlertSummaryResponse } from '@/lib/api/types';
 import DashboardCard from '@/components/dashboard/DashboardCard';
 import Skeleton from '@/components/ui/Skeleton';
 import { useAuthContext } from '@/context/AuthContext';
+import { RecentAlertsWidget } from './_components/RecentAlertsWidget';
 
 export default function OrganizationDashboard() {
   const params = useParams();
@@ -123,6 +124,24 @@ function AdminView({ organizationId }: { organizationId: string }) {
             href={`/dashboard/organizations/${organizationId}/alerts?status=open&urgent=true`}
           />
         )}
+      </div>
+
+      {/* 下段：地図とアラート */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 左側：リアルタイムマップ（将来実装） */}
+        <div className="lg:col-span-2">
+          <div className="rounded-xl bg-white dark:bg-warm-gray-800 shadow-sm p-6 h-96 flex items-center justify-center">
+            <div className="text-center text-warm-gray-500 dark:text-warm-gray-400">
+              <span className="material-icons text-5xl mb-2">map</span>
+              <p className="text-sm">リアルタイムマップ（準備中）</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 右側：最近のアラート（5件）ウィジェット */}
+        <div>
+          <RecentAlertsWidget organizationId={organizationId} />
+        </div>
       </div>
     </div>
   );

@@ -15,13 +15,13 @@ export default function AlertItem({
   const base = 'flex rounded-lg overflow-hidden border';
   const classes =
     variant === 'important'
-      ? `${base} bg-danger/10 border border-danger/30`
+      ? `${base} bg-white-50 dark:bg-slate-800/50 border border-gray-100 dark:border-white-700`
       : variant === 'muted'
         ? `${base} bg-gray-50 dark:bg-slate-800/50 opacity-60 border border-gray-100 dark:border-gray-700`
         : `${base} bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-gray-700`;
 
   const bar =
-    variant === 'important' ? 'bg-danger' : variant === 'muted' ? 'bg-green-500' : 'bg-gray-400';
+    variant === 'important' ? 'bg-red-500' : variant === 'muted' ? 'bg-green-500' : 'bg-gray-400';
 
   const initials = name
     .split(/\s+/)
@@ -45,7 +45,7 @@ export default function AlertItem({
           <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{time}</span>
         </div>
         <p
-          className={`text-sm ${variant === 'important' ? 'text-danger dark:text-red-200 font-medium' : 'text-gray-600 dark:text-gray-300'}`}
+          className={`text-sm ${variant === 'important' ? 'text-red-700 dark:text-red-200 font-medium' : 'text-gray-600 dark:text-gray-300'}`}
         >
           {text}
         </p>
