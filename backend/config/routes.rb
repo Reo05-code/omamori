@@ -28,6 +28,12 @@ Rails.application.routes.draw do
             get :summary
           end
         end
+        # 管理者用: アクティブな作業セッションの最新位置情報
+        resources :active_work_sessions, only: [], controller: "organizations/active_work_sessions" do
+          collection do
+            get :latest_locations
+          end
+        end
       end
 
       # 未ログインユーザが招待を受け入れるためのエンドポイント
