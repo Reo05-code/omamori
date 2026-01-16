@@ -15,6 +15,7 @@ import { getUserRole } from '@/lib/permissions';
 import { useAuthContext } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
 import { AlertFilters } from './_components/AlertFilters';
+import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
 
 // ISO形式の日時文字列を「YYYY-MM-DD HH:mm:ss」の日本語表記に変換する。
 function formatDateTime(raw: string | null | undefined): string {
@@ -29,18 +30,6 @@ function formatDateTime(raw: string | null | undefined): string {
     minute: '2-digit',
     second: '2-digit',
   }).format(parsed);
-}
-
-// アラートステータスを日本語ラベルに変換する。
-function statusLabel(status: AlertStatus): string {
-  switch (status) {
-    case 'open':
-      return '未対応';
-    case 'in_progress':
-      return '対応中';
-    case 'resolved':
-      return '解決済み';
-  }
 }
 
 // ステータスに応じたバッジのTailwind CSSクラス（背景色・文字色）を返す。
@@ -61,7 +50,7 @@ function resolveConfirmMessage(alert: AlertResponse): string {
   const summary = workerName
     ? `作業者: ${workerName}`
     : `work_session_id: ${alert.work_session_id}`;
-  return `このアラートを「解決済み」にします。よろしいですか？\n\n${summary}\n種別: ${alert.alert_type}\nseverity: ${alert.severity}`;
+  return `このアラートを「解決済み」にします。よろしいですか？\n\n${summary}\n種別: ${ALERT_TYPE_LABELS[alert.alert_type]}\n重要度: ${ALERT_SEVERITY_LABELS[alert.severity]}`;
 }
 
 /**
@@ -241,13 +230,13 @@ export default function OrganizationAlertsPage() {
             <thead className="bg-warm-gray-50 dark:bg-warm-gray-900/30">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                  status
+                  対応状況
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                  severity
+                  重要度
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                  type
+                  種別
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
                   発生時刻
@@ -256,7 +245,7 @@ export default function OrganizationAlertsPage() {
                   作業者
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                  session
+                  作業セッション
                 </th>
                 <th className="px-4 py-3" />
               </tr>
@@ -270,14 +259,14 @@ export default function OrganizationAlertsPage() {
                         a.status,
                       )}`}
                     >
-                      {statusLabel(a.status)}
+                      {ALERT_STATUS_LABELS[a.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                    {a.severity}
+                    {ALERT_SEVERITY_LABELS[a.severity]}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                    {a.alert_type}
+                    {ALERT_TYPE_LABELS[a.alert_type]}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                     {formatDateTime(a.created_at ?? null)}
@@ -296,7 +285,7 @@ export default function OrganizationAlertsPage() {
                         onClick={() => onResolve(a)}
                         className="inline-flex items-center px-3 py-2 text-sm font-medium rounded bg-warm-orange text-white hover:bg-warm-orange/90 disabled:opacity-50"
                       >
-                        解決
+                        対応済にする
                       </button>
                     ) : (
                       <span className="inline-flex items-center px-3 py-2 text-sm font-medium rounded bg-white text-white hover:bg-white/90 disabled:opacity-50">
