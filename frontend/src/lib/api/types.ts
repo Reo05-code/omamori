@@ -226,6 +226,16 @@ export interface SafetyLogResponse {
   logged_at: string;
 }
 
+// 組織ダッシュボード用: アクティブな作業セッションの最新位置
+export interface LatestLocationPin {
+  work_session_id: number;
+  user_id: number;
+  user_name: string;
+  latitude: number;
+  longitude: number;
+  logged_at: string;
+}
+
 // SafetyLog 作成 API の成功レスポンス（RiskAssessment を含む）
 export interface CreateSafetyLogResponse {
   status: 'success';

@@ -24,6 +24,8 @@ export const API_PATHS = {
     ALERTS_SUMMARY: (id: string | number) => `/api/v1/organizations/${id}/alerts/summary`,
     ALERT: (organizationId: string | number, alertId: string | number) =>
       `/api/v1/organizations/${organizationId}/alerts/${alertId}`,
+    ACTIVE_WORK_SESSIONS_LATEST_LOCATIONS: (id: string | number) =>
+      `/api/v1/organizations/${id}/active_work_sessions/latest_locations`,
   },
   // 招待受諾
   INVITATIONS: {
