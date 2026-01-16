@@ -3,9 +3,10 @@
 import { useEffect, useState, ComponentProps } from 'react';
 import Link from 'next/link';
 import { fetchOrganizationAlerts } from '@/lib/api/alerts';
-import type { AlertResponse, AlertType, AlertSeverity } from '@/lib/api/types';
+import type { AlertResponse } from '@/lib/api/types';
 import AlertItem from '@/components/common/AlertItem';
 import Skeleton from '@/components/ui/Skeleton';
+import { ALERT_TYPE_LABELS, ALERT_SEVERITY_LABELS } from '@/constants/labels';
 
 // AlertItemからProps型を抽出（保守性の確保）
 type AlertItemProps = ComponentProps<typeof AlertItem>;
@@ -13,23 +14,6 @@ type AlertItemProps = ComponentProps<typeof AlertItem>;
 interface RecentAlertsWidgetProps {
   organizationId: string;
 }
-
-// アラートタイプの日本語ラベル
-const ALERT_TYPE_LABELS: Record<AlertType, string> = {
-  sos: 'SOS',
-  risk_high: '高リスク',
-  risk_medium: '中リスク',
-  battery_low: 'バッテリー低下',
-  timeout: 'タイムアウト',
-};
-
-// 重要度ラベル
-const SEVERITY_LABELS: Record<AlertSeverity, string> = {
-  critical: '緊急',
-  high: '高',
-  medium: '中',
-  low: '低',
-};
 
 // Severity / Alert Type → Component Variant 変換ロジック
 function getAlertVariant(alert: AlertResponse): AlertItemProps['variant'] {
@@ -72,7 +56,7 @@ function formatAlertTime(raw: string | null | undefined): string {
 // AlertItemのname propと重複しないように
 function getAlertDescription(alert: AlertResponse): string {
   const typeLabel = ALERT_TYPE_LABELS[alert.alert_type];
-  const severityLabel = SEVERITY_LABELS[alert.severity];
+  const severityLabel = ALERT_SEVERITY_LABELS[alert.severity];
   return `${typeLabel} (${severityLabel})`;
 }
 
