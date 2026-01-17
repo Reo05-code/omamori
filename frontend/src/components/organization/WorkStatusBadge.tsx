@@ -1,21 +1,17 @@
 import React from 'react';
-import type { ActiveWorkSessionSummary } from '@/lib/api/types';
-import { getMemberWorkStatusLabel } from '@/lib/memberWorkStatus';
 
 type Props = {
-  session?: ActiveWorkSessionSummary | null;
+  label: string;
+  variant: 'active' | 'inactive';
 };
 
-export function WorkStatusBadge({ session }: Props): JSX.Element {
-  const isActive = !!session?.active;
+/**
+ * 作業ステータスを表示するバッジコンポーネント
+ * ラベルと色のバリエーションは親コンポーネントで決定される
+ */
+export function WorkStatusBadge({ label, variant }: Props): JSX.Element {
+  const colorClass =
+    variant === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600';
 
-  return (
-    <span
-      className={`${
-        isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-      } px-2 py-1 rounded-full text-xs`}
-    >
-      {getMemberWorkStatusLabel(session)}
-    </span>
-  );
+  return <span className={`${colorClass} px-2 py-1 rounded-full text-xs`}>{label}</span>;
 }
