@@ -1,6 +1,7 @@
 import type { Membership } from '@/lib/api/types';
 import type { RiskAssessmentResponse } from '@/lib/api/types';
 import Skeleton from '@/components/ui/Skeleton';
+import { RISK_ASSESSMENT_LEVEL_LABELS } from '@/constants/labels';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -153,16 +154,16 @@ export function RiskAssessmentsTab({
                 <thead className="bg-warm-gray-50 dark:bg-warm-gray-900/30">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                      logged_at
+                      評価日時
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                      level
+                      リスクレベル
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                      score
+                      スコア
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                      details
+                      詳細
                     </th>
                   </tr>
                 </thead>
@@ -173,7 +174,7 @@ export function RiskAssessmentsTab({
                         {formatLoggedAt(ra.logged_at)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                        {ra.level}
+                        {RISK_ASSESSMENT_LEVEL_LABELS[ra.level]}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                         {ra.score}
