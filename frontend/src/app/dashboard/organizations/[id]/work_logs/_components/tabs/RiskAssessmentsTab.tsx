@@ -1,7 +1,7 @@
 import type { Membership } from '@/lib/api/types';
 import type { RiskAssessmentResponse } from '@/lib/api/types';
 import Skeleton from '@/components/ui/Skeleton';
-import { RISK_ASSESSMENT_LEVEL_LABELS } from '@/constants/labels';
+import { RISK_ASSESSMENT_LEVEL_LABELS, RISK_REASON_LABELS } from '@/constants/labels';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -24,16 +24,16 @@ function formatLoggedAt(raw: string | null | undefined): string {
 }
 
 /**
- * リスク判定の詳細（details）オブジェクトをJSON文字列に整形。
- * 不正なJSONや undefined の場合は「—」を返す。
+ * リスク判定の詳細（details）をユーザー向けに整形して表示。
+ * reasons配列を日本語ラベルに変換し、カンマ区切りで表示。
  */
 function formatDetails(details: Record<string, unknown> | undefined): string {
   if (!details) return '—';
-  try {
-    return JSON.stringify(details, null, 2);
-  } catch {
-    return String(details);
-  }
+
+  const reasons = Array.isArray(details.reasons) ? details.reasons : [];
+  if (reasons.length === 0) return '該当なし';
+
+  return reasons.map((code: string) => RISK_REASON_LABELS[code] || code).join(', ');
 }
 
 /**
@@ -180,9 +180,7 @@ export function RiskAssessmentsTab({
                         {ra.score}
                       </td>
                       <td className="px-4 py-3 text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                        <pre className="text-xs whitespace-pre-wrap break-all">
-                          {formatDetails(ra.details)}
-                        </pre>
+                        {formatDetails(ra.details)}
                       </td>
                     </tr>
                   ))}

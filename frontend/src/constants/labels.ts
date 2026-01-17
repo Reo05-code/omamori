@@ -64,6 +64,24 @@ export const ROLE_LABELS = {
   worker: '作業者',
 } as const satisfies Record<'admin' | 'worker', string>;
 
+/**
+ * リスク理由コードのラベルマップ
+ */
+export const RISK_REASON_LABELS: Record<string, string> = {
+  high_temperature: '高温環境',
+  moderate_heat: '中程度の暑さ',
+  low_temperature: '低温環境',
+  low_battery: 'バッテリー低下',
+  battery_caution: 'バッテリー注意',
+  long_inactive: '長時間の不活動',
+  short_inactive: '短時間の不活動',
+  outside_home: 'ホームエリア外',
+  rapid_acceleration: '急激な加速',
+  sos_trigger: 'SOS発信',
+  offline_too_long: '通信途絶',
+  poor_gps_accuracy: 'GPS精度不良',
+} as const;
+
 export type AlertSeverityLabel = (typeof ALERT_SEVERITY_LABELS)[keyof typeof ALERT_SEVERITY_LABELS];
 export type AlertTypeLabel = (typeof ALERT_TYPE_LABELS)[keyof typeof ALERT_TYPE_LABELS];
 export type AlertStatusLabel = (typeof ALERT_STATUS_LABELS)[keyof typeof ALERT_STATUS_LABELS];
