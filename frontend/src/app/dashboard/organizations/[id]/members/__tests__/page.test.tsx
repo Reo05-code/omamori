@@ -51,8 +51,8 @@ describe('MembersPage', () => {
       expect(screen.queryByText('読み込み中です...')).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText('稼働中')).toBeInTheDocument();
-    expect(screen.getByText('停止')).toBeInTheDocument();
+    expect(screen.getByText('見守り中')).toBeInTheDocument();
+    expect(screen.getByText('待機中')).toBeInTheDocument();
   });
 
   it('API失敗時はエラーが表示される', async () => {

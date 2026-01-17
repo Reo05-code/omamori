@@ -65,6 +65,14 @@ export const ROLE_LABELS = {
 } as const satisfies Record<'admin' | 'worker', string>;
 
 /**
+ * 作業ステータスのラベルマップ
+ */
+export const WORK_STATUS_LABELS = {
+  active: '見守り中',
+  inactive: '待機中',
+} as const;
+
+/**
  * リスク理由コードのラベルマップ
  */
 export const RISK_REASON_LABELS: Record<string, string> = {

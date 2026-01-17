@@ -10,6 +10,7 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { finishSession, startRemoteSession } from '@/lib/api/work_sessions';
 import { MemberActionToggle } from '@/components/organization/MemberActionToggle';
 import { WorkStatusBadge } from '@/components/organization/WorkStatusBadge';
+import { ROLE_LABELS, WORK_STATUS_LABELS } from '@/constants/labels';
 
 type PendingAction =
   | {
@@ -190,9 +191,20 @@ export default function MembersPage(): JSX.Element {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {m.email ?? '—'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{m.role}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      <WorkStatusBadge session={m.active_work_session} />
+                      {m.role && m.role in ROLE_LABELS
+                        ? ROLE_LABELS[m.role as keyof typeof ROLE_LABELS]
+                        : m.role}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <WorkStatusBadge
+                        label={
+                          m.active_work_session?.active
+                            ? WORK_STATUS_LABELS.active
+                            : WORK_STATUS_LABELS.inactive
+                        }
+                        variant={m.active_work_session?.active ? 'active' : 'inactive'}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex flex-col gap-2">
