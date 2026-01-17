@@ -97,7 +97,7 @@ test.describe('Admin リモート開始/終了トグル', () => {
     await page.goto(`/dashboard/organizations/${ORG_ID}/members`);
 
     // 初期状態確認
-    await expect(page.getByText('停止')).toBeVisible();
+    await expect(page.getByText('待機中')).toBeVisible();
 
     const toggle = page.getByTestId(`remote-toggle-${1}`);
 
@@ -132,8 +132,8 @@ test.describe('Admin リモート開始/終了トグル', () => {
     await expect(toggle).toBeEnabled();
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
-    // 状態更新確認（稼働中表示）
-    await expect(page.getByText('稼働中')).toBeVisible();
+    // 状態更新確認（見守り中表示）
+    await expect(page.getByText('見守り中')).toBeVisible();
 
     // 終了操作: トグルクリック→ConfirmModal表示待ち
     await toggle.click();
@@ -164,8 +164,8 @@ test.describe('Admin リモート開始/終了トグル', () => {
     await expect(toggle).toBeEnabled();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
-    // 終了確認（停止表示）
-    await expect(page.getByText('停止')).toBeVisible();
+    // 終了確認（待機中表示）
+    await expect(page.getByText('待機中')).toBeVisible();
   });
 
   test('開始APIが失敗した場合はエラーが出る', async ({ page }) => {
@@ -182,7 +182,7 @@ test.describe('Admin リモート開始/終了トグル', () => {
     });
 
     await page.goto(`/dashboard/organizations/${ORG_ID}/members`);
-    await expect(page.getByText('停止')).toBeVisible();
+    await expect(page.getByText('待機中')).toBeVisible();
 
     const toggle = page.getByTestId(`remote-toggle-${1}`);
 
@@ -219,7 +219,7 @@ test.describe('Admin リモート開始/終了トグル', () => {
     await expect(toggle).toBeEnabled();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
-    // 停止状態を維持
-    await expect(page.getByText('停止')).toBeVisible();
+    // 待機中状態を維持
+    await expect(page.getByText('待機中')).toBeVisible();
   });
 });
