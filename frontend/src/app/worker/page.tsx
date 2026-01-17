@@ -8,6 +8,7 @@ import ConfirmModal from '../../components/ui/ConfirmModal';
 import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
 import { useWorkerSession } from '../../hooks/useWorkerSession';
+import { usePageVisibility } from '../../hooks/usePageVisibility';
 import { getCurrentPositionBestEffort, getDeviceInfoWithLocation } from '../../lib/geolocation';
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
@@ -33,6 +34,8 @@ export default function WorkerHomePage() {
     checkIn,
     refreshCurrent,
   } = useWorkerSession();
+
+  const isVisible = usePageVisibility();
 
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
@@ -92,6 +95,22 @@ export default function WorkerHomePage() {
       setNotification({ message: sessionError, type: 'error' });
     }
   }, [sessionError]);
+
+  // StartView 滞在中のみポーリングでセッションを検知（可視時のみ）
+  useEffect(() => {
+    // ガード節: 不要な条件をすべて列挙
+    if (!isVisible || session || loadingSession) return;
+
+    // 条件を満たす場合のみタイマーセット
+    const intervalId = window.setInterval(() => {
+      refreshCurrent();
+    }, 15000);
+
+    // クリーンアップ: 条件が変わった瞬間にReactが実行
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isVisible, session, loadingSession, refreshCurrent]);
 
   // 見守り開始
   const handleStart = useCallback(async () => {

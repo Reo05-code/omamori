@@ -198,10 +198,6 @@ export function useWorkerSession() {
     refreshCurrent(); // まず最新データを取得しにいく
 
     // イベントハンドラの定義
-    const onFocus = () => {
-      refreshCurrent(); // ウィンドウにフォーカスが当たったら再取得
-    };
-
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         refreshCurrent(); // ブラウザタブが表示されたら再取得
@@ -209,7 +205,6 @@ export function useWorkerSession() {
     };
 
     // イベントリスナーの登録
-    window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     // クリーンアップ関数（アンマウント時に実行される）
@@ -218,7 +213,6 @@ export function useWorkerSession() {
       refreshAbortRef.current?.abort(); // 通信中なら強制キャンセル
 
       // リスナー削除（これを忘れるとイベントが残り続け、メモリを食い潰す）
-      window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [refreshCurrent]);
