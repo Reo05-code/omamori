@@ -68,7 +68,7 @@ describe('WorkLogsPage', () => {
       expect(fetchSafetyLogs).toHaveBeenCalledWith(25);
     });
 
-    expect(screen.getByText('heartbeat')).toBeInTheDocument();
+    expect(screen.getByText('定期通信')).toBeInTheDocument();
     expect(screen.getByText('35, 139')).toBeInTheDocument();
     expect(screen.getByText('80')).toBeInTheDocument();
   });
@@ -109,9 +109,9 @@ describe('WorkLogsPage', () => {
       expect(fetchRiskAssessmentsWithMeta).toHaveBeenCalledWith(25, { page: 1, perPage: 100 });
     });
 
-    expect(screen.getByText('safe')).toBeInTheDocument();
+    expect(screen.getByText('安全')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText(/reasons/)).toBeInTheDocument();
+    expect(screen.getByText('ok')).toBeInTheDocument();
   });
 
   it('リスク判定タブで404のとき「見つかりません」を表示する', async () => {

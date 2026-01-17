@@ -1,5 +1,6 @@
 import type { Membership, SafetyLogResponse } from '@/lib/api/types';
 import Skeleton from '@/components/ui/Skeleton';
+import { TRIGGER_TYPE_LABELS } from '@/constants/labels';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -121,16 +122,16 @@ export function SafetyLogsTab({
               <thead className="bg-warm-gray-50 dark:bg-warm-gray-900/30">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                    logged_at
+                    記録日時
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                    latitude/longitude
+                    位置情報
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                    battery_level
+                    電池残量
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                    trigger_type
+                    記録理由
                   </th>
                 </tr>
               </thead>
@@ -149,7 +150,9 @@ export function SafetyLogsTab({
                       {log.battery_level ?? '—'}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                      {log.trigger_type ?? '—'}
+                      {log.trigger_type
+                        ? (TRIGGER_TYPE_LABELS[log.trigger_type] ?? log.trigger_type)
+                        : '—'}
                     </td>
                   </tr>
                 ))}

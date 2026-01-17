@@ -1,4 +1,5 @@
 import type { Membership } from '@/lib/api/types';
+import { ROLE_LABELS } from '@/constants/labels';
 
 import { TargetUserSelect } from '../TargetUserSelect';
 
@@ -44,12 +45,28 @@ export function BasicInfoTab({
 
       {selectedUserId !== null && selectedMembership && (
         <div className="space-y-2 text-warm-gray-600 dark:text-warm-gray-400">
-          {/* 基本情報は現状プレースホルダ（最低限の確認用表示）。 */}
-          <p>組織ID: {orgId || '不明'}</p>
-          <p>user_id: {selectedMembership.user_id}</p>
-          <p>email: {selectedMembership.email ?? '—'}</p>
-          <p>role: {selectedMembership.role ?? '—'}</p>
-          <p>稼働中セッション: {activeWorkSessionId ? `id=${activeWorkSessionId}` : 'なし'}</p>
+          {/* デバッグ用の内部IDは非表示（必要時にコメント解除）
+          <p className="text-xs text-gray-400">組織ID: {orgId || '不明'}</p>
+          <p className="text-xs text-gray-400">user_id: {selectedMembership.user_id}</p>
+          */}
+          <p>メールアドレス: {selectedMembership.email ?? '—'}</p>
+          <p>
+            権限:{' '}
+            {selectedMembership.role && selectedMembership.role in ROLE_LABELS
+              ? ROLE_LABELS[selectedMembership.role as keyof typeof ROLE_LABELS]
+              : '—'}
+          </p>
+          <p>
+            ステータス:{' '}
+            {activeWorkSessionId ? (
+              <>
+                <span className="font-medium text-green-600 dark:text-green-400">見守り中</span>
+                {/* <span className="text-sm ml-1">(セッションID: {activeWorkSessionId})</span> */}
+              </>
+            ) : (
+              <span className="text-gray-500">待機中</span>
+            )}
+          </p>
         </div>
       )}
     </div>
