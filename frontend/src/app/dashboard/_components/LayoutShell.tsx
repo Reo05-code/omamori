@@ -55,13 +55,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
               aria-hidden="true"
             />
             <div
-              className="fixed inset-y-0 left-0 w-64 h-full z-[60] md:hidden !bg-white dark:!bg-gray-900 border-r border-border-light dark:border-border-dark shadow-xl isolate opacity-100"
+              className="fixed inset-y-0 left-0 w-64 h-full z-[60] md:hidden bg-warm-bg dark:bg-[#0f172a] border-r border-border-light dark:border-border-dark shadow-xl isolate"
               role="dialog"
               aria-modal="true"
               aria-label="モバイルナビゲーションメニュー"
               id="mobile-dashboard-menu"
             >
-              <div className="relative h-full !bg-white dark:!bg-gray-900">
+              <div className="relative h-full bg-warm-bg dark:bg-[#0f172a]">
                 <button
                   type="button"
                   className="absolute right-4 top-4 z-50 p-2.5 rounded-md bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"

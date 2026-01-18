@@ -74,7 +74,9 @@ export default function Sidebar({
     return () => ctrl.abort();
   }, []);
 
-  const baseBackgroundClassName = isMobile ? '!bg-white dark:!bg-gray-900 opacity-100' : 'bg-surface-light dark:bg-surface-dark';
+  const baseBackgroundClassName = isMobile
+    ? 'bg-warm-bg dark:bg-[#0f172a]'
+    : 'bg-surface-light dark:bg-surface-dark';
   const zIndexClassName = isMobile ? 'z-[100]' : 'z-20';
   const baseClassName = `${sidebarCollapsed ? 'w-20' : 'w-64'} ${baseBackgroundClassName} border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm`;
   const visibilityClassName = isMobile ? 'flex' : 'hidden md:flex';
@@ -157,27 +159,29 @@ export default function Sidebar({
           )}
 
           {/* collapse toggle inserted inline so it appears under Alerts */}
-          <div
-            className={`flex ${sidebarCollapsed ? 'justify-center' : ''} ${sidebarCollapsed ? 'px-2 py-2' : 'px-4 py-2'}`}
-          >
-            <button
-              onClick={() => setSidebarCollapsed((s) => !s)}
-              aria-label="toggle sidebar"
-              aria-expanded={!sidebarCollapsed}
-              title={sidebarCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたむ'}
-              className={
-                sidebarCollapsed
-                  ? 'w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm border border-border-light text-gray-700 hover:bg-gray-50 transition'
-                  : 'w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white border border-border-light text-sm font-medium text-gray-600 hover:bg-gray-100 transition'
-              }
+          {!isMobile && (
+            <div
+              className={`flex ${sidebarCollapsed ? 'justify-center' : ''} ${sidebarCollapsed ? 'px-2 py-2' : 'px-4 py-2'}`}
             >
-              <AppIcon
-                name={sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
-                className="text-xl"
-              />
-              {!sidebarCollapsed && <span className="ml-2"></span>}
-            </button>
-          </div>
+              <button
+                onClick={() => setSidebarCollapsed((s) => !s)}
+                aria-label="toggle sidebar"
+                aria-expanded={!sidebarCollapsed}
+                title={sidebarCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたむ'}
+                className={
+                  sidebarCollapsed
+                    ? 'w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm border border-border-light text-gray-700 hover:bg-gray-50 transition'
+                    : 'w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white border border-border-light text-sm font-medium text-gray-600 hover:bg-gray-100 transition'
+                }
+              >
+                <AppIcon
+                  name={sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
+                  className="text-xl"
+                />
+                {!sidebarCollapsed && <span className="ml-2"></span>}
+              </button>
+            </div>
+          )}
         </nav>
       </div>
       <div className="p-3 border-t border-border-light dark:border-border-dark">
