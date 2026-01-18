@@ -1,0 +1,125 @@
+'use client';
+import React, { useEffect, useState } from 'react';
+import Sidebar from '../../../components/dashboard/Sidebar';
+import AppIcon from '../../../components/ui/AppIcon';
+
+export default function LayoutShell({ children }: { children: React.ReactNode }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    // フォントを読み込む（既存ページから移設）
+    if (!document.querySelector('link[data-dash-font="noto-jp"]')) {
+      const l = document.createElement('link');
+      l.setAttribute('rel', 'stylesheet');
+      l.setAttribute(
+        'href',
+        'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap',
+      );
+      l.setAttribute('data-dash-font', 'noto-jp');
+      document.head.appendChild(l);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
+
+  return (
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200">
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
+
+        {mobileMenuOpen && (
+          <>
+            <div
+              className="fixed inset-y-0 right-0 left-[16rem] bg-black/50 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              className="fixed inset-y-0 left-0 w-64 h-full z-[60] md:hidden !bg-white dark:!bg-gray-900 border-r border-border-light dark:border-border-dark shadow-xl isolate opacity-100"
+              role="dialog"
+              aria-modal="true"
+              aria-label="モバイルナビゲーションメニュー"
+              id="mobile-dashboard-menu"
+            >
+              <div className="relative h-full !bg-white dark:!bg-gray-900">
+                <button
+                  type="button"
+                  className="absolute right-4 top-4 z-50 p-2.5 rounded-md bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"
+                  aria-label="メニューを閉じる"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <AppIcon name="close" className="text-xl" />
+                </button>
+                <Sidebar
+                  sidebarCollapsed={false}
+                  setSidebarCollapsed={setSidebarCollapsed}
+                  onClose={() => setMobileMenuOpen(false)}
+                  isMobile
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <header className="h-16 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10">
+            <button
+              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="メニューを開く"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-dashboard-menu"
+            >
+              <AppIcon name="menu" className="text-xl" />
+            </button>
+            <div className="flex-1 flex justify-center lg:justify-start lg:ml-6">
+              <div className="w-full max-w-lg lg:max-w-xs relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <AppIcon name="search" className="text-warm-brown-600 text-lg" />
+                </div>
+                <input
+                  id="search"
+                  name="search"
+                  placeholder="作業員や現場を検索..."
+                  type="text"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary sm:text-sm text-gray-900 dark:text-gray-100 transition duration-150 ease-in-out shadow-inner-soft"
+                />
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto focus:outline-none p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
+
+        <div className="fixed bottom-6 right-6">
+          <button className="bg-primary hover:bg-gray-800 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+            <AppIcon name="help_outline" className="text-xl" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

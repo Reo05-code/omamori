@@ -13,9 +13,13 @@ import { getUserRole } from '@/lib/permissions';
 export default function Sidebar({
   sidebarCollapsed,
   setSidebarCollapsed,
+  onClose,
+  isMobile = false,
 }: {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean | ((s: boolean) => boolean)) => void;
+  onClose?: () => void;
+  isMobile?: boolean;
 }) {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -70,10 +74,13 @@ export default function Sidebar({
     return () => ctrl.abort();
   }, []);
 
+  const baseBackgroundClassName = isMobile ? '!bg-white dark:!bg-gray-900 opacity-100' : 'bg-surface-light dark:bg-surface-dark';
+  const zIndexClassName = isMobile ? 'z-[100]' : 'z-20';
+  const baseClassName = `${sidebarCollapsed ? 'w-20' : 'w-64'} ${baseBackgroundClassName} border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm`;
+  const visibilityClassName = isMobile ? 'flex' : 'hidden md:flex';
+
   return (
-    <aside
-      className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex-col justify-between hidden md:flex transition-all duration-200 z-20 shadow-sm`}
-    >
+    <aside className={`${baseClassName} ${visibilityClassName}`}>
       <div>
         <div className="h-16 flex items-center justify-center border-b border-border-light dark:border-border-dark">
           <h1 className="text-xl font-bold tracking-wider text-primary dark:text-white uppercase">
@@ -85,6 +92,7 @@ export default function Sidebar({
             className={`relative group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-bold rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href={orgId ? `/dashboard/organizations/${orgId}` : '/dashboard'}
             aria-current={pathname === '/dashboard' ? 'page' : undefined}
+            onClick={() => onClose?.()}
           >
             <AppIcon name="dashboard" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
@@ -98,6 +106,7 @@ export default function Sidebar({
             className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
             href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
             aria-current={pathname?.startsWith('/dashboard/organizations') ? 'page' : undefined}
+            onClick={() => onClose?.()}
           >
             <AppIcon name="people" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
@@ -115,6 +124,7 @@ export default function Sidebar({
             }`}
             href={orgId ? `/dashboard/organizations/${orgId}/work_logs` : '/dashboard'}
             aria-current={pathname.includes('/work_logs') ? 'page' : undefined}
+            onClick={() => onClose?.()}
           >
             <AppIcon name="article" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
             {!sidebarCollapsed &&
@@ -129,6 +139,7 @@ export default function Sidebar({
               className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
               href={currentOrgId ? `/dashboard/organizations/${currentOrgId}/alerts` : '/dashboard'}
               aria-current={pathname?.includes('/alerts') ? 'page' : undefined}
+              onClick={() => onClose?.()}
             >
               <div className="flex items-center">
                 <AppIcon
@@ -173,6 +184,7 @@ export default function Sidebar({
         <a
           className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all`}
           href="#"
+          onClick={() => onClose?.()}
         >
           <AppIcon name="settings" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
           {!sidebarCollapsed &&
