@@ -1,8 +1,8 @@
 module Api
   module V1
     class InvitationsController < ApplicationController
-      before_action :set_organization, only: %i[index create]
-      before_action :require_admin!, only: %i[index create]
+      before_action :set_organization, only: %i[index create destroy]
+      before_action :require_admin!, only: %i[index create destroy]
       before_action :authenticate_user!, only: %i[accept]
 
       def index
@@ -27,11 +27,18 @@ module Api
                status: :unprocessable_content
       end
 
+      # pending な招待を削除する
+      def destroy
+        invitation = @organization.invitations.pending.find(params[:id])
+        invitation.destroy!
+        render json: { message: I18n.t("api.v1.invitations.destroy_success") }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: I18n.t("api.v1.invitations.error.not_found") }, status: :not_found
+      end
+
       def accept
         invitation = Invitation.pending.find_by!(token: params[:token])
 
-        # 受諾処理はモデル（Invitation#accept_by）に委譲する。
-        # Controller は結果を HTTP ステータスにマップして返すのみ。
         result = invitation.accept_by(current_user)
 
         handle_accept_result(result)
