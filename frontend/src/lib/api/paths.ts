@@ -16,10 +16,14 @@ export const API_PATHS = {
   ORGANIZATIONS: {
     BASE: '/api/v1/organizations',
     SHOW: (id: string | number) => `/api/v1/organizations/${id}`,
+    UPDATE: (id: string | number) => `/api/v1/organizations/${id}`,
     MEMBERSHIPS: (id: string | number) => `/api/v1/organizations/${id}/memberships`,
     MEMBERSHIP: (orgId: string | number, membershipId: string | number) =>
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
     CREATE_INVITATION: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
+    INVITATIONS: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
+    INVITATION: (orgId: string | number, invitationId: string | number) =>
+      `/api/v1/organizations/${orgId}/invitations/${invitationId}`,
     ALERTS: (id: string | number) => `/api/v1/organizations/${id}/alerts`,
     ALERTS_SUMMARY: (id: string | number) => `/api/v1/organizations/${id}/alerts/summary`,
     ALERT: (organizationId: string | number, alertId: string | number) =>

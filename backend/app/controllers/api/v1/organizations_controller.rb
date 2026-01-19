@@ -29,7 +29,40 @@ module Api
         render json: { errors: errs }, status: :unprocessable_content
       end
 
+      def update
+        organization = current_user.organizations.find(params[:id])
+        return unless authorize_organization_update?(organization)
+
+        update_organization_and_render(organization)
+      rescue ActiveRecord::RecordNotFound
+        render_not_found
+      rescue ActiveRecord::RecordInvalid => e
+        render_validation_errors(e)
+      end
+
       private
+
+      def authorize_organization_update?(organization)
+        result = OrganizationPolicy.new(current_user, organization).update
+        return true if result.allowed?
+
+        render json: { error: I18n.t("api.v1.organizations.errors.update_forbidden") }, status: :forbidden
+        false
+      end
+
+      def update_organization_and_render(organization)
+        organization.update!(organization_params)
+        render json: Api::V1::OrganizationSerializer.new(organization).as_json
+      end
+
+      def render_not_found
+        render json: { error: I18n.t("api.v1.organizations.not_found") }, status: :not_found
+      end
+
+      def render_validation_errors(error)
+        messages = error.record.errors.full_messages.presence || [I18n.t("api.v1.organizations.errors.update")]
+        render json: { errors: messages }, status: :unprocessable_content
+      end
 
       def create_organization_with_membership(params)
         ActiveRecord::Base.transaction do

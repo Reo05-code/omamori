@@ -42,6 +42,9 @@ ja:
         error:
           create: "組織の作成に失敗しました"
           forbidden: "アクセスが拒否されました"
+        errors:
+          update: "組織情報の更新に失敗しました"
+          update_forbidden: "組織情報を更新する権限がありません"
 
       memberships:
         destroy_success: "メンバーを削除しました"
@@ -52,6 +55,7 @@ ja:
 
       invitations:
         accepted: "招待を承諾しました"
+        destroy_success: "招待を削除しました"
         error:
           create: "招待の作成に失敗しました"
           invalid_token: "無効なトークンです"
@@ -61,3 +65,4 @@ ja:
           organization_missing: "招待に紐づく組織が設定されていません"
           invalid_membership: "メンバーの作成に失敗しました"
           validation_errors: "入力の検証に失敗しました"
+          not_found: "招待が見つかりません"

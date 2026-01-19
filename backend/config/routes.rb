@@ -19,9 +19,9 @@ Rails.application.routes.draw do
       get "auth/csrf", to: "auth/csrf#show"
 
       # Organization と関連リソースのエンドポイント
-      resources :organizations, only: %i[index create show] do
+      resources :organizations, only: %i[index create show update] do
         resources :memberships, only: %i[index update destroy]
-        resources :invitations, only: %i[index create]
+        resources :invitations, only: %i[index create destroy]
         # 管理者用: 組織内のアラート管理
         resources :alerts, only: %i[index update], controller: "organizations/alerts" do
           collection do

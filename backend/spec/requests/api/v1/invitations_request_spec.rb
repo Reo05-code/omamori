@@ -43,4 +43,75 @@ RSpec.describe "Api::V1::Invitations" do
       expect(org.memberships.exists?(user: invitee)).to be true
     end
   end
+
+  describe "DELETE /api/v1/organizations/:organization_id/invitations/:id (招待削除)" do
+    let(:admin) { create(:user) }
+    let(:worker) { create(:user) }
+    let(:organization) { create(:organization) }
+    let!(:pending_invitation) { create(:invitation, organization: organization, inviter: admin, invited_email: "pending@example.com") }
+
+    before do
+      create(:membership, organization: organization, user: worker, role: :worker)
+    end
+
+    context "管理者の場合" do
+      it "pending な招待を削除できる" do
+        delete "/api/v1/organizations/#{organization.id}/invitations/#{pending_invitation.id}",
+               headers: admin.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["message"]).to be_present
+        expect(Invitation.exists?(pending_invitation.id)).to be false
+      end
+
+      it "承諾済みの招待は存在しないものとして扱われ404を返す" do
+        accepted_invitation = create(:invitation, organization: organization, inviter: admin, accepted_at: Time.current)
+
+        delete "/api/v1/organizations/#{organization.id}/invitations/#{accepted_invitation.id}",
+               headers: admin.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+        json = response.parsed_body
+        expect(json["error"]).to be_present
+        expect(Invitation.exists?(accepted_invitation.id)).to be true
+      end
+
+      it "期限切れの招待は存在しないものとして扱われ404を返す" do
+        expired_invitation = create(:invitation, organization: organization, inviter: admin, expires_at: 1.day.ago)
+
+        delete "/api/v1/organizations/#{organization.id}/invitations/#{expired_invitation.id}",
+               headers: admin.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+        json = response.parsed_body
+        expect(json["error"]).to be_present
+      end
+    end
+
+    context "worker（作業者）の場合" do
+      it "403 forbidden を返す" do
+        delete "/api/v1/organizations/#{organization.id}/invitations/#{pending_invitation.id}",
+               headers: worker.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "組織に所属していない場合" do
+      it "404 not found を返す" do
+        outsider = create(:user)
+
+        delete "/api/v1/organizations/#{organization.id}/invitations/#{pending_invitation.id}",
+               headers: outsider.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
 end
