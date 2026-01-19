@@ -21,15 +21,15 @@ export const API_PATHS = {
     MEMBERSHIP: (orgId: string | number, membershipId: string | number) =>
       `/api/v1/organizations/${orgId}/memberships/${membershipId}`,
     CREATE_INVITATION: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
-    INVITATIONS: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
-    INVITATION: (orgId: string | number, invitationId: string | number) =>
-      `/api/v1/organizations/${orgId}/invitations/${invitationId}`,
     ALERTS: (id: string | number) => `/api/v1/organizations/${id}/alerts`,
     ALERTS_SUMMARY: (id: string | number) => `/api/v1/organizations/${id}/alerts/summary`,
     ALERT: (organizationId: string | number, alertId: string | number) =>
       `/api/v1/organizations/${organizationId}/alerts/${alertId}`,
     ACTIVE_WORK_SESSIONS_LATEST_LOCATIONS: (id: string | number) =>
       `/api/v1/organizations/${id}/active_work_sessions/latest_locations`,
+    INVITATIONS: (id: string | number) => `/api/v1/organizations/${id}/invitations`,
+    INVITATION: (orgId: string | number, invitationId: string | number) =>
+      `/api/v1/organizations/${orgId}/invitations/${invitationId}`,
   },
   // 招待受諾
   INVITATIONS: {

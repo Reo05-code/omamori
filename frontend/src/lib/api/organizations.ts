@@ -3,15 +3,20 @@ import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
 
 /**
- * 組織一覧を取得
+ * 単一組織を取得
+ * @param organizationId 組織ID
+ * @param signal AbortSignal（キャンセル用）
  * @throws {ApiError} API呼び出しが失敗した場合
  */
-export async function fetchOrganizations(): Promise<Organization[]> {
-  const res = await api.get<Organization[]>(API_PATHS.ORGANIZATIONS.BASE);
+export async function fetchOrganization(
+  organizationId: ApiId,
+  signal?: AbortSignal,
+): Promise<Organization> {
+  const res = await api.get<Organization>(API_PATHS.ORGANIZATIONS.SHOW(organizationId), { signal });
 
   if (res.error || res.data === null) {
     throw new ApiError(
-      res.error || `failed to fetch organizations: status=${res.status}`,
+      res.error || `failed to fetch organization: status=${res.status}`,
       res.status,
       res.errorBody,
     );
