@@ -1,9 +1,51 @@
 /**
  * 招待関連の API クライアント関数
  */
-import type { CreateInvitationRequest, CreateInvitationResponse } from './types';
-import { api } from './client';
+import type { CreateInvitationRequest, CreateInvitationResponse, Invitation, ApiId } from './types';
+import { api, ApiError } from './client';
 import { API_PATHS } from './paths';
+
+/**
+ * 組織の pending 招待一覧を取得
+ * @param organizationId 組織ID
+ * @returns 未承諾招待の配列
+ * @throws {ApiError} API呼び出しが失敗した場合
+ */
+export async function fetchInvitations(organizationId: ApiId): Promise<Invitation[]> {
+  const path = API_PATHS.ORGANIZATIONS.INVITATIONS(organizationId);
+  const res = await api.get<Invitation[]>(path);
+
+  if (res.error || res.data === null) {
+    throw new ApiError(
+      res.error || `failed to fetch invitations: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return res.data;
+}
+
+/**
+ * 招待を削除する (pending な招待のみ削除可能)
+ * @param organizationId 組織ID
+ * @param invitationId 招待ID
+ * @throws {ApiError} API呼び出しが失敗した場合（404: 招待が存在しない、422: pending でない招待）
+ */
+export async function deleteInvitation(organizationId: ApiId, invitationId: ApiId): Promise<void> {
+  const path = API_PATHS.ORGANIZATIONS.INVITATION(organizationId, invitationId);
+  const res = await api.delete<{ message?: string }>(path);
+
+  if (res.error) {
+    throw new ApiError(
+      res.error || `failed to delete invitation: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+
+  return;
+}
 
 /**
  * 組織にメンバーを招待
@@ -11,9 +53,14 @@ import { API_PATHS } from './paths';
  * @param email 招待するメールアドレス
  * @param role 招待するユーザーのロール ('worker' | 'admin')
  * @returns 作成された招待情報
+ * @throws {Error} エラーメッセージで種別を判定可能
+ *   - 'forbidden': 権限不足
+ *   - 'already_member': 既にメンバー
+ *   - 'already_invited': 既に招待済み
+ *   - その他: バリデーションエラー等
  */
 export async function createInvitation(
-  organizationId: string | number,
+  organizationId: ApiId,
   email: string,
   role: 'worker' | 'admin',
 ): Promise<CreateInvitationResponse> {

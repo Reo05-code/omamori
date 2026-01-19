@@ -167,6 +167,13 @@ export interface Organization {
   updated_at?: string;
 }
 
+// 組織情報更新リクエスト
+export interface UpdateOrganizationRequest {
+  organization: {
+    name: string;
+  };
+}
+
 // 作業セッションの状態を表す
 // - 'in_progress': 見守り中
 // - 'completed': 正常終了
