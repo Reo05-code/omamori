@@ -50,6 +50,8 @@ module Api
 
       def set_organization
         @organization = current_user.organizations.find(params[:organization_id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: I18n.t("api.v1.organizations.not_found") }, status: :not_found
       end
 
       def require_admin!
