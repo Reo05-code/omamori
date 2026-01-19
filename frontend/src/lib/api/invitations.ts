@@ -11,9 +11,12 @@ import { API_PATHS } from './paths';
  * @returns 未承諾招待の配列
  * @throws {ApiError} API呼び出しが失敗した場合
  */
-export async function fetchInvitations(organizationId: ApiId): Promise<Invitation[]> {
+export async function fetchInvitations(
+  organizationId: ApiId,
+  signal?: AbortSignal,
+): Promise<Invitation[]> {
   const path = API_PATHS.ORGANIZATIONS.INVITATIONS(organizationId);
-  const res = await api.get<Invitation[]>(path);
+  const res = await api.get<Invitation[]>(path, { signal });
 
   if (res.error || res.data === null) {
     throw new ApiError(
