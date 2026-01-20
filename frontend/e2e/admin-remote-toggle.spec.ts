@@ -1,15 +1,17 @@
 import { test, expect } from '@playwright/test';
 
-// 共通のレスポンスデータ定義
-const MOCK_USER = {
-  id: 1,
-  email: 'admin@example.com',
-  name: 'Admin',
-};
+import {
+  getMembersUrl,
+  loginAsAdmin,
+  mockMemberships,
+  mockOrganizations,
+  mockWorkSessionFinish,
+  mockWorkSessionStart,
+} from './helpers';
+import { MOCK_ORG } from './fixtures/organizations';
+import { MOCK_ORG_ID, MOCK_SESSION_ID, MOCK_WORKER_ID } from './fixtures/users';
 
-const ORG_ID = 1;
-const WORKER_ID = 10;
-const SESSION_ID = 123;
+const MEMBERSHIP_ID = 1;
 
 test.describe('Admin リモート開始/終了トグル', () => {
   // テスト間で共有する状態変数を定義
@@ -19,87 +21,55 @@ test.describe('Admin リモート開始/終了トグル', () => {
     // 状態を初期化 (テスト間の干渉を防ぐ)
     isSessionActive = false;
 
-    // 1. 認証トークン検証
-    await page.route('**/api/v1/auth/validate_token', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'success', data: MOCK_USER }),
-      });
-    });
+    // 1. 認証トークン検証（Cookie + validate_token のモック）
+    await loginAsAdmin(page);
 
     // 2. 組織一覧
-    await page.route('**/api/v1/organizations', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([{ id: ORG_ID, name: 'Org' }]),
-      });
-    });
+    await mockOrganizations(page, [MOCK_ORG]);
 
     // 3. メンバー一覧
-    await page.route(`**/api/v1/organizations/${ORG_ID}/memberships`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([
-          {
-            id: 1,
-            user_id: WORKER_ID,
-            email: 'worker@example.com',
-            role: 'worker',
-            // ここで動的な変数を参照してレスポンスを決定
-            active_work_session: {
-              active: isSessionActive,
-              id: isSessionActive ? SESSION_ID : null,
-            },
-          },
-        ]),
-      });
-    });
+    await mockMemberships(page, MOCK_ORG_ID, () => [
+      {
+        id: MEMBERSHIP_ID,
+        user_id: MOCK_WORKER_ID,
+        email: 'worker@example.com',
+        role: 'worker',
+        // ここで動的な変数を参照してレスポンスを決定
+        active_work_session: {
+          active: isSessionActive,
+          id: isSessionActive ? MOCK_SESSION_ID : null,
+        },
+      },
+    ]);
   });
 
   test('開始→状態更新→終了のフロー', async ({ page }) => {
     // 開始API
-    await page.route('**/api/v1/work_sessions', async (route) => {
-      if (route.request().method() !== 'POST') return route.fallback();
-
+    await mockWorkSessionStart(page, () => {
       // サーバー側の状態変化をシミュレート
       isSessionActive = true;
-
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: SESSION_ID,
-          status: 'in_progress',
-        }),
-      });
+      return {
+        id: MOCK_SESSION_ID,
+        status: 'in_progress',
+      };
     });
 
     // 終了API (POST)
-    await page.route(`**/api/v1/work_sessions/${SESSION_ID}/finish`, async (route) => {
-      if (route.request().method() !== 'POST') return route.fallback();
-
+    await mockWorkSessionFinish(page, MOCK_SESSION_ID, () => {
       // サーバー側の状態変化をシミュレート
       isSessionActive = false;
-
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: SESSION_ID,
-          status: 'completed',
-        }),
-      });
+      return {
+        id: MOCK_SESSION_ID,
+        status: 'completed',
+      };
     });
 
-    await page.goto(`/dashboard/organizations/${ORG_ID}/members`);
+    await page.goto(getMembersUrl(MOCK_ORG_ID));
 
     // 初期状態確認
     await expect(page.getByText('待機中')).toBeVisible();
 
-    const toggle = page.getByTestId(`remote-toggle-${1}`);
+    const toggle = page.getByTestId(`remote-toggle-${MEMBERSHIP_ID}`);
 
     // 開始操作: トグルクリック→ConfirmModal表示待ち
     await toggle.click();
@@ -181,10 +151,10 @@ test.describe('Admin リモート開始/終了トグル', () => {
       });
     });
 
-    await page.goto(`/dashboard/organizations/${ORG_ID}/members`);
+    await page.goto(getMembersUrl(MOCK_ORG_ID));
     await expect(page.getByText('待機中')).toBeVisible();
 
-    const toggle = page.getByTestId(`remote-toggle-${1}`);
+    const toggle = page.getByTestId(`remote-toggle-${MEMBERSHIP_ID}`);
 
     // 開始操作: トグルクリック→ConfirmModal表示待ち
     await toggle.click();
