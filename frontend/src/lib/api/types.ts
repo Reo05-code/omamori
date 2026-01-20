@@ -111,7 +111,7 @@ export interface Membership {
   // memberships API が返す user.name（要件: email ではなく name を表示）
   name?: string | null;
   email?: string | null;
-  role: string;
+  role: MembershipRole;
   working?: boolean;
   // 管理者向け: そのユーザーに進行中の作業セッションがあるか
   // GET /api/v1/organizations/:id/memberships のレスポンスに含まれる
@@ -122,6 +122,8 @@ export interface ActiveWorkSessionSummary {
   active: boolean;
   id: number | null;
 }
+
+export type MembershipRole = 'worker' | 'admin';
 
 // Invitation API 型
 export interface Invitation {
@@ -175,11 +177,6 @@ export interface UpdateOrganizationRequest {
 }
 
 // 組織情報更新リクエスト
-export interface UpdateOrganizationRequest {
-  organization: {
-    name: string;
-  };
-}
 
 // 作業セッションの状態を表す
 // - 'in_progress': 見守り中
