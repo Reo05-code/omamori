@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Membership } from '@/lib/api/types';
 import { fetchMemberships } from '@/lib/api/memberships';
-import { InviteMemberModal } from '@/components/organization/InviteMemberModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { finishSession, startRemoteSession } from '@/lib/api/work_sessions';
 import { MemberActionToggle } from '@/components/organization/MemberActionToggle';
@@ -29,7 +28,6 @@ export default function MembersPage(): JSX.Element {
   const [members, setMembers] = useState<Membership[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   // 操作中のメンバーIDを記録
   const [processingMemberIds, setProcessingMemberIds] = useState<Record<number, boolean>>({});
@@ -63,13 +61,6 @@ export default function MembersPage(): JSX.Element {
   const renderName = (m: Membership) => {
     if (m.email) return m.email.split('@')[0];
     return '（名前なし）';
-  };
-
-  const handleInviteSuccess = () => {
-    // 招待成功後、メンバー一覧を再取得（オプション）
-    if (orgId) {
-      refetchMembers().catch((e) => console.error('メンバー一覧の再取得に失敗:', e));
-    }
   };
 
   //「開始」か「終了」かを判断して確認画面を出す
@@ -145,14 +136,8 @@ export default function MembersPage(): JSX.Element {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center mb-6">
         <h1 className="text-2xl font-semibold">メンバー一覧</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          メンバーを招待
-        </button>
       </div>
 
       <p className="text-sm text-gray-500 mb-4">操作結果の反映に数秒かかる場合があります。</p>
@@ -192,9 +177,11 @@ export default function MembersPage(): JSX.Element {
                       {m.email ?? '—'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {m.role && m.role in ROLE_LABELS
-                        ? ROLE_LABELS[m.role as keyof typeof ROLE_LABELS]
-                        : m.role}
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+                        {m.role && m.role in ROLE_LABELS
+                          ? ROLE_LABELS[m.role as keyof typeof ROLE_LABELS]
+                          : (m.role ?? '—')}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <WorkStatusBadge
@@ -216,10 +203,10 @@ export default function MembersPage(): JSX.Element {
                         />
                         {orgId && (
                           <Link
-                            href={`/dashboard/organizations/${orgId}/work_logs?tab=safety_logs&userId=${m.user_id}`}
+                            href={`/dashboard/organizations/${orgId}/work_logs?userId=${m.user_id}`}
                             className="text-sm text-blue-600 hover:underline"
                           >
-                            作業ログ（移動履歴）
+                            作業ログ
                           </Link>
                         )}
                       </div>
@@ -236,16 +223,6 @@ export default function MembersPage(): JSX.Element {
             </tbody>
           </table>
         </div>
-      )}
-
-      {/* 招待モーダル */}
-      {orgId && (
-        <InviteMemberModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          organizationId={orgId}
-          onSuccess={handleInviteSuccess}
-        />
       )}
 
       <ConfirmModal

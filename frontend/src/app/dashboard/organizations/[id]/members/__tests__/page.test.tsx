@@ -9,10 +9,6 @@ jest.mock('@/lib/api/memberships', () => ({
   fetchMemberships: jest.fn(),
 }));
 
-jest.mock('@/components/organization/InviteMemberModal', () => ({
-  InviteMemberModal: () => null,
-}));
-
 describe('MembersPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
