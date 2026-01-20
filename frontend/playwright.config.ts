@@ -1,9 +1,16 @@
+import fs from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
+
+const isRunningInDocker = fs.existsSync('/.dockerenv');
+const outputDir = isRunningInDocker ? '/tmp/playwright-artifacts' : '.playwright/local-artifacts';
+const htmlReportDir = isRunningInDocker
+  ? '/tmp/playwright-html-report'
+  : '.playwright/local-html-report';
 
 export default defineConfig({
   testDir: './e2e',
 
-  outputDir: '.playwright/test-results',
+  outputDir,
 
   /* テストファイルを並列で実行する */
   fullyParallel: true,
@@ -17,7 +24,7 @@ export default defineConfig({
   /* CI 上ではワーカー数を抑制する */
   workers: process.env.CI ? 1 : undefined,
 
-  reporter: [['html', { outputFolder: '.playwright/report', open: 'never' }]],
+  reporter: [['html', { outputFolder: htmlReportDir, open: 'never' }]],
 
   /* プロジェクト共通の設定 */
   use: {
