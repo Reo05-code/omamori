@@ -16,10 +16,10 @@ model: Claude Sonnet 4
 mcp-servers:
   playwright-test:
     type: stdio
-    command: npx
+    command: bash
     args:
-      - playwright
-      - run-test-mcp-server
+      - -lc
+      - cd frontend && npx playwright run-test-mcp-server
     tools:
       - "*"
 ---
