@@ -1,14 +1,19 @@
 'use client';
-import React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
 import type { Organization } from '../../types';
-import { usePathname } from 'next/navigation';
 import AppIcon from '../ui/AppIcon';
+import SidebarLink from './SidebarLink';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
+
+// --------------------------------------------------------------------------
+// Main Component: Sidebar
+// --------------------------------------------------------------------------
 
 export default function Sidebar({
   sidebarCollapsed,
@@ -24,11 +29,18 @@ export default function Sidebar({
   const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Ref & Hooks
+  // タイムアウトIDを保持するためのRef (メモリリーク防止)
+  const errorTimeoutRef = useRef<number | null>(null);
   const pathname = usePathname();
   const { user } = useAuthContext();
 
+  // --------------------------------------------------------------------------
+  // Derived State (ロジック)
+  // --------------------------------------------------------------------------
+
   const currentOrgId = useMemo(() => {
-    // urlの中から組織IDを抽出
     const match = pathname?.match(/^\/dashboard\/organizations\/(\d+)(?:\/|$)/);
     if (match?.[1]) return match[1];
     return orgId;
@@ -38,6 +50,39 @@ export default function Sidebar({
     if (!currentOrgId) return false;
     return getUserRole(user, currentOrgId) === 'admin';
   }, [user, currentOrgId]);
+
+  // パス判定ロジック
+  // 正規表現を毎回生成しないよう、定数化またはuseMemo内で完結させる
+  const isDashboardPath = useMemo(() => {
+    if (!pathname) return false;
+    if (pathname === '/dashboard') return true;
+    if (!/^\/dashboard\/organizations\/\d+(?:\/|$)/.test(pathname)) return false;
+    return !/\/(members|work_logs|alerts|settings)(?:\/|$)/.test(pathname);
+  }, [pathname]);
+
+  const isMembersPath = useMemo(() => {
+    if (!pathname) return false;
+    return /\/members(?:\/|$)/.test(pathname);
+  }, [pathname]);
+
+  const isWorkLogsPath = useMemo(() => {
+    if (!pathname) return false;
+    return /\/work_logs(?:\/|$)/.test(pathname);
+  }, [pathname]);
+
+  const isAlertsPath = useMemo(() => {
+    if (!pathname) return false;
+    return /\/alerts(?:\/|$)/.test(pathname);
+  }, [pathname]);
+
+  const isSettingsPath = useMemo(() => {
+    if (!pathname) return false;
+    return /\/settings(?:\/|$)/.test(pathname);
+  }, [pathname]);
+
+  // --------------------------------------------------------------------------
+  // Data Fetching
+  // --------------------------------------------------------------------------
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -49,120 +94,107 @@ export default function Sidebar({
           signal: ctrl.signal,
         });
 
-        if (res.error) {
-          throw new Error(res.error);
-        }
+        if (res.error) throw new Error(res.error);
 
         const orgs = res.data || [];
-
-        if (orgs.length === 0) {
-          setOrgId(null);
-        } else {
-          setOrgId(String(orgs[0].id));
-        }
+        setOrgId(orgs.length > 0 ? String(orgs[0].id) : null);
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('failed to fetch organizations', e);
         setErrorMessage('組織の取得に失敗しました');
-        window.setTimeout(() => setErrorMessage(null), 4000);
+
+        if (errorTimeoutRef.current !== null) {
+          window.clearTimeout(errorTimeoutRef.current);
+        }
+        errorTimeoutRef.current = window.setTimeout(() => setErrorMessage(null), 4000);
       } finally {
         setLoading(false);
       }
     }
 
     fetchOrgs();
-    return () => ctrl.abort();
+    return () => {
+      ctrl.abort();
+      if (errorTimeoutRef.current !== null) {
+        window.clearTimeout(errorTimeoutRef.current);
+      }
+    };
   }, []);
+
+  // --------------------------------------------------------------------------
+  // Render Helpers
+  // --------------------------------------------------------------------------
 
   const baseBackgroundClassName = isMobile
     ? 'bg-warm-bg dark:bg-[#0f172a]'
     : 'bg-surface-light dark:bg-surface-dark';
   const zIndexClassName = isMobile ? 'z-[100]' : 'z-20';
-  const baseClassName = `${sidebarCollapsed ? 'w-20' : 'w-64'} ${baseBackgroundClassName} border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm`;
+  const widthClassName = sidebarCollapsed ? 'w-20' : 'w-64';
   const visibilityClassName = isMobile ? 'flex' : 'hidden md:flex';
 
+  const containerClass = `${widthClassName} ${baseBackgroundClassName} border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm ${visibilityClassName}`;
+
+  // --------------------------------------------------------------------------
+  // JSX
+  // --------------------------------------------------------------------------
+
   return (
-    <aside className={`${baseClassName} ${visibilityClassName}`}>
+    <aside className={containerClass}>
       <div>
+        {/* Header */}
         <div className="h-16 flex items-center justify-center border-b border-border-light dark:border-border-dark">
           <h1 className="text-xl font-bold tracking-wider text-primary dark:text-white uppercase">
             {sidebarCollapsed ? '' : 'Omamori'}
           </h1>
         </div>
+
+        {/* Navigation Links */}
         <nav aria-label="サイドバー ナビゲーション" className="mt-6 px-3 space-y-1">
-          <Link
-            className={`relative group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-bold rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
+          <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}` : '/dashboard'}
-            aria-current={pathname === '/dashboard' ? 'page' : undefined}
-            onClick={() => onClose?.()}
-          >
-            <AppIcon name="dashboard" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
-            {!sidebarCollapsed &&
-              (loading ? (
-                <span className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              ) : (
-                <span className="font-semibold">ダッシュボード</span>
-              ))}
-          </Link>
-          <Link
-            className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
+            iconName="dashboard"
+            label="ダッシュボード"
+            isActive={isDashboardPath}
+            isLoading={loading}
+            collapsed={sidebarCollapsed}
+            onClick={onClose}
+          />
+
+          <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
-            aria-current={pathname?.startsWith('/dashboard/organizations') ? 'page' : undefined}
-            onClick={() => onClose?.()}
-          >
-            <AppIcon name="people" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
-            {!sidebarCollapsed &&
-              (loading ? (
-                <span className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              ) : (
-                <>メンバー</>
-              ))}
-          </Link>
-          <Link
-            className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all ${
-              pathname.includes('/work_logs')
-                ? 'bg-warm-orange text-white'
-                : 'bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white'
-            }`}
+            iconName="people"
+            label="メンバー"
+            isActive={isMembersPath}
+            isLoading={loading}
+            collapsed={sidebarCollapsed}
+            onClick={onClose}
+          />
+
+          <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}/work_logs` : '/dashboard'}
-            aria-current={pathname.includes('/work_logs') ? 'page' : undefined}
-            onClick={() => onClose?.()}
-          >
-            <AppIcon name="article" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
-            {!sidebarCollapsed &&
-              (loading ? (
-                <span className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              ) : (
-                <>作業ログ</>
-              ))}
-          </Link>
+            iconName="article"
+            label="作業ログ"
+            isActive={isWorkLogsPath}
+            isLoading={loading}
+            collapsed={sidebarCollapsed}
+            onClick={onClose}
+          />
+
           {isAdminForCurrentOrg && (
-            <Link
-              className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium rounded-lg transition-all bg-transparent text-gray-700 hover:bg-warm-orange hover:text-white`}
+            <SidebarLink
               href={currentOrgId ? `/dashboard/organizations/${currentOrgId}/alerts` : '/dashboard'}
-              aria-current={pathname?.includes('/alerts') ? 'page' : undefined}
-              onClick={() => onClose?.()}
-            >
-              <div className="flex items-center">
-                <AppIcon
-                  name="notifications"
-                  className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`}
-                />
-                {!sidebarCollapsed &&
-                  (loading ? (
-                    <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                  ) : (
-                    <>アラート</>
-                  ))}
-              </div>
-            </Link>
+              iconName="notifications"
+              label="アラート"
+              isActive={isAlertsPath}
+              isLoading={loading}
+              collapsed={sidebarCollapsed}
+              onClick={onClose}
+            />
           )}
 
-          {/* collapse toggle inserted inline so it appears under Alerts */}
+          {/* Collapse Button (Mobile以外) */}
           {!isMobile && (
-            <div
-              className={`flex ${sidebarCollapsed ? 'justify-center' : ''} ${sidebarCollapsed ? 'px-2 py-2' : 'px-4 py-2'}`}
-            >
+            <div className={`flex ${sidebarCollapsed ? 'justify-center px-2 py-2' : 'px-4 py-2'}`}>
               <button
                 onClick={() => setSidebarCollapsed((s) => !s)}
                 aria-label="toggle sidebar"
@@ -178,27 +210,28 @@ export default function Sidebar({
                   name={sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
                   className="text-xl"
                 />
-                {!sidebarCollapsed && <span className="ml-2"></span>}
               </button>
             </div>
           )}
         </nav>
       </div>
+
+      {/* Footer Settings Area */}
       <div className="p-3 border-t border-border-light dark:border-border-dark">
-        <a
-          className={`group flex items-center ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'} text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all`}
-          href="#"
-          onClick={() => onClose?.()}
-        >
-          <AppIcon name="settings" className={`${sidebarCollapsed ? '' : 'mr-3'} text-xl`} />
-          {!sidebarCollapsed &&
-            (loading ? (
-              <span className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-            ) : (
-              <>設定</>
-            ))}
-        </a>
+        {isAdminForCurrentOrg && currentOrgId && (
+          <SidebarLink
+            href={`/dashboard/organizations/${currentOrgId}/settings`}
+            iconName="settings"
+            label="設定"
+            isActive={isSettingsPath}
+            isLoading={loading}
+            collapsed={sidebarCollapsed}
+            onClick={onClose}
+          />
+        )}
       </div>
+
+      {/* Error Toast */}
       {errorMessage && (
         <div className="fixed right-4 bottom-4 z-50">
           <div className="bg-red-600 text-white px-4 py-2 rounded shadow">{errorMessage}</div>
