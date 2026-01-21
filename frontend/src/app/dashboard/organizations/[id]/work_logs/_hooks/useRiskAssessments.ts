@@ -98,7 +98,9 @@ export function useRiskAssessments({ enabled, workSessionId, resetKey }: Params)
     nextPage: () => setPage((p) => p + 1),
     retry: () => {
       // 抑止フラグを解除して、同一session/pageでも再取得できるようにする。
-      setLoadedKey(null);
+      // 失敗直後は loadedKey が null のままなので、単に setLoadedKey(null) だと
+      // React が更新をスキップして再取得が走らないことがある。
+      setLoadedKey((prev) => (prev === null ? '__retry__' : null));
     },
   };
 }
