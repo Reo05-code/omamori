@@ -1,5 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 
+type AlertStatus = 'open' | 'in_progress' | 'resolved';
+
 // ------------------------
 // 共通ユーティリティ
 // ------------------------
@@ -100,5 +102,59 @@ export async function mockRiskAssessments(
       contentType: 'application/json',
       body: JSON.stringify(data),
     });
+  });
+}
+
+// ------------------------
+// アラート（管理者）
+// ------------------------
+
+/**
+ * 組織アラート一覧 (GET /api/v1/organizations/:id/alerts)
+ * - /alerts/summary 等は対象外
+ */
+export async function mockOrganizationAlerts(page: Page, orgId: number, handler: () => unknown) {
+  await page.route(`**/api/v1/organizations/${orgId}/alerts**`, async (route) => {
+    const request = route.request();
+    if (request.method() !== 'GET') return route.fallback();
+
+    const url = new URL(request.url());
+    if (url.pathname !== `/api/v1/organizations/${orgId}/alerts`) return route.fallback();
+
+    await fulfillJson(route, 200, handler());
+  });
+}
+
+/**
+ * アラート更新 (PATCH /api/v1/organizations/:orgId/alerts/:alertId)
+ */
+export async function mockUpdateOrganizationAlertStatus(
+  page: Page,
+  orgId: number,
+  handler: (params: { alertId: number; status: AlertStatus }) => unknown,
+) {
+  await page.route(`**/api/v1/organizations/${orgId}/alerts/*`, async (route) => {
+    const request = route.request();
+    if (request.method() !== 'PATCH') return route.fallback();
+
+    const url = new URL(request.url());
+    const match = url.pathname.match(new RegExp(`^/api/v1/organizations/${orgId}/alerts/(\\d+)$`));
+    if (!match) return route.fallback();
+
+    const alertId = Number(match[1]);
+
+    let status: AlertStatus = 'resolved';
+    try {
+      const raw = request.postData() ?? '';
+      const parsed = raw ? (JSON.parse(raw) as any) : null;
+      const candidate = parsed?.alert?.status;
+      if (candidate === 'open' || candidate === 'in_progress' || candidate === 'resolved') {
+        status = candidate;
+      }
+    } catch {
+      // ignore
+    }
+
+    await fulfillJson(route, 200, handler({ alertId, status }));
   });
 }
