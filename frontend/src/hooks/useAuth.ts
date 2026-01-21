@@ -8,6 +8,8 @@ export const useAuth = () => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authErrorStatus, setAuthErrorStatus] = useState<number | null>(null);
 
   // 初期化: サーバー側の Cookie ベース認証を検証して認証状態を決定
   useEffect(() => {
@@ -15,12 +17,28 @@ export const useAuth = () => {
     (async () => {
       try {
         const validateRes = await validateToken();
-        if (mounted && !validateRes.error && validateRes.data) {
+        if (!mounted) return;
+
+        if (!validateRes.error && validateRes.data) {
           setIsAuthenticated(true);
           setUser(validateRes.data.data);
+          setAuthError(null);
+          setAuthErrorStatus(null);
+          return;
         }
+
+        setIsAuthenticated(false);
+        setUser(null);
+        setAuthError(validateRes.error ?? '認証の確認に失敗しました');
+        setAuthErrorStatus(validateRes.status ?? null);
       } catch (e) {
         // 非同期検証が失敗しても特にエラーを投げない
+        if (mounted) {
+          setIsAuthenticated(false);
+          setUser(null);
+          setAuthError('認証の確認に失敗しました');
+          setAuthErrorStatus(0);
+        }
       } finally {
         if (mounted) {
           setLoading(false);
@@ -47,14 +65,20 @@ export const useAuth = () => {
         if (!validateRes.error && validateRes.data) {
           setIsAuthenticated(true);
           setUser(validateRes.data.data);
+          setAuthError(null);
+          setAuthErrorStatus(null);
         } else {
           // 成功レスポンスが得られない場合は認証フラグを false のままにする
           setIsAuthenticated(false);
           setUser(null);
+          setAuthError(validateRes.error ?? '認証の確認に失敗しました');
+          setAuthErrorStatus(validateRes.status ?? null);
         }
       } catch (e) {
         setIsAuthenticated(false);
         setUser(null);
+        setAuthError('認証の確認に失敗しました');
+        setAuthErrorStatus(0);
       }
 
       return res;
@@ -76,7 +100,18 @@ export const useAuth = () => {
     setToken(null);
     setIsAuthenticated(false);
     setUser(null);
+    setAuthError(null);
+    setAuthErrorStatus(null);
   };
 
-  return { isAuthenticated, token, user, loading, login, logout } as const;
+  return {
+    isAuthenticated,
+    token,
+    user,
+    loading,
+    authError,
+    authErrorStatus,
+    login,
+    logout,
+  } as const;
 };
