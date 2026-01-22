@@ -55,33 +55,28 @@ export const useAuth = () => {
     try {
       const res = await loginApi(email, password);
 
-      if (res.error) {
-        throw new Error(res.error);
-      }
+      if (res.error) throw new Error(res.error);
 
       // サーバ側で Cookie がセットされていることを前提に、トークン検証を実行
-      try {
-        const validateRes = await validateToken();
-        if (!validateRes.error && validateRes.data) {
-          setIsAuthenticated(true);
-          setUser(validateRes.data.data);
-          setAuthError(null);
-          setAuthErrorStatus(null);
-        } else {
-          // 成功レスポンスが得られない場合は認証フラグを false のままにする
-          setIsAuthenticated(false);
-          setUser(null);
-          setAuthError(validateRes.error ?? '認証の確認に失敗しました');
-          setAuthErrorStatus(validateRes.status ?? null);
-        }
-      } catch (e) {
+      const validateRes = await validateToken();
+
+      if (validateRes.error || !validateRes.data) {
         setIsAuthenticated(false);
         setUser(null);
-        setAuthError('認証の確認に失敗しました');
-        setAuthErrorStatus(0);
+        setAuthError(validateRes.error ?? '認証の確認に失敗しました');
+        setAuthErrorStatus(validateRes.status ?? null);
+        throw new Error(
+          validateRes.error ?? '認証情報の反映に時間がかかっています。再度お試しください。',
+        );
       }
 
-      return res;
+      const validatedUser: UserResponse = validateRes.data.data;
+      setIsAuthenticated(true);
+      setUser(validatedUser);
+      setAuthError(null);
+      setAuthErrorStatus(null);
+
+      return validatedUser;
     } catch (error) {
       console.error('ログインに失敗しました', error);
       throw error;
