@@ -1,22 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import type { LoginFormProps } from '@/types';
 import ErrorView from '@/components/common/ErrorView';
 import OmamoriIcon from '@/components/ui/OmamoriIcon';
 import Input from '@/components/ui/Input';
 import PrimaryButton from '@/components/ui/PrimaryButton';
+import { APP_ROUTES } from '@/constants/routes';
 
-export default function LoginForm({
-  email,
-  password,
-  setEmail,
-  setPassword,
-  onSubmit,
-  loading = false,
-  error = null,
-}: LoginFormProps) {
+export default function LoginForm({ onSubmit, loading = false, error = null }: LoginFormProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(email, password);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
@@ -33,7 +34,7 @@ export default function LoginForm({
         </div>
 
         <div className="rounded-xl bg-warm-surface/80 backdrop-blur-sm p-8 shadow-soft ring-1 ring-warm-brown-200/50">
-          <form onSubmit={onSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <ErrorView message={error} />
             <div>
               <Input
@@ -64,7 +65,7 @@ export default function LoginForm({
             <div className="flex items-center justify-end">
               <div className="text-sm">
                 <Link
-                  href="/password/request"
+                  href={APP_ROUTES.PASSWORD_REQUEST}
                   className="font-medium text-warm-brown-600 hover:text-warm-orange transition-colors duration-200"
                 >
                   パスワードを忘れた場合
@@ -93,7 +94,7 @@ export default function LoginForm({
               <p className="text-warm-brown-600">
                 アカウントをお持ちでないですか？{' '}
                 <Link
-                  href="/register"
+                  href={APP_ROUTES.REGISTER}
                   className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200"
                 >
                   新規登録
