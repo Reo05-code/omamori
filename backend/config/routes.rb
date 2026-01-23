@@ -50,7 +50,7 @@ Rails.application.routes.draw do
         end
 
         # SafetyLog（生存報告ログ）
-        resources :safety_logs, only: %i[index create]
+        resources :safety_logs, only: %i[index create destroy]
 
         # RiskAssessment（リスク判定履歴）
         resources :risk_assessments, only: %i[index]
