@@ -34,7 +34,7 @@ module Api
         result = SafetyLogs::CreateService.new(
           work_session: @work_session,
           actor: current_user,
-          attributes: safety_log_params.to_h,
+          attributes: safety_log_params.to_h
         ).call!
 
         assessment = result[:assessment]
@@ -55,7 +55,7 @@ module Api
         SafetyLogs::UndoService.new(
           work_session: @work_session,
           safety_log_id: params[:id],
-          actor: current_user,
+          actor: current_user
         ).call!
         render json: { status: "success" }, status: :ok
       end

@@ -48,6 +48,7 @@ module Api
       def order_direction
         raw = params[:order].to_s.downcase
         return "DESC" if raw == "desc"
+
         "ASC"
       end
 
