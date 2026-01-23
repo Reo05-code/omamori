@@ -11,6 +11,11 @@ class SafetyLog < ApplicationRecord
 
   HIGH_ACCURACY_THRESHOLD_METERS = 50
 
+  UNDOABLE_WINDOW = 15.seconds
+  # 通信遅延・端末時計差を考慮した猶予
+  # サーバ到達が境界を跨いだだけで失敗しないようにする。
+  UNDO_GRACE = 2.seconds
+
   enum :trigger_type, { heartbeat: 0, sos: 1, check_in: 2 }, prefix: true
 
   validates :logged_at, presence: true
@@ -40,6 +45,20 @@ class SafetyLog < ApplicationRecord
   # GPS精度（誤差）が50m以内のログ
   scope :high_accuracy, -> { where(gps_accuracy: ..HIGH_ACCURACY_THRESHOLD_METERS) }
   scope :recent, -> { order(logged_at: :desc) }
+
+  def undoable_trigger_type?
+    trigger_type_check_in?
+  end
+
+  def undo_expires_at
+    created_at + UNDOABLE_WINDOW
+  end
+
+  def undoable_now?(now = Time.current)
+    return false unless undoable_trigger_type?
+
+    now <= (undo_expires_at + UNDO_GRACE)
+  end
 
   private
 

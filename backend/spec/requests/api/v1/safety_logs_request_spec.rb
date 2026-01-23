@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::SafetyLogs" do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:user) { create(:user) }
   let(:organization) { create(:organization) }
   let(:work_session) { create(:work_session, user: user, organization: organization) }
@@ -79,7 +81,7 @@ RSpec.describe "Api::V1::SafetyLogs" do
              headers: user.create_new_auth_token,
              as: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["errors"]).to be_present
       end
 
@@ -93,7 +95,7 @@ RSpec.describe "Api::V1::SafetyLogs" do
              headers: user.create_new_auth_token,
              as: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
@@ -202,6 +204,69 @@ RSpec.describe "Api::V1::SafetyLogs" do
             as: :json
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe "DELETE /api/v1/work_sessions/:work_session_id/safety_logs/:id (元気タッチ取り消し)" do
+    let!(:check_in_log) { create(:safety_log, :check_in, work_session: work_session) }
+
+    context "WorkSession の所有者の場合" do
+      it "check_in ログを取り消せる" do
+        delete "/api/v1/work_sessions/#{work_session.id}/safety_logs/#{check_in_log.id}",
+               headers: user.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["status"]).to eq("success")
+        expect(SafetyLog.find_by(id: check_in_log.id)).to be_nil
+      end
+
+      it "期限を過ぎたら取り消せない" do
+        travel_to(check_in_log.created_at + SafetyLog::UNDOABLE_WINDOW + 5.seconds) do
+          delete "/api/v1/work_sessions/#{work_session.id}/safety_logs/#{check_in_log.id}",
+                 headers: user.create_new_auth_token,
+                 as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(response.parsed_body["errors"]).to include("取り消し可能な時間を過ぎています")
+        end
+      end
+
+      it "check_in 以外は取り消せない" do
+        heartbeat_log = create(:safety_log, work_session: work_session)
+
+        delete "/api/v1/work_sessions/#{work_session.id}/safety_logs/#{heartbeat_log.id}",
+               headers: user.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to include("このログは取り消しできません")
+      end
+    end
+
+    context "認可エラーの場合" do
+      it "他人の WorkSession のログは取り消せず 403" do
+        other_user = create(:user)
+        create(:membership, organization: organization, user: other_user, role: :worker)
+
+        delete "/api/v1/work_sessions/#{work_session.id}/safety_logs/#{check_in_log.id}",
+               headers: other_user.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["errors"]).to include("作業セッションの所有者のみログを削除できます")
+      end
+    end
+
+    context "ログが存在しない場合" do
+      it "404 を返す" do
+        delete "/api/v1/work_sessions/#{work_session.id}/safety_logs/99999",
+               headers: user.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["errors"]).to include("ログが見つかりません")
       end
     end
   end
