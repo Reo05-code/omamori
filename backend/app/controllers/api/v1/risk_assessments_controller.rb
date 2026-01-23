@@ -36,12 +36,19 @@ module Api
       end
 
       def build_assessments(work_session, page, per_page)
+        direction = order_direction
         RiskAssessment.joins(:safety_log)
                       .where(safety_logs: { work_session_id: work_session.id })
                       .includes(:safety_log)
-                      .order("safety_logs.logged_at ASC")
+                      .order("safety_logs.logged_at #{direction}")
                       .page(page)
                       .per(per_page)
+      end
+
+      def order_direction
+        raw = params[:order].to_s.downcase
+        return "DESC" if raw == "desc"
+        "ASC"
       end
 
       def add_pagination_headers(assessments)
