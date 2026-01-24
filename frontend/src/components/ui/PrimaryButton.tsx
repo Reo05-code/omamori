@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { COMMON } from '@/constants/ui-messages';
 import Spinner from './Spinner';
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -24,7 +25,7 @@ export default function PrimaryButton({
       {loading ? (
         <span className="flex items-center gap-2">
           <Spinner size="sm" className="text-white" />
-          <span>処理中...</span>
+          <span>{COMMON.STATUS.PROCESSING}</span>
         </span>
       ) : (
         children
