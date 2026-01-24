@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { AUTH } from '@/constants/ui-messages';
 import LogoutButton from '../ui/LogoutButton';
 import AppIcon from '../ui/AppIcon';
 import { NotificationType } from '@/types/ui';
@@ -37,12 +38,12 @@ export default function WorkerSettingsView({ onNotify }: Props) {
         <div className="p-5 space-y-4">
           {/* ログアウトセクション */}
           <div>
-            <h3 className="text-sm font-semibold text-warm-brown-800 mb-2">ログアウト</h3>
-            <p className="text-sm text-warm-brown-600 mb-4">
-              このアカウントからログアウトします。再度ログインが必要になります。
-            </p>
+            <h3 className="text-sm font-semibold text-warm-brown-800 mb-2">
+              {AUTH.LOGOUT.HEADINGS.TITLE}
+            </h3>
+            <p className="text-sm text-warm-brown-600 mb-4">{AUTH.LOGOUT.MESSAGES.DESCRIPTION}</p>
             <LogoutButton
-              onSuccess={() => onNotify('ログアウトしました', 'success')}
+              onSuccess={() => onNotify(AUTH.LOGOUT.MESSAGES.SUCCESS, 'success')}
               onError={(message) => onNotify(message, 'error')}
               variant="danger"
               className="w-full sm:w-auto"

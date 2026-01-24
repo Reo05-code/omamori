@@ -1,16 +1,9 @@
 /**
- * UIメッセージ定数
+ * 共通UIメッセージ定数
  *
- * アプリケーション全体で使用される汎用的なUIテキストを一元管理
- *
- * @example
- * import { COMMON } from '@/constants/ui-messages';
- * <button>{COMMON.BUTTONS.SAVE}</button>
+ * アプリケーション全体で使用される汎用的なUIテキスト
  */
 
-// ========================================
-// 共通（Common）
-// ========================================
 export const COMMON = {
   /**
    * ボタンテキスト
@@ -107,13 +100,3 @@ export const COMMON = {
     LOADING: '読み込み中',
   },
 } as const;
-
-// ========================================
-// 型エクスポート
-// ========================================
-export type CommonButton = (typeof COMMON.BUTTONS)[keyof typeof COMMON.BUTTONS];
-export type CommonStatus = (typeof COMMON.STATUS)[keyof typeof COMMON.STATUS];
-export type CommonValidation = (typeof COMMON.VALIDATION)[keyof typeof COMMON.VALIDATION];
-export type CommonFallbackError =
-  (typeof COMMON.FALLBACK_ERRORS)[keyof typeof COMMON.FALLBACK_ERRORS];
-export type CommonAriaLabel = (typeof COMMON.ARIA_LABELS)[keyof typeof COMMON.ARIA_LABELS];

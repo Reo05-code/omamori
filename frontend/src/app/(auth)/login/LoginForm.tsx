@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import type { LoginFormProps } from '@/types';
+import { AUTH } from '@/constants/ui-messages';
 import ErrorView from '@/components/common/ErrorView';
 import OmamoriIcon from '@/components/ui/OmamoriIcon';
 import Input from '@/components/ui/Input';
@@ -27,9 +28,11 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
               <OmamoriIcon />
             </div>
           </div>
-          <h1 className="text-center text-3xl font-bold text-warm-brown-800">Omamoriログイン</h1>
+          <h1 className="text-center text-3xl font-bold text-warm-brown-800">
+            {AUTH.LOGIN.HEADINGS.TITLE}
+          </h1>
           <p className="mt-2 text-center text-sm text-warm-brown-700">
-            アカウントにログインしてください
+            {AUTH.LOGIN.HEADINGS.DESCRIPTION}
           </p>
         </div>
 
@@ -43,7 +46,7 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
                 type="email"
                 autoComplete="email"
                 required
-                label="メールアドレス"
+                label={AUTH.COMMON.LABELS.EMAIL}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -56,7 +59,7 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
                 type="password"
                 autoComplete="current-password"
                 required
-                label="パスワード"
+                label={AUTH.COMMON.LABELS.PASSWORD}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -68,14 +71,14 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
                   href={APP_ROUTES.PASSWORD_REQUEST}
                   className="font-medium text-warm-brown-600 hover:text-warm-orange transition-colors duration-200"
                 >
-                  パスワードを忘れた場合
+                  {AUTH.LOGIN.LINKS.FORGOT_PASSWORD}
                 </Link>
               </div>
             </div>
 
             <div>
               <PrimaryButton type="submit" loading={loading}>
-                ログイン
+                {AUTH.LOGIN.BUTTONS.SUBMIT}
               </PrimaryButton>
             </div>
           </form>
@@ -86,18 +89,20 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
                 <div className="w-full border-t border-warm-brown-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-warm-surface px-3 text-warm-brown-500">または</span>
+                <span className="bg-warm-surface px-3 text-warm-brown-500">
+                  {AUTH.LOGIN.LINKS.SEPARATOR}
+                </span>
               </div>
             </div>
 
             <div className="mt-6 text-center text-sm">
               <p className="text-warm-brown-600">
-                アカウントをお持ちでないですか？{' '}
+                {AUTH.LOGIN.LINKS.NO_ACCOUNT}{' '}
                 <Link
                   href={APP_ROUTES.REGISTER}
                   className="font-bold text-warm-brown-700 hover:text-warm-orange transition-colors duration-200"
                 >
-                  新規登録
+                  {AUTH.LOGIN.LINKS.REGISTER}
                 </Link>
               </p>
             </div>

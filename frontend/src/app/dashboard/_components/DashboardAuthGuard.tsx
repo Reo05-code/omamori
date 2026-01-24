@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
+import { AUTH } from '@/constants/ui-messages';
 import ErrorView from '@/components/common/ErrorView';
 import { useAuthContext } from '@/context/AuthContext';
 
@@ -23,13 +24,13 @@ export default function DashboardAuthGuard({ children }: { children: React.React
     if (isServerSideFailure) {
       return (
         <div className="p-6">
-          <ErrorView message="認証の確認に失敗しました。時間をおいて再読み込みしてください。" />
+          <ErrorView message={AUTH.COMMON.ERRORS.VALIDATION_FAILED_DETAIL} />
           <button
             type="button"
             className="text-sm underline"
             onClick={() => window.location.reload()}
           >
-            再読み込み
+            {AUTH.COMMON.BUTTONS.RELOAD}
           </button>
         </div>
       );
@@ -37,9 +38,9 @@ export default function DashboardAuthGuard({ children }: { children: React.React
 
     return (
       <div className="p-6">
-        <p className="mb-2">ログインしてください</p>
+        <p className="mb-2">{AUTH.LOGIN.MESSAGES.LOGIN_REQUIRED}</p>
         <Link href="/login" className="text-sm underline">
-          ログインへ
+          {AUTH.LOGIN.LINKS.TO_LOGIN}
         </Link>
       </div>
     );

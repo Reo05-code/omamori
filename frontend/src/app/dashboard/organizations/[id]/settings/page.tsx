@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { AUTH } from '@/constants/ui-messages';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
 import NotificationBanner from '@/components/ui/NotificationBanner';
@@ -140,14 +141,14 @@ export default function OrganizationSettingsPage(): JSX.Element {
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  ログアウト
+                  {AUTH.LOGOUT.HEADINGS.TITLE}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  このアカウントからログアウトします。再度ログインが必要になります。
+                  {AUTH.LOGOUT.MESSAGES.DESCRIPTION}
                 </p>
                 <LogoutButton
                   onSuccess={() =>
-                    setNotification({ message: 'ログアウトしました', type: 'success' })
+                    setNotification({ message: AUTH.LOGOUT.MESSAGES.SUCCESS, type: 'success' })
                   }
                   onError={(message) => setNotification({ message, type: 'error' })}
                   variant="danger"
