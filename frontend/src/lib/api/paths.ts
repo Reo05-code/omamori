@@ -44,6 +44,8 @@ export const API_PATHS = {
     FINISH: (id: string | number) => `/api/v1/work_sessions/${id}/finish`,
     SAFETY_LOGS: (workSessionId: string | number) =>
       `/api/v1/work_sessions/${workSessionId}/safety_logs`,
+    SAFETY_LOG: (workSessionId: string | number, safetyLogId: string | number) =>
+      `/api/v1/work_sessions/${workSessionId}/safety_logs/${safetyLogId}`,
     RISK_ASSESSMENTS: (workSessionId: string | number) =>
       `/api/v1/work_sessions/${workSessionId}/risk_assessments`,
     ALERTS: (workSessionId: string | number) => `/api/v1/work_sessions/${workSessionId}/alerts`,

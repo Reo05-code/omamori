@@ -62,3 +62,17 @@ export async function createSafetyLog(
 
   return res.data;
 }
+
+export async function deleteSafetyLog(workSessionId: ApiId, safetyLogId: ApiId): Promise<void> {
+  const res = await api.delete<{ status: 'success' }>(
+    API_PATHS.WORK_SESSIONS.SAFETY_LOG(workSessionId, safetyLogId),
+  );
+
+  if (res.error) {
+    throw new ApiError(
+      res.error || `failed to delete safety log: status=${res.status}`,
+      res.status,
+      res.errorBody,
+    );
+  }
+}
