@@ -3,8 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createSosAlert } from '../lib/api/alerts';
 import { createSafetyLog } from '../lib/api/safety_logs';
 import { finishSession, getCurrentSession, startSession } from '../lib/api/work_sessions';
-import type { ApiId, SafetyLogTriggerType, WorkSession } from '../lib/api/types';
+import type {
+  ApiId,
+  CreateSafetyLogResponse,
+  SafetyLogTriggerType,
+  WorkSession,
+} from '../lib/api/types';
 import { ApiError } from '../lib/api/client';
+import { normalizeErrorMessage } from '../lib/api/error-utils';
 
 type ActionLoading = {
   start?: boolean;
@@ -26,19 +32,13 @@ type SosSendResult =
   | { ok: true; duplicate: boolean }
   | { ok: false; message: string; status?: number };
 
-function normalizeErrorMessage(err: unknown): { message: string; status?: number } {
-  if (err instanceof ApiError) {
-    if (err.status === 0) return { message: 'ネットワークエラーが発生しました', status: 0 };
-    if (err.status === 403) return { message: '権限がありません', status: 403 };
-    return { message: err.message, status: err.status };
-  }
+type StartResult =
+  | { ok: true; session: WorkSession }
+  | { ok: false; message: string; status?: number };
 
-  if (err instanceof Error) {
-    return { message: err.message };
-  }
-
-  return { message: 'エラーが発生しました' };
-}
+type FinishResult =
+  | { ok: true; alreadyFinished?: boolean }
+  | { ok: false; message: string; status?: number };
 
 export function useWorkerSession() {
   const [session, setSession] = useState<WorkSession | null>(null);
@@ -46,7 +46,9 @@ export function useWorkerSession() {
   const [actionLoading, setActionLoading] = useState<ActionLoading>({});
   const [error, setError] = useState<string | null>(null);
 
-  // コンポーネントの再レンダリングはしたくないけど、内部に保持している値だけを更新したい場合は、保持したい値をuseStateではなく、useRefを利用する
+  // NOTE: mountedRef パターンは React 18 の並行レンダリングでは推奨されない。
+  // AbortController によるキャンセル処理を主とし、mountedRef はレガシー互換として残す。
+  // 将来的には AbortController のみに統一することを推奨。
   const mountedRef = useRef(true);
   const refreshAbortRef = useRef<AbortController | null>(null);
   const inflightRefreshRef = useRef(false);
@@ -93,18 +95,24 @@ export function useWorkerSession() {
   }, []);
 
   const start = useCallback(
-    async (organizationId: ApiId) => {
+    async (organizationId: ApiId): Promise<StartResult> => {
       setAction('start', true);
       setError(null);
 
       try {
         const ws = await startSession(organizationId);
-        if (!mountedRef.current) return;
+        if (!mountedRef.current) {
+          return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+        }
         setSession(ws);
+        return { ok: true, session: ws };
       } catch (err) {
-        if (!mountedRef.current) return;
-        const { message } = normalizeErrorMessage(err);
+        if (!mountedRef.current) {
+          return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+        }
+        const { message, status } = normalizeErrorMessage(err);
         setError(message);
+        return { ok: false, message, status };
       } finally {
         if (mountedRef.current) setAction('start', false);
       }
@@ -112,10 +120,11 @@ export function useWorkerSession() {
     [setAction],
   );
 
-  const finish = useCallback(async () => {
+  const finish = useCallback(async (): Promise<FinishResult> => {
     if (!session) {
-      setError('作業セッションが開始されていません');
-      return;
+      const message = '作業セッションが開始されていません';
+      setError(message);
+      return { ok: false, message };
     }
 
     setAction('finish', true);
@@ -123,20 +132,26 @@ export function useWorkerSession() {
 
     try {
       await finishSession(session.id);
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+      }
       setSession(null);
+      return { ok: true };
     } catch (err) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+      }
 
       // Admin が先に終了させた等: 404 は「既に終了」扱いでホームに戻す
       if (err instanceof ApiError && err.status === 404) {
         setSession(null);
-        setError('作業セッションは既に終了されています');
-        return;
+        setError(null);
+        return { ok: true, alreadyFinished: true };
       }
 
-      const { message } = normalizeErrorMessage(err);
+      const { message, status } = normalizeErrorMessage(err);
       setError(message);
+      return { ok: false, message, status };
     } finally {
       if (mountedRef.current) setAction('finish', false);
     }
@@ -170,21 +185,24 @@ export function useWorkerSession() {
   );
 
   const checkIn = useCallback(
-    async (params: CheckInParams) => {
+    async (params: CheckInParams): Promise<CreateSafetyLogResponse | null> => {
       if (!session) {
         setError('作業セッションが開始されていません');
-        return;
+        return null;
       }
 
       setAction('checkIn', true);
       setError(null);
 
       try {
-        await createSafetyLog(session.id, params);
+        const created = await createSafetyLog(session.id, params);
+        if (!mountedRef.current) return null;
+        return created;
       } catch (err) {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current) return null;
         const { message } = normalizeErrorMessage(err);
         setError(message);
+        return null;
       } finally {
         if (mountedRef.current) setAction('checkIn', false);
       }
