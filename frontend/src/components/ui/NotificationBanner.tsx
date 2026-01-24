@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { COMMON } from '@/constants/ui-messages';
 import AppIcon, { type AppIconName } from './AppIcon';
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -61,7 +62,7 @@ export default function NotificationBanner({
         type="button"
         onClick={onDismiss}
         className="text-white/80 hover:text-white transition-colors"
-        aria-label="通知を閉じる"
+        aria-label={COMMON.ARIA_LABELS.CLOSE_NOTIFICATION}
       >
         <AppIcon name="close" className="text-xl" />
       </button>

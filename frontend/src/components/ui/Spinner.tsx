@@ -1,3 +1,5 @@
+import { COMMON } from '@/constants/ui-messages';
+
 type Size = 'sm' | 'md' | 'lg' | number;
 
 type Props = {
@@ -6,7 +8,11 @@ type Props = {
   label?: string;
 };
 
-export default function Spinner({ size = 'md', className = '', label }: Props) {
+export default function Spinner({
+  size = 'md',
+  className = '',
+  label = COMMON.STATUS.LOADING,
+}: Props) {
   const isNumber = typeof size === 'number';
   const sizeStyle = isNumber ? { width: size, height: size } : undefined;
 
