@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { COMMON } from '@/constants/ui-messages';
 
 type Props = {
   open: boolean;
@@ -27,8 +28,8 @@ export default function ConfirmModal({
   description,
   onConfirm,
   onCancel,
-  confirmText = '実行',
-  cancelText = 'キャンセル',
+  confirmText = COMMON.BUTTONS.EXECUTE,
+  cancelText = COMMON.BUTTONS.CANCEL,
   confirmDanger = false,
   loading = false,
 }: Props) {
