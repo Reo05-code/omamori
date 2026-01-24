@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AUTH } from '@/constants/ui-messages';
 import { useAuth } from '@/hooks/useAuth';
 import { normalizeErrorMessage } from '@/lib/api/error-utils';
 import ConfirmModal from './ConfirmModal';
@@ -73,16 +74,14 @@ export default function LogoutButton({
         className={`${buttonVariant} ${className}`}
         aria-label="ログアウト"
       >
-        {loading ? 'ログアウト中...' : 'ログアウト'}
+        {loading ? AUTH.LOGOUT.BUTTONS.LOADING : AUTH.LOGOUT.BUTTONS.DEFAULT}
       </PrimaryButton>
 
       <ConfirmModal
         open={showConfirmModal}
-        title="ログアウトしますか？"
-        description="ログアウトすると、再度ログインが必要になります。"
-        confirmText="ログアウト"
-        cancelText="キャンセル"
-        confirmDanger={true}
+        title={AUTH.LOGOUT.MODAL.TITLE}
+        description={AUTH.LOGOUT.MODAL.DESCRIPTION}
+        confirmText={AUTH.LOGOUT.BUTTONS.DEFAULT}
         loading={loading}
         onConfirm={handleLogoutConfirm}
         onCancel={handleCancel}

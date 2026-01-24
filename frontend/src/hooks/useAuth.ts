@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AUTH } from '@/constants/ui-messages';
 import { login as loginApi, logout as logoutApi, validateToken } from '../lib/api/auth';
 import type { UserResponse } from '../lib/api/types';
 
@@ -29,14 +30,14 @@ export const useAuth = () => {
 
         setIsAuthenticated(false);
         setUser(null);
-        setAuthError(validateRes.error ?? '認証の確認に失敗しました');
+        setAuthError(validateRes.error ?? AUTH.COMMON.ERRORS.VALIDATION_FAILED);
         setAuthErrorStatus(validateRes.status ?? null);
       } catch (e) {
         // 非同期検証が失敗しても特にエラーを投げない
         if (mounted) {
           setIsAuthenticated(false);
           setUser(null);
-          setAuthError('認証の確認に失敗しました');
+          setAuthError(AUTH.COMMON.ERRORS.VALIDATION_FAILED);
           setAuthErrorStatus(0);
         }
       } finally {
@@ -63,11 +64,9 @@ export const useAuth = () => {
       if (validateRes.error || !validateRes.data) {
         setIsAuthenticated(false);
         setUser(null);
-        setAuthError(validateRes.error ?? '認証の確認に失敗しました');
+        setAuthError(validateRes.error ?? AUTH.COMMON.ERRORS.VALIDATION_FAILED);
         setAuthErrorStatus(validateRes.status ?? null);
-        throw new Error(
-          validateRes.error ?? '認証情報の反映に時間がかかっています。再度お試しください。',
-        );
+        throw new Error(validateRes.error ?? AUTH.COMMON.ERRORS.VALIDATION_RETRY);
       }
 
       const validatedUser: UserResponse = validateRes.data.data;
