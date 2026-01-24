@@ -5,6 +5,7 @@ import { API_PATHS } from './paths';
 type FetchRiskAssessmentsParams = {
   page?: number;
   perPage?: number;
+  order?: 'asc' | 'desc';
 };
 
 // APIに送る検索条件（クエリパラメータ）をURLの形式（例: ?page=1&per_page=20）に変換する
@@ -18,6 +19,9 @@ function buildQuery(params?: FetchRiskAssessmentsParams): string {
   }
   if (typeof params.perPage === 'number') {
     searchParams.set('per_page', String(params.perPage));
+  }
+  if (params.order === 'asc' || params.order === 'desc') {
+    searchParams.set('order', params.order);
   }
 
   const qs = searchParams.toString();
