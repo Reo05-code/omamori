@@ -126,6 +126,14 @@ export const MEMBER = {
     FETCH_FAILED: '取得に失敗しました',
     REFETCH_FAILED: '再取得に失敗しました',
     LOAD_FAILED_RETRY: '読み込みに失敗しました。時間をおいて再度お試しください。',
+    LAST_ADMIN_CONSTRAINT: () => '最後の管理者は削除または権限変更できません',
+    SELF_DELETE: () => '自分自身は削除できません',
+    DELETE_FAILED: () => '削除に失敗しました',
+    ROLE_UPDATE_FAILED: () => '権限の更新に失敗しました',
+  },
+
+  BUTTONS: {
+    DELETE: '削除',
   },
 } as const;
 

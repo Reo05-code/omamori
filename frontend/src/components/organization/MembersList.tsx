@@ -13,6 +13,8 @@ import {
   type UpdateMembershipRequest,
 } from '@/lib/api/memberships';
 import { ROLE_LABELS } from '@/constants/labels';
+import { MEMBER } from '@/constants/ui-messages/organization';
+import { COMMON } from '@/constants/ui-messages/common';
 
 type Notification = {
   message: string;
@@ -23,7 +25,7 @@ type Notification = {
 function renderName(m: Membership): string {
   if (m.name) return m.name;
   if (m.email) return m.email.split('@')[0];
-  return '（名前なし）';
+  return MEMBER.LABELS.NO_NAME;
 }
 
 function isMembershipRole(value: string): value is MembershipRole {
@@ -87,7 +89,7 @@ export function MembersList({
         if (e instanceof Error && e.name === 'AbortError') return;
 
         if (!controller.signal.aborted) {
-          setError('メンバーリストの読み込みに失敗しました。');
+          setError(MEMBER.ERRORS.LOAD_FAILED);
         }
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -104,16 +106,16 @@ export function MembersList({
   // Logic Helpers
   // --------------------------------------------------------------------------
   const isLastAdmin = (m: Membership) => m.role === 'admin' && adminCount <= 1;
-  const LAST_ADMIN_MSG = '最後の管理者は削除または権限変更できません';
-  const SELF_DEMOTE_MSG = '自分自身を管理者から降格できません';
-  const SELF_DELETE_MSG = '自分自身は削除できません';
+  const LAST_ADMIN_MSG = MEMBER.ERRORS.LAST_ADMIN_CONSTRAINT();
+  const SELF_DEMOTE_MSG = MEMBER.ERRORS.SELF_DELETE();
+  const SELF_DELETE_MSG = MEMBER.ERRORS.SELF_DELETE();
 
   // --------------------------------------------------------------------------
   // Handlers
   // --------------------------------------------------------------------------
   const handleChangeRole = async (m: Membership, nextRole: string) => {
     if (!isMembershipRole(nextRole)) {
-      onNotify({ message: '不正な権限が指定されました', type: 'error' });
+      onNotify({ message: MEMBER.ERRORS.ROLE_UPDATE_FAILED(), type: 'error' });
       return;
     }
 
@@ -141,7 +143,7 @@ export function MembersList({
 
       const updated = await updateMembership(organizationId, m.id, body);
 
-      onNotify({ message: '権限を更新しました', type: 'success' });
+      onNotify({ message: MEMBER.MESSAGES.DYNAMIC.ROLE_UPDATED(), type: 'success' });
 
       // ローカルstateを更新 (Optimistic UI)
       setMembers((prev) => {
@@ -150,7 +152,7 @@ export function MembersList({
       });
     } catch (e: unknown) {
       console.error('failed to update role', e);
-      onNotify({ message: '権限の更新に失敗しました', type: 'error' });
+      onNotify({ message: MEMBER.ERRORS.ROLE_UPDATE_FAILED(), type: 'error' });
     } finally {
       setUpdatingId(null);
     }
@@ -181,7 +183,7 @@ export function MembersList({
     try {
       await deleteMembership(organizationId, target.id);
 
-      onNotify({ message: 'メンバーを削除しました', type: 'success' });
+      onNotify({ message: MEMBER.MESSAGES.DYNAMIC.DELETED(), type: 'success' });
 
       // 【修正】サーバーへの再取得を待たずに、即座にUIから消す
       setMembers((prev) => (prev ? prev.filter((m) => m.id !== target.id) : prev));
@@ -190,7 +192,7 @@ export function MembersList({
       fetchList().catch(console.error);
     } catch (e: unknown) {
       console.error('failed to delete membership', e);
-      onNotify({ message: '削除に失敗しました', type: 'error' });
+      onNotify({ message: MEMBER.ERRORS.DELETE_FAILED(), type: 'error' });
     } finally {
       setIsDeleting(false);
       setMemberToDelete(null);
@@ -199,14 +201,14 @@ export function MembersList({
 
   return (
     <div className="space-y-4">
-      {isLoading && <p className="text-gray-500 py-4">読み込み中です...</p>}
+      {isLoading && <p className="text-gray-500 py-4">{MEMBER.MESSAGES.STATIC.LOADING}</p>}
 
       {!isLoading && error && <ErrorView message={error} />}
 
       {!isLoading && !error && members && (
         <>
           {members.length === 0 ? (
-            <p className="text-sm text-gray-500">メンバーがいません</p>
+            <p className="text-sm text-gray-500">{MEMBER.MESSAGES.STATIC.NO_MEMBERS}</p>
           ) : (
             <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
               <table className="min-w-full divide-y divide-gray-200">
@@ -216,22 +218,22 @@ export function MembersList({
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      名前
+                      {MEMBER.LABELS.NAME}
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      メールアドレス
+                      {MEMBER.LABELS.EMAIL}
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      権限
+                      {MEMBER.LABELS.ROLE}
                     </th>
                     <th scope="col" className="relative px-6 py-3">
-                      <span className="sr-only">操作</span>
+                      <span className="sr-only">{MEMBER.LABELS.ACTIONS}</span>
                     </th>
                   </tr>
                 </thead>
@@ -293,7 +295,7 @@ export function MembersList({
                             title={deleteDisabledReason}
                             className="text-red-600 hover:text-red-900 hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
                           >
-                            削除
+                            {MEMBER.BUTTONS.DELETE}
                           </button>
                         </td>
                       </tr>
@@ -308,14 +310,12 @@ export function MembersList({
 
       <ConfirmModal
         open={confirmOpen}
-        title="メンバーを削除しますか？"
+        title={MEMBER.MODAL.DELETE.TITLE}
         description={
-          memberToDelete
-            ? `${renderName(memberToDelete)} を組織から削除します。この操作は取り消せません。`
-            : ''
+          memberToDelete ? MEMBER.MODAL.DELETE.DESCRIPTION(renderName(memberToDelete)) : ''
         }
-        confirmText="削除する"
-        cancelText="キャンセル"
+        confirmText={MEMBER.MODAL.DELETE.CONFIRM_TEXT}
+        cancelText={COMMON.BUTTONS.CANCEL}
         confirmDanger={true}
         onConfirm={handleConfirmDelete}
         onCancel={() => {
