@@ -254,6 +254,7 @@ export interface CreateSafetyLogResponse {
   risk_level: 'safe' | 'caution' | 'danger';
   risk_reasons: string[];
   next_poll_interval: number;
+  undo_expires_at: string | null;
 }
 
 // POST /api/v1/work_sessions/:id/alerts の戻り値で使用
