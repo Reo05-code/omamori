@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AUTH } from '@/constants/ui-messages';
+import { AUTH } from '@/constants/ui-messages/auth';
 import { login as loginApi, logout as logoutApi, validateToken } from '../lib/api/auth';
 import type { UserResponse } from '../lib/api/types';
 
