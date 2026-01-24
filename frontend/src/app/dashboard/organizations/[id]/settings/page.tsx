@@ -14,6 +14,7 @@ import {
 } from '@/components/organization/OrganizationInfoForm';
 import { InvitationsList } from '@/components/organization/InvitationsList';
 import { MembersList } from '@/components/organization/MembersList';
+import LogoutButton from '@/components/ui/LogoutButton';
 
 export default function OrganizationSettingsPage(): JSX.Element {
   const params = useParams();
@@ -127,6 +128,33 @@ export default function OrganizationSettingsPage(): JSX.Element {
               currentUserId={user.id}
               onNotify={setNotification}
             />
+          </div>
+        </section>
+
+        {/* アカウント管理 */}
+        <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">アカウント管理</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  ログアウト
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  このアカウントからログアウトします。再度ログインが必要になります。
+                </p>
+                <LogoutButton
+                  onSuccess={() =>
+                    setNotification({ message: 'ログアウトしました', type: 'success' })
+                  }
+                  onError={(message) => setNotification({ message, type: 'error' })}
+                  variant="danger"
+                  className="w-auto"
+                />
+              </div>
+            </div>
           </div>
         </section>
       </div>

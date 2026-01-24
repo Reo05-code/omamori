@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import AppIcon from '../ui/AppIcon';
 import CurrentTime from './CurrentTime';
 
@@ -8,6 +10,8 @@ type Props = {
 };
 
 export default function WorkerShell({ title = 'オマモリ', children }: Props) {
+  const pathname = usePathname();
+
   return (
     <main className="mx-auto w-full max-w-md min-h-screen flex flex-col">
       <header className="px-4 pt-6 pb-3 flex items-center justify-between">
@@ -24,15 +28,34 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
 
       <nav className="fixed bottom-0 left-0 right-0 bg-warm-surface/90 backdrop-blur border-t border-warm-brown-200/40">
         <div className="mx-auto max-w-md grid grid-cols-3 px-6 py-3 text-xs text-warm-brown-700">
-          <button className="flex flex-col items-center gap-1" type="button" aria-current="page">
+          <Link
+            href="/worker"
+            className={`flex flex-col items-center gap-1 transition-colors ${
+              pathname === '/worker'
+                ? 'text-warm-orange font-semibold'
+                : 'hover:text-warm-brown-800'
+            }`}
+            aria-current={pathname === '/worker' ? 'page' : undefined}
+          >
             <AppIcon name="home" className="text-base" />
             <span>ホーム</span>
-          </button>
-          <button className="flex flex-col items-center gap-1" type="button">
+          </Link>
+          <Link
+            href="/worker/settings"
+            className={`flex flex-col items-center gap-1 transition-colors ${
+              pathname === '/worker/settings'
+                ? 'text-warm-orange font-semibold'
+                : 'hover:text-warm-brown-800'
+            }`}
+            aria-current={pathname === '/worker/settings' ? 'page' : undefined}
+          >
             <AppIcon name="settings" className="text-base" />
             <span>設定</span>
-          </button>
-          <button className="flex flex-col items-center gap-1" type="button">
+          </Link>
+          <button
+            className="flex flex-col items-center gap-1 hover:text-warm-brown-800 transition-colors"
+            type="button"
+          >
             <AppIcon name="help_outline" className="text-base" />
             <span>ヘルプ</span>
           </button>
