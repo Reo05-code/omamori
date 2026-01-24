@@ -100,7 +100,7 @@ export default function OrganizationAlertsPage() {
   }, [user, orgId]);
 
   const [alerts, setAlerts] = useState<AlertResponse[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -108,9 +108,15 @@ export default function OrganizationAlertsPage() {
   const canView = role === 'admin';
 
   useEffect(() => {
-    if (!orgId) return;
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
     if (authLoading) return;
-    if (!canView) return;
+    if (!canView) {
+      setLoading(false);
+      return;
+    }
 
     const controller = new AbortController();
     setLoading(true);
