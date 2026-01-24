@@ -1,0 +1,78 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useAuthContext } from '@/context/AuthContext';
+import WorkerShell from '@/components/worker/WorkerShell';
+import WorkerSettingsView from '@/components/worker/WorkerSettingsView';
+import NotificationBanner from '@/components/ui/NotificationBanner';
+import Spinner from '@/components/ui/Spinner';
+import Link from 'next/link';
+import AppIcon from '@/components/ui/AppIcon';
+
+export default function WorkerSettingsPage() {
+  const { user, loading } = useAuthContext();
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+  } | null>(null);
+
+  const handleNotify = (message: string, type: 'success' | 'error' | 'info') => {
+    setNotification({ message, type });
+  };
+
+  const handleDismiss = () => {
+    setNotification(null);
+  };
+
+  // 認証確認中
+  if (loading) {
+    return (
+      <WorkerShell>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" label="読み込み中..." />
+        </div>
+      </WorkerShell>
+    );
+  }
+
+  // 未認証
+  if (!user) {
+    return (
+      <WorkerShell>
+        <div className="text-center py-12">
+          <p className="text-warm-brown-700 mb-4">ログインが必要です</p>
+          <Link href="/" className="text-warm-orange hover:underline font-medium">
+            ← ログインページへ
+          </Link>
+        </div>
+      </WorkerShell>
+    );
+  }
+
+  return (
+    <WorkerShell>
+      {/* 通知バナー */}
+      {notification && (
+        <NotificationBanner
+          message={notification.message}
+          type={notification.type}
+          onDismiss={handleDismiss}
+        />
+      )}
+
+      {/* 戻るリンク */}
+      <div className="mb-4">
+        <Link
+          href="/worker"
+          className="inline-flex items-center gap-1 text-sm text-warm-brown-600 hover:text-warm-brown-800 transition-colors"
+        >
+          <AppIcon name="chevron_left" className="text-base" />
+          <span>ホームに戻る</span>
+        </Link>
+      </div>
+
+      {/* 設定画面 */}
+      <WorkerSettingsView onNotify={handleNotify} />
+    </WorkerShell>
+  );
+}
