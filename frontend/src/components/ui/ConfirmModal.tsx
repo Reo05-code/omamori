@@ -11,6 +11,7 @@ type Props = {
   confirmText?: string;
   cancelText?: string;
   confirmDanger?: boolean;
+  loading?: boolean;
 };
 
 /**
@@ -29,6 +30,7 @@ export default function ConfirmModal({
   confirmText = '実行',
   cancelText = 'キャンセル',
   confirmDanger = false,
+  loading = false,
 }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -135,6 +137,7 @@ export default function ConfirmModal({
             ref={confirmButtonRef}
             type="button"
             onClick={onConfirm}
+            disabled={loading}
             className={confirmButtonClass}
           >
             {confirmText}
