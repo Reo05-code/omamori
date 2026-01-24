@@ -7,6 +7,8 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { InviteMemberModal } from '@/components/organization/InviteMemberModal';
 import type { Invitation } from '@/lib/api/types';
 import { deleteInvitation, fetchInvitations } from '@/lib/api/invitations';
+import { COMMON } from '@/constants/ui-messages/common';
+import { INVITATION } from '@/constants/ui-messages/organization';
 
 type Notification = {
   message: string;
@@ -91,7 +93,7 @@ export function InvitationsList({
       } catch (e: unknown) {
         if (e instanceof Error && e.name === 'AbortError') return;
         console.error('failed to fetch invitations', e);
-        setError('読み込みに失敗しました。');
+        setError(INVITATION.ERRORS.LOAD_FAILED);
       } finally {
         setLoading(false);
       }
@@ -116,7 +118,7 @@ export function InvitationsList({
     try {
       await deleteInvitation(organizationId, target.id);
 
-      onNotify({ message: '招待を削除しました', type: 'success' });
+      onNotify({ message: INVITATION.MESSAGES.DYNAMIC.DELETED(), type: 'success' });
 
       // UX向上: サーバーへの再取得を待たずに、UIから即座に消す
       setInvitations((prev) => (prev ? prev.filter((i) => i.id !== target.id) : prev));
@@ -125,7 +127,7 @@ export function InvitationsList({
       fetchList().catch(console.error);
     } catch (e: unknown) {
       console.error('failed to delete invitation', e);
-      const message = e instanceof Error ? e.message : '削除に失敗しました';
+      const message = e instanceof Error ? e.message : INVITATION.MESSAGES.DYNAMIC.DELETE_FAILED();
       onNotify({ message, type: 'error' });
     } finally {
       setDeletingId(null);
@@ -136,22 +138,22 @@ export function InvitationsList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">招待</h2>
+        <h2 className="text-lg font-semibold text-gray-800">{INVITATION.HEADINGS.TITLE}</h2>
         <button
           type="button"
           onClick={() => setIsInviteModalOpen(true)}
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm"
         >
-          新規招待
+          {INVITATION.BUTTONS.NEW_INVITATION}
         </button>
       </div>
-      {loading && <p className="text-gray-500 py-4">読み込み中です...</p>}
+      {loading && <p className="text-gray-500 py-4">{INVITATION.MESSAGES.STATIC.LOADING}</p>}
       {!loading && error && <ErrorView message={error} />}
       {!loading && !error && (
         <>
           {pendingInvitations.length === 0 ? (
             <div className="p-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <p className="text-gray-500">保留中の招待はありません</p>
+              <p className="text-gray-500">{INVITATION.MESSAGES.STATIC.NO_PENDING}</p>
             </div>
           ) : (
             <div className="overflow-hidden bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -162,13 +164,13 @@ export function InvitationsList({
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      メールアドレス
+                      {INVITATION.LABELS.EMAIL}
                     </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      招待日時
+                      {INVITATION.LABELS.INVITED_AT}
                     </th>
                     <th scope="col" className="relative px-6 py-3">
                       <span className="sr-only">操作</span>
@@ -194,7 +196,9 @@ export function InvitationsList({
                           disabled={deletingId === inv.id}
                           className="text-red-600 hover:text-red-900 hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                         >
-                          {deletingId === inv.id ? '削除中...' : '削除'}
+                          {deletingId === inv.id
+                            ? INVITATION.BUTTONS.DELETING
+                            : INVITATION.BUTTONS.DELETE}
                         </button>
                       </td>
                     </tr>
@@ -211,7 +215,7 @@ export function InvitationsList({
         onClose={() => setIsInviteModalOpen(false)}
         organizationId={organizationId}
         onSuccess={() => {
-          onNotify({ message: '招待メールを送信しました', type: 'success' });
+          onNotify({ message: INVITATION.MESSAGES.DYNAMIC.SENT(), type: 'success' });
           // 新規作成時はリストの順序が変わる可能性があるため、正直にリロードする
           fetchList().catch(console.error);
         }}
@@ -219,14 +223,14 @@ export function InvitationsList({
       {/* Delete Confirm Modal */}
       <ConfirmModal
         open={isConfirmOpen}
-        title="招待を取り消しますか？"
+        title={INVITATION.MODAL.DELETE.TITLE}
         description={
           invitationToDelete
-            ? `${invitationToDelete.invited_email} への招待リンクを無効化します。この操作は取り消せません。`
+            ? INVITATION.MODAL.DELETE.DESCRIPTION(invitationToDelete.invited_email)
             : ''
         }
-        confirmText="削除する"
-        cancelText="キャンセル"
+        confirmText={INVITATION.MODAL.DELETE.CONFIRM_TEXT}
+        cancelText={COMMON.BUTTONS.CANCEL}
         confirmDanger={true}
         onConfirm={handleConfirmDelete}
         onCancel={() => {

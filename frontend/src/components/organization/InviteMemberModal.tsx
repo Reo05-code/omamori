@@ -1,11 +1,9 @@
-/**
- * メンバー招待モーダルコンポーネント
- * メールアドレスとロールを指定して組織にメンバーを招待する
- */
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { createInvitation } from '../../lib/api/invitations';
+import { COMMON } from '@/constants/ui-messages/common';
+import { INVITATION } from '@/constants/ui-messages/organization';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -47,12 +45,12 @@ export function InviteMemberModal({
 
     // バリデーション
     if (!email.trim()) {
-      setError('メールアドレスを入力してください');
+      setError(INVITATION.ERRORS.EMAIL_REQUIRED);
       return;
     }
 
     if (!validateEmail(email)) {
-      setError('有効なメールアドレスを入力してください');
+      setError(INVITATION.ERRORS.EMAIL_INVALID);
       return;
     }
 
@@ -70,19 +68,19 @@ export function InviteMemberModal({
 
       switch (errorMessage) {
         case 'already_member':
-          setError('このユーザーは既にメンバーです');
+          setError(INVITATION.ERRORS.ALREADY_MEMBER);
           break;
         case 'already_invited':
-          setError('このメールアドレスには既に招待を送信しています');
+          setError(INVITATION.ERRORS.ALREADY_INVITED);
           break;
         case 'invalid_role':
           setError('無効なロールが指定されました');
           break;
         case 'forbidden':
-          setError('招待する権限がありません');
+          setError(INVITATION.ERRORS.PERMISSION_DENIED);
           break;
         default:
-          setError('招待の送信に失敗しました');
+          setError(INVITATION.ERRORS.SEND_FAILED);
       }
     } finally {
       setIsSubmitting(false);
@@ -103,7 +101,7 @@ export function InviteMemberModal({
     >
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">メンバーを招待</h2>
+          <h2 className="text-xl font-semibold">{INVITATION.HEADINGS.INVITE_MEMBER}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -128,7 +126,7 @@ export function InviteMemberModal({
           {/* メールアドレス入力 */}
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              メールアドレス
+              {INVITATION.LABELS.EMAIL}
             </label>
             <input
               type="email"
@@ -136,7 +134,7 @@ export function InviteMemberModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="example@example.com"
+              placeholder={INVITATION.PLACEHOLDERS.EMAIL}
               disabled={isSubmitting}
               required
             />
@@ -174,14 +172,14 @@ export function InviteMemberModal({
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
               disabled={isSubmitting}
             >
-              キャンセル
+              {COMMON.BUTTONS.CANCEL}
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
-              {isSubmitting ? '送信中...' : '招待を送信'}
+              {isSubmitting ? INVITATION.BUTTONS.SENDING : INVITATION.BUTTONS.SEND}
             </button>
           </div>
         </form>
