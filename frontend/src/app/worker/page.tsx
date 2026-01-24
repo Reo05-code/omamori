@@ -7,22 +7,18 @@ import MonitoringView from '../../components/worker/MonitoringView';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
+import { useLatestRiskAssessment } from '../../hooks/useLatestRiskAssessment';
+import { useNotificationBanner } from '../../hooks/useNotificationBanner';
+import { usePollingWhenIdle } from '../../hooks/usePollingWhenIdle';
+import { useUndoCountdown } from '../../hooks/useUndoCountdown';
+import { useWorkerOrganization } from '../../hooks/useWorkerOrganization';
 import { useWorkerSession } from '../../hooks/useWorkerSession';
 import { usePageVisibility } from '../../hooks/usePageVisibility';
 import { getCurrentPositionBestEffort, getDeviceInfoWithLocation } from '../../lib/geolocation';
-import { api } from '../../lib/api/client';
-import { API_PATHS } from '../../lib/api/paths';
-import type { Organization } from '../../types';
-
-type Notification = {
-  message: string;
-  type: 'success' | 'error' | 'info';
-};
+import { deleteSafetyLog } from '../../lib/api/safety_logs';
+import { WORKER_CONFIG } from '../../config/worker';
 
 export default function WorkerHomePage() {
-  const [organizationId, setOrganizationId] = useState<number | null>(null);
-  const [loadingOrg, setLoadingOrg] = useState<boolean>(true);
-
   const {
     session,
     loadingSession,
@@ -38,103 +34,98 @@ export default function WorkerHomePage() {
   const isVisible = usePageVisibility();
 
   const [showFinishModal, setShowFinishModal] = useState(false);
-  const [notification, setNotification] = useState<Notification | null>(null);
   const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
+  const [undoLoading, setUndoLoading] = useState<boolean>(false);
 
-  // 進行中セッションがあれば組織IDは確定できる
-  useEffect(() => {
-    if (!organizationId && session?.organization_id) {
-      setOrganizationId(session.organization_id);
-      setLoadingOrg(false);
-    }
-  }, [organizationId, session?.organization_id]);
+  const {
+    notification,
+    dismissNotification,
+    notifySuccess,
+    notifyError,
+    notifyInfo,
+    setNotification,
+  } = useNotificationBanner();
 
-  // 組織IDがない場合は最初の組織を取得
-  useEffect(() => {
-    if (!organizationId && !session) {
-      const ctrl = new AbortController();
-      setLoadingOrg(true);
+  const handleOrganizationError = useCallback(
+    (message: string) => {
+      notifyError(message);
+    },
+    [notifyError],
+  );
 
-      async function fetchOrgs() {
-        try {
-          const res = await api.get<Organization[]>(API_PATHS.ORGANIZATIONS.BASE, {
-            signal: ctrl.signal,
-          });
+  const { organizationId, loadingOrg } = useWorkerOrganization({
+    session,
+    onError: handleOrganizationError,
+  });
 
-          if (res.error) {
-            throw new Error(res.error);
-          }
+  const { riskLevel, setRiskLevel, riskLoading, refreshLatestRisk } = useLatestRiskAssessment({
+    workSessionId: session ? session.id : null,
+  });
 
-          const orgs = res.data || [];
-
-          if (orgs.length === 0) {
-            setNotification({ message: '組織が見つかりません', type: 'error' });
-          } else {
-            setOrganizationId(orgs[0].id);
-          }
-        } catch (e: any) {
-          if (e?.name === 'AbortError') return;
-          console.error('failed to fetch organizations', e);
-          setNotification({ message: '組織の取得に失敗しました', type: 'error' });
-        } finally {
-          setLoadingOrg(false);
-        }
-      }
-
-      fetchOrgs();
-      return () => ctrl.abort();
-    }
-    if (organizationId) {
-      setLoadingOrg(false);
-    }
-  }, [organizationId, session]);
+  const { undoInfo, undoSecondsLeft, startUndo, clearUndo } = useUndoCountdown({
+    intervalMs: 1000,
+  });
 
   // セッションエラーを通知バナーに変換
   useEffect(() => {
     if (sessionError) {
-      setNotification({ message: sessionError, type: 'error' });
+      const type = sessionError.includes('既に終了') ? 'info' : 'error';
+      setNotification({ message: sessionError, type });
     }
-  }, [sessionError]);
+  }, [sessionError, setNotification]);
 
   // StartView 滞在中のみポーリングでセッションを検知（可視時のみ）
-  useEffect(() => {
-    // ガード節: 不要な条件をすべて列挙
-    if (!isVisible || session || loadingSession) return;
-
-    // 条件を満たす場合のみタイマーセット
-    const intervalId = window.setInterval(() => {
-      refreshCurrent();
-    }, 15000);
-
-    // クリーンアップ: 条件が変わった瞬間にReactが実行
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [isVisible, session, loadingSession, refreshCurrent]);
+  usePollingWhenIdle({
+    enabled: Boolean(isVisible && !session && !loadingSession),
+    intervalMs: WORKER_CONFIG.START_VIEW_POLL_INTERVAL_MS,
+    onTick: refreshCurrent,
+  });
 
   // 見守り開始
   const handleStart = useCallback(async () => {
     if (!organizationId) {
-      setNotification({ message: '組織IDが取得できませんでした', type: 'error' });
+      notifyError('組織IDが取得できませんでした');
       return;
     }
 
-    await start(organizationId);
+    const result = await start(organizationId);
 
-    if (!sessionError) {
-      setNotification({ message: '見守りを開始しました', type: 'success' });
+    if (result.ok) {
+      notifySuccess('見守りを開始しました');
     }
-  }, [organizationId, start, sessionError]);
+  }, [organizationId, start, notifyError, notifySuccess]);
 
   const handleCheckIn = useCallback(async () => {
+    if (undoInfo) {
+      notifyInfo('直前の送信を取り消すか、時間切れを待ってください');
+      return;
+    }
+
+    if (riskLoading) {
+      notifyInfo('リスク判定中です。少し待ってください');
+      return;
+    }
+
+    if (riskLevel === 'safe') {
+      notifyInfo('現在は元気タッチの送信は不要です');
+      return;
+    }
+
+    // critical（danger）の時は「長押し完了」タイミングで振動
+    if (riskLevel === 'danger') {
+      try {
+        navigator.vibrate?.(200);
+      } catch {
+        // ignore
+      }
+    }
+
     // 位置情報とバッテリーレベルを取得
+    // NOTE: 元気タッチではバッテリー情報も重要なため getDeviceInfoWithLocation を使用
     const deviceInfo = await getDeviceInfoWithLocation();
 
     if (!deviceInfo) {
-      setNotification({
-        message: '位置情報の取得に失敗しました。設定を確認してください',
-        type: 'error',
-      });
+      notifyError('位置情報の取得に失敗しました。設定を確認してください');
       return;
     }
 
@@ -150,29 +141,63 @@ export default function WorkerHomePage() {
       loggedAt: new Date().toISOString(),
     };
 
-    await checkIn(params);
+    const created = await checkIn(params);
+    if (!created) return;
 
-    if (!sessionError) {
-      setLastCheckInTime(
-        new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-      );
-      setNotification({ message: '安否を報告しました', type: 'success' });
+    setLastCheckInTime(
+      new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+    );
+    setRiskLevel(created.risk_level);
+
+    const parsedExpiresAt = created.undo_expires_at ? Date.parse(created.undo_expires_at) : NaN;
+    const expiresAt = Number.isFinite(parsedExpiresAt)
+      ? parsedExpiresAt
+      : Date.now() + WORKER_CONFIG.UNDO_WINDOW_MS;
+    startUndo({ safetyLogId: created.safety_log.id, expiresAt });
+    notifySuccess('安否を報告しました');
+  }, [
+    checkIn,
+    notifyError,
+    notifyInfo,
+    notifySuccess,
+    riskLevel,
+    riskLoading,
+    setRiskLevel,
+    startUndo,
+    undoInfo,
+  ]);
+
+  const handleUndo = useCallback(async () => {
+    if (!session || !undoInfo) return;
+
+    setUndoLoading(true);
+    try {
+      await deleteSafetyLog(session.id, undoInfo.safetyLogId);
+      clearUndo();
+      notifySuccess('元気タッチを取り消しました');
+      await refreshLatestRisk();
+    } catch (e: any) {
+      console.error('failed to undo safety log', e);
+      const message = e?.message ? String(e.message) : '取り消しに失敗しました';
+      notifyError(message);
+    } finally {
+      setUndoLoading(false);
     }
-  }, [checkIn, sessionError]);
+  }, [session, undoInfo, refreshLatestRisk, clearUndo, notifyError, notifySuccess]);
 
   // SOS送信
   const handleSos = useCallback(async () => {
     if (!session) {
-      setNotification({
-        message: '見守りを開始してからSOSを送信してください',
-        type: 'info',
-      });
+      notifyInfo('見守りを開始してからSOSを送信してください');
       return;
     }
 
     // 位置情報（ベストエフォート取得）
-    // SOSでは「送信できないこと」が最悪のリスクなので、短時間で取得を諦めてもアラート自体は送信する
-    const position = await getCurrentPositionBestEffort({ timeoutMs: 4000 });
+    // NOTE: SOSでは「送信できないこと」が最悪のリスクなので、
+    // バッテリー情報不要かつ短時間タイムアウトの getCurrentPositionBestEffort を使用
+    const position = await getCurrentPositionBestEffort({
+      timeoutMs: WORKER_CONFIG.SOS_LOCATION_TIMEOUT_MS,
+    });
     const coords = position
       ? { latitude: position.latitude, longitude: position.longitude }
       : undefined;
@@ -180,20 +205,17 @@ export default function WorkerHomePage() {
     const result = await sendSos(coords);
 
     if (!result.ok) {
-      setNotification({ message: result.message, type: 'error' });
+      notifyError(result.message);
       return;
     }
 
     if (result.duplicate) {
-      setNotification({ message: 'SOSは送信済みです。安全な場所で待機してください', type: 'info' });
+      notifyInfo('SOSは送信済みです。安全な場所で待機してください');
       return;
     }
 
-    setNotification({
-      message: 'SOSを送信しました。安全な場所で待機してください',
-      type: 'success',
-    });
-  }, [session, sendSos]);
+    notifySuccess('SOSを送信しました。安全な場所で待機してください');
+  }, [notifyError, notifyInfo, notifySuccess, sendSos, session]);
 
   // 終了確認モーダルを開く
   const handleFinishRequest = useCallback(() => {
@@ -203,21 +225,22 @@ export default function WorkerHomePage() {
   // 終了実行
   const handleFinishConfirm = useCallback(async () => {
     setShowFinishModal(false);
-    await finish();
+    const result = await finish();
 
-    if (!sessionError) {
-      setNotification({ message: '見守りを終了しました', type: 'success' });
-    } else if (sessionError.includes('既に終了')) {
-      setNotification({ message: '作業セッションは既に終了されています', type: 'info' });
+    if (result.ok && result.alreadyFinished) {
+      notifyInfo('作業セッションは既に終了されています');
       // refreshCurrent で session=null にする
       await refreshCurrent();
+      return;
     }
-  }, [finish, sessionError, refreshCurrent]);
+
+    if (result.ok) {
+      notifySuccess('見守りを終了しました');
+    }
+  }, [finish, notifyInfo, notifySuccess, refreshCurrent]);
 
   // 通知を閉じる
-  const handleDismissNotification = useCallback(() => {
-    setNotification(null);
-  }, []);
+  const handleDismissNotification = dismissNotification;
 
   // 初回読み込み中（組織情報またはセッション情報）
   if ((loadingOrg || loadingSession) && !session) {
@@ -250,6 +273,11 @@ export default function WorkerHomePage() {
           onFinish={handleFinishRequest}
           checkInLoading={actionLoading.checkIn}
           sosLoading={actionLoading.sos}
+          riskLevel={riskLevel}
+          riskLoading={riskLoading}
+          undoSecondsLeft={undoSecondsLeft}
+          undoLoading={undoLoading}
+          onUndo={handleUndo}
         />
       ) : (
         <StartView onStart={handleStart} loading={actionLoading.start} />
