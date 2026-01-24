@@ -165,7 +165,7 @@ export default function LongPressButton({
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="relative inline-block">
+    <div className="relative block w-full">
       <button
         type="button"
         aria-label={ariaLabel}
@@ -173,7 +173,7 @@ export default function LongPressButton({
         // UX対策:
         // touch-none: ブラウザのスクロールやズームを無効化
         // select-none: 長押し時のテキスト選択を防止
-        className={`relative touch-none select-none outline-none ${className} disabled:opacity-60 disabled:cursor-not-allowed`}
+        className={`relative block w-full touch-none select-none outline-none ${className} disabled:opacity-60 disabled:cursor-not-allowed`}
         // イベント処理:
         // Pointer Events API に一本化することで、マウス・タッチ・ペンの競合を防ぐ
         onPointerDown={handleStart}
