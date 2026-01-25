@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppIcon from '../ui/AppIcon';
 import CurrentTime from './CurrentTime';
+import { WORKER } from '@/constants/ui-messages';
 
 type Props = {
   title?: string;
   children: React.ReactNode;
 };
 
-export default function WorkerShell({ title = 'オマモリ', children }: Props) {
+export default function WorkerShell({ title = WORKER.COMMON.APP_NAME, children }: Props) {
   const pathname = usePathname();
 
   return (
@@ -38,7 +39,7 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
             aria-current={pathname === '/worker' ? 'page' : undefined}
           >
             <AppIcon name="home" className="text-base" />
-            <span>ホーム</span>
+            <span>{WORKER.NAVIGATION.HOME}</span>
           </Link>
           <Link
             href="/worker/settings"
@@ -50,14 +51,14 @@ export default function WorkerShell({ title = 'オマモリ', children }: Props)
             aria-current={pathname === '/worker/settings' ? 'page' : undefined}
           >
             <AppIcon name="settings" className="text-base" />
-            <span>設定</span>
+            <span>{WORKER.NAVIGATION.SETTINGS}</span>
           </Link>
           <button
             className="flex flex-col items-center gap-1 hover:text-warm-brown-800 transition-colors"
             type="button"
           >
             <AppIcon name="help_outline" className="text-base" />
-            <span>ヘルプ</span>
+            <span>{WORKER.NAVIGATION.HELP}</span>
           </button>
         </div>
       </nav>
