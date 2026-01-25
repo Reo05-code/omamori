@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AUTH } from '@/constants/ui-messages/auth';
+import { WORKER } from '@/constants/ui-messages';
 import LogoutButton from '../ui/LogoutButton';
 import AppIcon from '../ui/AppIcon';
 import { NotificationType } from '@/types/ui';
@@ -22,8 +23,8 @@ export default function WorkerSettingsView({ onNotify }: Props) {
     <div className="space-y-5">
       {/* ページタイトル */}
       <div className="border-b border-warm-brown-200 pb-4">
-        <h1 className="text-2xl font-bold text-warm-brown-800">設定</h1>
-        <p className="text-sm text-warm-brown-600 mt-1">アカウントの設定を管理します</p>
+        <h1 className="text-2xl font-bold text-warm-brown-800">{WORKER.SETTINGS.HEADINGS.TITLE}</h1>
+        <p className="text-sm text-warm-brown-600 mt-1">{WORKER.SETTINGS.HEADINGS.DESCRIPTION}</p>
       </div>
 
       {/* アカウント管理セクション */}
@@ -31,7 +32,9 @@ export default function WorkerSettingsView({ onNotify }: Props) {
         <div className="px-5 py-4 bg-warm-surface border-b border-warm-brown-200">
           <div className="flex items-center gap-2">
             <AppIcon name="settings" className="text-warm-brown-700 text-xl" />
-            <h2 className="text-lg font-bold text-warm-brown-800">アカウント管理</h2>
+            <h2 className="text-lg font-bold text-warm-brown-800">
+              {WORKER.SETTINGS.HEADINGS.ACCOUNT_MANAGEMENT}
+            </h2>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import NotificationBanner from '@/components/ui/NotificationBanner';
 import Spinner from '@/components/ui/Spinner';
 import Link from 'next/link';
 import AppIcon from '@/components/ui/AppIcon';
+import { WORKER, AUTH, COMMON } from '@/constants/ui-messages';
 
 export default function WorkerSettingsPage() {
   const { user, loading } = useAuthContext();
@@ -29,7 +30,7 @@ export default function WorkerSettingsPage() {
     return (
       <WorkerShell>
         <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" label="読み込み中..." />
+          <Spinner size="lg" label={COMMON.STATUS.LOADING} />
         </div>
       </WorkerShell>
     );
@@ -40,9 +41,9 @@ export default function WorkerSettingsPage() {
     return (
       <WorkerShell>
         <div className="text-center py-12">
-          <p className="text-warm-brown-700 mb-4">ログインが必要です</p>
+          <p className="text-warm-brown-700 mb-4">{AUTH.LOGIN.MESSAGES.LOGIN_REQUIRED}</p>
           <Link href="/" className="text-warm-orange hover:underline font-medium">
-            ← ログインページへ
+            ← {AUTH.LOGIN.LINKS.TO_LOGIN}
           </Link>
         </div>
       </WorkerShell>
@@ -67,7 +68,7 @@ export default function WorkerSettingsPage() {
           className="inline-flex items-center gap-1 text-sm text-warm-brown-600 hover:text-warm-brown-800 transition-colors"
         >
           <AppIcon name="chevron_left" className="text-base" />
-          <span>ホームに戻る</span>
+          <span>{WORKER.NAVIGATION.BACK_TO_HOME}</span>
         </Link>
       </div>
 
