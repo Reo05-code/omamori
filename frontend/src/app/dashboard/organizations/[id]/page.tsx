@@ -11,6 +11,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import { useAuthContext } from '@/context/AuthContext';
 import { RecentAlertsWidget } from './_components/RecentAlertsWidget';
 import MapCard from './_components/MapCard';
+import { DASHBOARD, COMMON, AUTH } from '@/constants/ui-messages';
 
 export default function OrganizationDashboard() {
   const params = useParams();
@@ -18,11 +19,11 @@ export default function OrganizationDashboard() {
   const { user, loading } = useAuthContext();
 
   if (loading) {
-    return <div className="p-6">読み込み中...</div>;
+    return <div className="p-6">{DASHBOARD.STATUS.LOADING}</div>;
   }
 
   if (!user) {
-    return <div className="p-6">ログインしてください</div>;
+    return <div className="p-6">{AUTH.LOGIN.MESSAGES.LOGIN_REQUIRED}</div>;
   }
 
   const role = getUserRole(user, organizationId);
@@ -30,7 +31,7 @@ export default function OrganizationDashboard() {
   if (!role) {
     return (
       <div className="p-6">
-        <p className="text-red-600">この組織へのアクセス権限がありません</p>
+        <p className="text-red-600">{DASHBOARD.STATUS.ERROR}</p>
       </div>
     );
   }
@@ -81,7 +82,7 @@ function AdminView({ organizationId }: { organizationId: string }) {
           <Skeleton variant="card" />
         ) : (
           <DashboardCard
-            title="稼働中メンバー"
+            title={DASHBOARD.CARDS.ACTIVE_WORKERS.TITLE}
             value={activeCount}
             icon="group"
             statusText={activeCount > 0 ? '稼働中' : '待機中'}

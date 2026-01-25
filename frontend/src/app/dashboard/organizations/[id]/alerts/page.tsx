@@ -16,6 +16,7 @@ import { useAuthContext } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
 import { AlertFilters } from './_components/AlertFilters';
 import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
+import { ALERT, DASHBOARD, COMMON, AUTH } from '@/constants/ui-messages';
 
 // ISO形式の日時文字列を「YYYY-MM-DD HH:mm:ss」の日本語表記に変換する。
 function formatDateTime(raw: string | null | undefined): string {
@@ -129,7 +130,7 @@ export default function OrganizationAlertsPage() {
         if (e.name === 'AbortError') return;
 
         console.error('failed to fetch organization alerts', e);
-        setError('読み込みに失敗しました。時間をおいて再度お試しください。');
+        setError(ALERT.MESSAGES.LOAD_ERROR);
         setAlerts(null);
       })
       .finally(() => setLoading(false));
@@ -158,21 +159,21 @@ export default function OrganizationAlertsPage() {
   };
 
   if (authLoading) {
-    return <div className="p-6">読み込み中...</div>;
+    return <div className="p-6">{ALERT.STATUS.LOADING}</div>;
   }
 
   if (!user) {
-    return <div className="p-6">ログインしてください</div>;
+    return <div className="p-6">{AUTH.LOGIN.MESSAGES.LOGIN_REQUIRED}</div>;
   }
 
   if (!orgId) {
-    return <div className="p-6">組織IDが不正です</div>;
+    return <div className="p-6">{DASHBOARD.STATUS.ERROR}</div>;
   }
 
   if (!canView) {
     return (
       <div className="p-6">
-        <p className="text-red-600">権限がありません</p>
+        <p className="text-red-600">{ALERT.MESSAGES.ACCESS_DENIED}</p>
       </div>
     );
   }
@@ -181,7 +182,7 @@ export default function OrganizationAlertsPage() {
     <div className="px-6 pt-2 pb-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-warm-gray-900 dark:text-warm-gray-100">
-          アラート一覧
+          {ALERT.PAGE.TITLE}
         </h1>
         {/* <Link
           href={`/dashboard/organizations/${orgId}`}
@@ -214,7 +215,7 @@ export default function OrganizationAlertsPage() {
                 .then((data) => setAlerts(data))
                 .catch((e) => {
                   console.error('failed to fetch organization alerts', e);
-                  setError('読み込みに失敗しました。時間をおいて再度お試しください。');
+                  setError(ALERT.MESSAGES.LOAD_ERROR);
                   setAlerts(null);
                 })
                 .finally(() => setLoading(false));
@@ -227,7 +228,7 @@ export default function OrganizationAlertsPage() {
       )}
 
       {!loading && !error && alerts && alerts.length === 0 && (
-        <p className="mt-4 text-warm-gray-600 dark:text-warm-gray-400">アラートはありません。</p>
+        <p className="mt-4 text-warm-gray-600 dark:text-warm-gray-400">{ALERT.PAGE.NO_ALERTS}</p>
       )}
 
       {!loading && !error && alerts && alerts.length > 0 && (

@@ -10,6 +10,7 @@ import AppIcon from '../ui/AppIcon';
 import SidebarLink from './SidebarLink';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
+import { DASHBOARD } from '@/constants/ui-messages';
 
 // --------------------------------------------------------------------------
 // Main Component: Sidebar
@@ -101,7 +102,7 @@ export default function Sidebar({
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('failed to fetch organizations', e);
-        setErrorMessage('組織の取得に失敗しました');
+        setErrorMessage(DASHBOARD.STATUS.ERROR);
 
         if (errorTimeoutRef.current !== null) {
           window.clearTimeout(errorTimeoutRef.current);
@@ -153,7 +154,7 @@ export default function Sidebar({
           <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}` : '/dashboard'}
             iconName="dashboard"
-            label="ダッシュボード"
+            label={DASHBOARD.NAVIGATION.ITEMS.DASHBOARD}
             isActive={isDashboardPath}
             isLoading={loading}
             collapsed={sidebarCollapsed}
@@ -163,7 +164,7 @@ export default function Sidebar({
           <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}/members` : '/dashboard/organizations'}
             iconName="people"
-            label="メンバー"
+            label={DASHBOARD.NAVIGATION.ITEMS.MEMBERS}
             isActive={isMembersPath}
             isLoading={loading}
             collapsed={sidebarCollapsed}
@@ -173,7 +174,7 @@ export default function Sidebar({
           <SidebarLink
             href={orgId ? `/dashboard/organizations/${orgId}/work_logs` : '/dashboard'}
             iconName="article"
-            label="作業ログ"
+            label={DASHBOARD.NAVIGATION.ITEMS.WORK_LOGS}
             isActive={isWorkLogsPath}
             isLoading={loading}
             collapsed={sidebarCollapsed}
@@ -184,7 +185,7 @@ export default function Sidebar({
             <SidebarLink
               href={currentOrgId ? `/dashboard/organizations/${currentOrgId}/alerts` : '/dashboard'}
               iconName="notifications"
-              label="アラート"
+              label={DASHBOARD.NAVIGATION.ITEMS.ALERTS}
               isActive={isAlertsPath}
               isLoading={loading}
               collapsed={sidebarCollapsed}
@@ -222,7 +223,7 @@ export default function Sidebar({
           <SidebarLink
             href={`/dashboard/organizations/${currentOrgId}/settings`}
             iconName="settings"
-            label="設定"
+            label={DASHBOARD.NAVIGATION.ITEMS.SETTINGS}
             isActive={isSettingsPath}
             isLoading={loading}
             collapsed={sidebarCollapsed}
