@@ -17,6 +17,7 @@ import { usePageVisibility } from '../../hooks/usePageVisibility';
 import { getCurrentPositionBestEffort, getDeviceInfoWithLocation } from '../../lib/geolocation';
 import { deleteSafetyLog } from '../../lib/api/safety_logs';
 import { WORKER_CONFIG } from '../../config/worker';
+import { WORKER, COMMON } from '@/constants/ui-messages';
 
 export default function WorkerHomePage() {
   const {
@@ -84,30 +85,30 @@ export default function WorkerHomePage() {
   // 見守り開始
   const handleStart = useCallback(async () => {
     if (!organizationId) {
-      notifyError('組織IDが取得できませんでした');
+      notifyError(WORKER.MONITORING.ERRORS.ORG_ID_MISSING);
       return;
     }
 
     const result = await start(organizationId);
 
     if (result.ok) {
-      notifySuccess('見守りを開始しました');
+      notifySuccess(WORKER.MONITORING.MESSAGES.START_SUCCESS);
     }
   }, [organizationId, start, notifyError, notifySuccess]);
 
   const handleCheckIn = useCallback(async () => {
     if (undoInfo) {
-      notifyInfo('直前の送信を取り消すか、時間切れを待ってください');
+      notifyInfo(WORKER.CHECK_IN.MESSAGES.WAIT_UNDO);
       return;
     }
 
     if (riskLoading) {
-      notifyInfo('リスク判定中です。少し待ってください');
+      notifyInfo(WORKER.CHECK_IN.MESSAGES.RISK_LOADING);
       return;
     }
 
     if (riskLevel === 'safe') {
-      notifyInfo('現在は元気タッチの送信は不要です');
+      notifyInfo(WORKER.CHECK_IN.MESSAGES.NOT_NEEDED);
       return;
     }
 
@@ -125,7 +126,7 @@ export default function WorkerHomePage() {
     const deviceInfo = await getDeviceInfoWithLocation();
 
     if (!deviceInfo) {
-      notifyError('位置情報の取得に失敗しました。設定を確認してください');
+      notifyError(WORKER.CHECK_IN.ERRORS.LOCATION_FAILED);
       return;
     }
 
@@ -154,7 +155,7 @@ export default function WorkerHomePage() {
       ? parsedExpiresAt
       : Date.now() + WORKER_CONFIG.UNDO_WINDOW_MS;
     startUndo({ safetyLogId: created.safety_log.id, expiresAt });
-    notifySuccess('安否を報告しました');
+    notifySuccess(WORKER.CHECK_IN.MESSAGES.SUCCESS);
   }, [
     checkIn,
     notifyError,
@@ -174,11 +175,11 @@ export default function WorkerHomePage() {
     try {
       await deleteSafetyLog(session.id, undoInfo.safetyLogId);
       clearUndo();
-      notifySuccess('元気タッチを取り消しました');
+      notifySuccess(WORKER.CHECK_IN.MESSAGES.UNDO_SUCCESS);
       await refreshLatestRisk();
     } catch (e: any) {
       console.error('failed to undo safety log', e);
-      const message = e?.message ? String(e.message) : '取り消しに失敗しました';
+      const message = e?.message ? String(e.message) : WORKER.CHECK_IN.ERRORS.UNDO_FAILED;
       notifyError(message);
     } finally {
       setUndoLoading(false);
@@ -188,7 +189,7 @@ export default function WorkerHomePage() {
   // SOS送信
   const handleSos = useCallback(async () => {
     if (!session) {
-      notifyInfo('見守りを開始してからSOSを送信してください');
+      notifyInfo(WORKER.SOS.MESSAGES.NEED_SESSION);
       return;
     }
 
@@ -210,11 +211,11 @@ export default function WorkerHomePage() {
     }
 
     if (result.duplicate) {
-      notifyInfo('SOSは送信済みです。安全な場所で待機してください');
+      notifyInfo(WORKER.SOS.MESSAGES.DUPLICATE);
       return;
     }
 
-    notifySuccess('SOSを送信しました。安全な場所で待機してください');
+    notifySuccess(WORKER.SOS.MESSAGES.SUCCESS);
   }, [notifyError, notifyInfo, notifySuccess, sendSos, session]);
 
   // 終了確認モーダルを開く
@@ -228,14 +229,14 @@ export default function WorkerHomePage() {
     const result = await finish();
 
     if (result.ok && result.alreadyFinished) {
-      notifyInfo('作業セッションは既に終了されています');
+      notifyInfo(WORKER.MONITORING.MESSAGES.ALREADY_FINISHED);
       // refreshCurrent で session=null にする
       await refreshCurrent();
       return;
     }
 
     if (result.ok) {
-      notifySuccess('見守りを終了しました');
+      notifySuccess(WORKER.MONITORING.MESSAGES.FINISH_SUCCESS);
     }
   }, [finish, notifyInfo, notifySuccess, refreshCurrent]);
 
@@ -247,7 +248,7 @@ export default function WorkerHomePage() {
     return (
       <WorkerShell>
         <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" label="読み込み中..." />
+          <Spinner size="lg" label={COMMON.STATUS.LOADING} />
         </div>
       </WorkerShell>
     );
@@ -286,10 +287,10 @@ export default function WorkerHomePage() {
       {/* 終了確認モーダル */}
       <ConfirmModal
         open={showFinishModal}
-        title="見守りを終了しますか？"
-        description="終了すると、元気タッチやSOS発信ができなくなります。"
-        confirmText="終了"
-        cancelText="キャンセル"
+        title={WORKER.MONITORING.MODAL.FINISH_TITLE}
+        description={WORKER.MONITORING.MODAL.FINISH_DESCRIPTION}
+        confirmText={WORKER.MONITORING.LABELS.FINISH}
+        cancelText={COMMON.BUTTONS.CANCEL}
         confirmDanger={true}
         onConfirm={handleFinishConfirm}
         onCancel={() => setShowFinishModal(false)}
