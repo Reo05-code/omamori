@@ -11,6 +11,7 @@ import SidebarLink from './SidebarLink';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
 import { DASHBOARD } from '@/constants/ui-messages';
+import Logo from '../ui/Logo';
 
 // --------------------------------------------------------------------------
 // Main Component: Sidebar
@@ -144,9 +145,10 @@ export default function Sidebar({
       <div>
         {/* Header */}
         <div className="h-16 flex items-center justify-center border-b border-border-light dark:border-border-dark">
-          <h1 className="text-xl font-bold tracking-wider text-primary dark:text-white uppercase">
-            {sidebarCollapsed ? '' : 'Omamori'}
-          </h1>
+          <Logo
+            variant={sidebarCollapsed ? 'icon' : 'full'}
+            className="transition-all duration-200"
+          />
         </div>
 
         {/* Navigation Links */}

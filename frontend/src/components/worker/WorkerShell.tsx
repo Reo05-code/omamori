@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppIcon from '../ui/AppIcon';
+import Logo from '../ui/Logo';
 import CurrentTime from './CurrentTime';
 import { WORKER } from '@/constants/ui-messages';
 
@@ -15,14 +16,14 @@ export default function WorkerShell({ title = WORKER.COMMON.APP_NAME, children }
 
   return (
     <main className="mx-auto w-full max-w-md min-h-screen flex flex-col">
-      <header className="px-4 pt-6 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-warm-orange-light/40 flex items-center justify-center">
-            <AppIcon name="shield" className="text-warm-brown-800 text-xl" />
-          </div>
-          <span className="text-lg font-bold">{title}</span>
+      <header className="px-3 pt-6 pb-3 flex flex-col items-center gap-4 relative">
+        <div className="absolute right-2 top-6">
+          <CurrentTime />
         </div>
-        <CurrentTime />
+        <div className="flex items-center gap-2">
+          <Logo variant="icon" className="h-8 w-20" />
+          <span className="text-lg font-bold text-warm-brown-800">Omamori</span>
+        </div>
       </header>
 
       <section className="flex-1 px-4 pb-24">{children}</section>

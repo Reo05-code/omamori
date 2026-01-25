@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { LoginFormProps } from '@/types';
 import { AUTH } from '@/constants/ui-messages';
 import ErrorView from '@/components/common/ErrorView';
-import OmamoriIcon from '@/components/ui/OmamoriIcon';
+import Logo from '@/components/ui/Logo';
 import Input from '@/components/ui/Input';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import { APP_ROUTES } from '@/constants/routes';
@@ -24,9 +24,7 @@ export default function LoginForm({ onSubmit, loading = false, error = null }: L
       <div className="w-full max-w-md space-y-8">
         <div>
           <div className="flex justify-center mb-4">
-            <div className="h-16 w-16 rounded-full bg-warm-orange-light flex items-center justify-center">
-              <OmamoriIcon />
-            </div>
+            <Logo variant="small" />
           </div>
           <h1 className="text-center text-3xl font-bold text-warm-brown-800">
             {AUTH.LOGIN.HEADINGS.TITLE}
