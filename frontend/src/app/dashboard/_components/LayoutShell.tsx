@@ -62,14 +62,15 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
               id="mobile-dashboard-menu"
             >
               <div className="relative h-full bg-warm-bg dark:bg-[#0f172a]">
-                <button
+                {/* モバイルメニュー閉じるボタン（非表示）*/}
+                {/* <button
                   type="button"
                   className="absolute right-4 top-4 z-50 p-2.5 rounded-md bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"
                   aria-label="メニューを閉じる"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <AppIcon name="close" className="text-xl" />
-                </button>
+                </button> */}
                 <Sidebar
                   sidebarCollapsed={false}
                   setSidebarCollapsed={setSidebarCollapsed}
