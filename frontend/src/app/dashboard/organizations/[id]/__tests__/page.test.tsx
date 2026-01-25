@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { fetchMemberships } from '@/lib/api/memberships';
 import { fetchOrganizationAlertsSummary } from '@/lib/api/alerts';
+import { DASHBOARD } from '@/constants/ui-messages';
 import OrganizationDashboard from '../page';
 
 jest.mock('@/lib/api/memberships', () => ({
@@ -14,6 +15,7 @@ jest.mock('@/lib/api/memberships', () => ({
 
 jest.mock('@/lib/api/alerts', () => ({
   fetchOrganizationAlertsSummary: jest.fn(),
+  fetchOrganizationAlerts: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock('@/context/AuthContext', () => ({
@@ -58,7 +60,9 @@ describe('OrganizationDashboard', () => {
     render(<OrganizationDashboard />);
 
     // カードのリンクを探す
-    const cardLink = await screen.findByRole('link', { name: /稼働中メンバー/ });
+    const cardLink = await screen.findByRole('link', {
+      name: new RegExp(`${DASHBOARD.CARDS.ACTIVE_WORKERS.TITLE}`),
+    });
     expect(cardLink).toHaveAttribute('href', '/dashboard/organizations/1/members');
 
     // 稼働中人数（2人）が表示される
