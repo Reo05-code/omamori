@@ -6,6 +6,9 @@ import { COMMON } from './common';
 import { AUTH } from './auth';
 import { ORGANIZATION, MEMBER, INVITATION } from './organization';
 import { WORKER } from './worker';
+import { DASHBOARD } from './dashboard';
+import { ALERT } from './alert';
+import { WORK_LOG } from './work-log';
 
 // ========================================
 // COMMON 型
@@ -59,3 +62,29 @@ export type WorkerSosLabel = (typeof WORKER.SOS.LABELS)[keyof typeof WORKER.SOS.
 export type WorkerSettingsHeading =
   (typeof WORKER.SETTINGS.HEADINGS)[keyof typeof WORKER.SETTINGS.HEADINGS];
 export type WorkerNavigation = (typeof WORKER.NAVIGATION)[keyof typeof WORKER.NAVIGATION];
+
+// ========================================
+// DASHBOARD 型
+// ========================================
+export type DashboardNavigation =
+  (typeof DASHBOARD.NAVIGATION.ITEMS)[keyof typeof DASHBOARD.NAVIGATION.ITEMS];
+export type DashboardCardTitle =
+  | (typeof DASHBOARD.CARDS.ACTIVE_WORKERS)[keyof typeof DASHBOARD.CARDS.ACTIVE_WORKERS]
+  | (typeof DASHBOARD.CARDS.ALERTS)[keyof typeof DASHBOARD.CARDS.ALERTS]
+  | (typeof DASHBOARD.CARDS.RECENT_ALERTS)[keyof typeof DASHBOARD.CARDS.RECENT_ALERTS]
+  | (typeof DASHBOARD.CARDS.MAP)[keyof typeof DASHBOARD.CARDS.MAP];
+
+// ========================================
+// ALERT 型
+// ========================================
+export type AlertPageHeading = (typeof ALERT.PAGE)[keyof typeof ALERT.PAGE];
+export type AlertTableHeader = (typeof ALERT.TABLE.HEADERS)[keyof typeof ALERT.TABLE.HEADERS];
+export type AlertFilter = (typeof ALERT.FILTERS)[keyof typeof ALERT.FILTERS];
+
+// ========================================
+// WORK_LOG 型
+// ========================================
+export type WorkLogPageHeading = (typeof WORK_LOG.PAGE)[keyof typeof WORK_LOG.PAGE];
+export type WorkLogTab = (typeof WORK_LOG.TABS)[keyof typeof WORK_LOG.TABS];
+export type WorkLogBasicInfoField =
+  (typeof WORK_LOG.BASIC_INFO.FIELDS)[keyof typeof WORK_LOG.BASIC_INFO.FIELDS];
