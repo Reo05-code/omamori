@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AUTH } from '@/constants/ui-messages';
+import { AUTH } from '@/constants/ui-messages/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { normalizeErrorMessage } from '@/lib/api/error-utils';
 import ConfirmModal from './ConfirmModal';

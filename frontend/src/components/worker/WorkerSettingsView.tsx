@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AUTH } from '@/constants/ui-messages';
+import { AUTH } from '@/constants/ui-messages/auth';
 import LogoutButton from '../ui/LogoutButton';
 import AppIcon from '../ui/AppIcon';
 import { NotificationType } from '@/types/ui';

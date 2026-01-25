@@ -2,6 +2,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api/client';
 import { API_PATHS } from '../../lib/api/paths';
+import { COMMON } from '@/constants/ui-messages/common';
+import { ORGANIZATION } from '@/constants/ui-messages/organization';
 
 type Organization = {
   id: number;
@@ -58,7 +60,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
     e.preventDefault();
     setError(null);
     if (!name.trim()) {
-      setError('組織名を入力してください');
+      setError(ORGANIZATION.ERRORS.NAME_REQUIRED);
       return;
     }
 
@@ -70,12 +72,12 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
       });
 
       if (res.error) {
-        setError(res.error || '作成に失敗しました');
+        setError(res.error || ORGANIZATION.ERRORS.CREATE_FAILED);
         return;
       }
 
       if (!res.data) {
-        setError('サーバーから不正な応答が返りました');
+        setError(ORGANIZATION.ERRORS.FETCH_FAILED);
         return;
       }
 
@@ -83,7 +85,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
       setName('');
       onCreated?.(res.data);
     } catch (err) {
-      setError('ネットワークエラーが発生しました。通信状況を確認してください');
+      setError(ORGANIZATION.ERRORS.LOAD_FAILED_RETRY);
     } finally {
       setLoading(false);
     }
@@ -113,10 +115,10 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
           id="create-org-title"
           className="text-lg font-medium text-gray-900 dark:text-white mb-2"
         >
-          組織を作成
+          {ORGANIZATION.HEADINGS.CREATE}
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          まずは組織を作成して始めましょう。
+          {ORGANIZATION.MESSAGES.STATIC.CREATE_PROMPT}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -124,7 +126,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
             htmlFor="org-name"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            組織名
+            {ORGANIZATION.LABELS.NAME}
           </label>
           <input
             ref={inputRef}
@@ -132,8 +134,8 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
             onChange={(e) => setName(e.target.value)}
             id="org-name"
             className="mt-2 mb-3 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            placeholder="会社名、チーム名など"
-            aria-label="組織名"
+            placeholder={ORGANIZATION.PLACEHOLDERS.NAME}
+            aria-label={ORGANIZATION.LABELS.NAME}
           />
 
           {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
@@ -145,7 +147,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
                 onClick={handleClose}
                 className="px-4 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50"
               >
-                キャンセル
+                {COMMON.BUTTONS.CANCEL}
               </button>
             )}
 
@@ -154,7 +156,7 @@ export default function CreateOrganizationModal({ open, onCreated, forceCreate, 
               disabled={loading}
               className="px-4 py-2 bg-primary text-white rounded-md text-sm disabled:opacity-60"
             >
-              {loading ? '作成中...' : '作成する'}
+              {loading ? ORGANIZATION.BUTTONS.CREATING : ORGANIZATION.BUTTONS.CREATE}
             </button>
           </div>
         </form>

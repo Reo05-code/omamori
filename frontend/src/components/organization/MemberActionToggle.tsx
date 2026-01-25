@@ -1,5 +1,7 @@
 import React from 'react';
 import type { Membership } from '@/lib/api/types';
+import { MEMBER } from '@/constants/ui-messages/organization';
+import { COMMON } from '@/constants/ui-messages/common';
 
 type Props = {
   member: Membership;
@@ -17,7 +19,7 @@ export function MemberActionToggle({ member, name, isProcessing, onToggle }: Pro
         type="button"
         role="switch"
         aria-checked={isActive}
-        aria-label={`${name}の見守りを${isActive ? '終了' : '開始'}`}
+        aria-label={MEMBER.MODAL.REMOTE_TOGGLE.ARIA_LABEL(name, isActive)}
         data-testid={`remote-toggle-${member.id}`}
         disabled={isProcessing}
         onClick={() => onToggle(member)}
@@ -31,7 +33,9 @@ export function MemberActionToggle({ member, name, isProcessing, onToggle }: Pro
           }`}
         />
       </button>
-      {isProcessing ? <span className="ml-2 text-xs text-gray-500">操作中...</span> : null}
+      {isProcessing ? (
+        <span className="ml-2 text-xs text-gray-500">{COMMON.STATUS.PROCESSING}</span>
+      ) : null}
     </div>
   );
 }

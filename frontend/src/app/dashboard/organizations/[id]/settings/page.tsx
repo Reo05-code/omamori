@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { AUTH } from '@/constants/ui-messages';
+import { AUTH } from '@/constants/ui-messages/auth';
+import { ORGANIZATION } from '@/constants/ui-messages/organization';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
 import NotificationBanner from '@/components/ui/NotificationBanner';
@@ -47,7 +48,7 @@ export default function OrganizationSettingsPage(): JSX.Element {
   if (!user || !orgId) {
     return (
       <div className="p-6">
-        <ErrorView message="組織情報が見つかりません、またはログインが必要です。" />
+        <ErrorView message={ORGANIZATION.ERRORS.LOAD_FAILED} />
       </div>
     );
   }
@@ -60,7 +61,7 @@ export default function OrganizationSettingsPage(): JSX.Element {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">設定</h1>
         </div>
         <div className="mt-4">
-          <ErrorView message="このページを表示する権限がありません。" />
+          <ErrorView message={ORGANIZATION.ERRORS.LOAD_FAILED} />
         </div>
         <div className="mt-4">
           <Link
@@ -68,7 +69,7 @@ export default function OrganizationSettingsPage(): JSX.Element {
             className="text-sm text-blue-600 hover:underline flex items-center"
           >
             <AppIcon name="chevron_left" className="mr-1" />
-            組織トップへ戻る
+            {ORGANIZATION.HEADINGS.BACK_TO_TOP}
           </Link>
         </div>
       </div>
@@ -87,13 +88,15 @@ export default function OrganizationSettingsPage(): JSX.Element {
       )}
 
       <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">組織設定</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {ORGANIZATION.HEADINGS.SETTINGS}
+        </h1>
         <Link
           href={`/dashboard/organizations/${orgId}`}
           className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors flex items-center"
         >
           <AppIcon name="chevron_left" className="mr-1 text-lg" />
-          組織ダッシュボードへ戻る
+          {ORGANIZATION.HEADINGS.BACK_TO_DASHBOARD}
         </Link>
       </div>
 
@@ -101,7 +104,9 @@ export default function OrganizationSettingsPage(): JSX.Element {
         {/* 組織情報フォーム */}
         <section className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">基本情報</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              {ORGANIZATION.HEADINGS.BASIC_INFO}
+            </h2>
           </div>
           <div className="p-6">
             <OrganizationInfoForm organizationId={orgId} onNotify={setNotification} />

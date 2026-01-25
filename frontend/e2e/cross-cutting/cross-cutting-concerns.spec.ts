@@ -163,7 +163,7 @@ test.describe('横断・回復性テスト', () => {
 
     // in-flight中は二重送信できない状態になっていること
     await expect(toggle).toBeDisabled();
-    await expect(page.getByText('操作中...')).toBeVisible();
+    await expect(page.getByText('処理中...')).toBeVisible();
 
     // 2回目クリックを試みる（UI側で二重送信が防止されること）
     await startButton.click({ timeout: 200 }).catch(() => undefined);

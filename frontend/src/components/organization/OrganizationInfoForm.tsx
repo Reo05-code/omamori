@@ -5,6 +5,8 @@ import { useEffect, useState, useCallback } from 'react';
 import ErrorView from '@/components/common/ErrorView';
 import type { Organization } from '@/lib/api/types';
 import { fetchOrganization, updateOrganization } from '@/lib/api/organizations';
+import { COMMON } from '@/constants/ui-messages/common';
+import { ORGANIZATION } from '@/constants/ui-messages/organization';
 
 export type Notification = {
   message: string;
@@ -21,10 +23,10 @@ function validateOrganizationName(name: string): string | null {
   const trimmed = name.trim();
 
   if (!trimmed) {
-    return '組織名は必須です';
+    return ORGANIZATION.ERRORS.NAME_REQUIRED;
   }
   if (trimmed.length > 100) {
-    return '組織名は100文字以内で入力してください';
+    return ORGANIZATION.ERRORS.NAME_TOO_LONG;
   }
 
   return null;
@@ -90,7 +92,7 @@ export function OrganizationInfoForm({
         if (e instanceof Error && e.name === 'AbortError') return;
 
         console.error('OrganizationInfoForm: failed to fetch', e);
-        setFetchError('組織情報の読み込みに失敗しました。');
+        setFetchError(ORGANIZATION.ERRORS.LOAD_FAILED);
       } finally {
         setIsLoading(false);
       }
@@ -144,7 +146,7 @@ export function OrganizationInfoForm({
       setName(updated.name ?? trimmedName);
       setIsDirty(false);
 
-      onNotify({ message: '組織名を更新しました', type: 'success' });
+      onNotify({ message: ORGANIZATION.MESSAGES.DYNAMIC.NAME_UPDATED(), type: 'success' });
     } catch (e: unknown) {
       console.error('OrganizationInfoForm: failed to update', e);
 
@@ -168,7 +170,7 @@ export function OrganizationInfoForm({
     // ちらつき防止のため、簡易的なローディング表示（本来はSkeleton推奨）
     return (
       <p className="text-gray-500 py-4" aria-live="polite">
-        読み込み中です...
+        {ORGANIZATION.MESSAGES.STATIC.LOADING}
       </p>
     );
   }
@@ -181,7 +183,7 @@ export function OrganizationInfoForm({
     <form className="space-y-4 max-w-xl" onSubmit={(e) => e.preventDefault()}>
       <div>
         <label htmlFor="org-name" className="block text-sm font-bold text-gray-700 mb-1">
-          組織名
+          {ORGANIZATION.LABELS.NAME}
         </label>
         <div className="mt-1">
           <input
@@ -197,7 +199,7 @@ export function OrganizationInfoForm({
               ${validationError && isDirty ? 'border-red-300 bg-red-50' : 'border-gray-300'}
               ${isSaving ? 'bg-gray-100 text-gray-500 cursor-wait' : ''}
             `}
-            placeholder="例: 株式会社テック"
+            placeholder={ORGANIZATION.PLACEHOLDERS.NAME_EXAMPLE}
             aria-invalid={!!validationError}
             aria-describedby={validationError ? 'org-name-error' : undefined}
           />
@@ -222,7 +224,7 @@ export function OrganizationInfoForm({
             disabled:opacity-50 disabled:cursor-not-allowed transition-colors
           "
         >
-          キャンセル
+          {COMMON.BUTTONS.CANCEL}
         </button>
         <button
           type="button"
@@ -234,7 +236,7 @@ export function OrganizationInfoForm({
             disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm
           "
         >
-          {isSaving ? '保存中...' : '保存'}
+          {isSaving ? COMMON.STATUS.PROCESSING : COMMON.BUTTONS.SAVE}
         </button>
       </div>
     </form>
