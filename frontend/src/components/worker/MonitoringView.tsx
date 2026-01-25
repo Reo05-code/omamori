@@ -6,6 +6,7 @@ import LongPressButton from '../ui/LongPressButton';
 import StatusCard from './StatusCard';
 import AppIcon from '../ui/AppIcon';
 import type { RiskAssessmentLevel } from '../../lib/api/types';
+import { WORKER } from '@/constants/ui-messages';
 
 type Props = {
   lastCheckInTime?: string | null;
@@ -42,8 +43,8 @@ export default function MonitoringView({
   onUndo,
 }: Props) {
   const statusSubLabel = lastCheckInTime
-    ? `最終確認：${lastCheckInTime}`
-    : '元気タッチをお願いします';
+    ? WORKER.STATUS.MESSAGES.LAST_CHECK(lastCheckInTime)
+    : WORKER.CHECK_IN.MESSAGES.REQUEST;
 
   const normalizedRiskLevel: RiskAssessmentLevel = riskLevel ?? 'caution';
 
@@ -63,8 +64,8 @@ export default function MonitoringView({
   return (
     <div className="space-y-5">
       <StatusCard
-        title="現在のステータス"
-        statusLabel="見守り中"
+        title={WORKER.STATUS.LABELS.CURRENT_STATUS}
+        statusLabel={WORKER.MONITORING.LABELS.ACTIVE}
         statusSubLabel={statusSubLabel}
         isWorking={true}
       />
@@ -73,7 +74,7 @@ export default function MonitoringView({
       {riskLoading ? (
         <LongPressButton
           onLongPress={onCheckIn}
-          ariaLabel="元気タッチ（判定中）"
+          ariaLabel={WORKER.CHECK_IN.ARIA.JUDGING}
           holdMs={1400}
           loading={false}
           disabled={true}
@@ -83,20 +84,22 @@ export default function MonitoringView({
             <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center animate-pulse">
               <AppIcon name="refresh" className="text-secondary text-2xl" />
             </div>
-            <div className="text-lg font-bold text-warm-brown-800">判定中...</div>
+            <div className="text-lg font-bold text-warm-brown-800">
+              {WORKER.CHECK_IN.LOADING.JUDGING}
+            </div>
           </div>
         </LongPressButton>
       ) : normalizedRiskLevel === 'safe' ? (
         <div className="w-full rounded-3xl bg-white/80 backdrop-blur-sm shadow-soft ring-1 ring-green-400/30 px-6 py-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-800 px-4 py-2 text-sm font-bold">
             <span aria-hidden="true">🟢</span>
-            <span>異常なし</span>
+            <span>{WORKER.STATUS.LABELS.SAFE}</span>
           </div>
         </div>
       ) : (
         <LongPressButton
           onLongPress={onCheckIn}
-          ariaLabel="元気タッチ（長押し）"
+          ariaLabel={WORKER.CHECK_IN.ARIA.LONG_PRESS}
           holdMs={1400}
           loading={checkInLoading}
           disabled={disableCheckIn}
@@ -107,7 +110,9 @@ export default function MonitoringView({
               <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center animate-pulse">
                 <AppIcon name="refresh" className="text-secondary text-2xl" />
               </div>
-              <div className="text-lg font-bold text-warm-brown-800">送信中...</div>
+              <div className="text-lg font-bold text-warm-brown-800">
+                {WORKER.CHECK_IN.LOADING.SENDING}
+              </div>
             </div>
           ) : (
             <>
@@ -116,8 +121,12 @@ export default function MonitoringView({
               >
                 <AppIcon name={checkInIconName} className={`${checkInIconColor} text-2xl`} />
               </div>
-              <div className="text-2xl font-extrabold text-warm-brown-800">元気タッチ</div>
-              <div className="mt-2 text-sm text-warm-brown-600">長押しで安否を報告</div>
+              <div className="text-2xl font-extrabold text-warm-brown-800">
+                {WORKER.CHECK_IN.LABELS.BUTTON}
+              </div>
+              <div className="mt-2 text-sm text-warm-brown-600">
+                {WORKER.CHECK_IN.LABELS.INSTRUCTION}
+              </div>
             </>
           )}
         </LongPressButton>
@@ -131,16 +140,16 @@ export default function MonitoringView({
           aria-live="polite"
         >
           <div className="text-sm text-amber-900">
-            送信しました（残り{clampedUndoSecondsLeft}秒）
+            {WORKER.CHECK_IN.MESSAGES.SENT_WITH_COUNTDOWN(clampedUndoSecondsLeft)}
           </div>
           <button
             type="button"
             onClick={onUndo}
             disabled={undoLoading}
             className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm font-bold disabled:opacity-60 disabled:cursor-not-allowed"
-            aria-label="元気タッチを取り消す"
+            aria-label={WORKER.CHECK_IN.ARIA.UNDO}
           >
-            {undoLoading ? '取り消し中...' : '取り消す'}
+            {undoLoading ? WORKER.CHECK_IN.LOADING.UNDOING : WORKER.CHECK_IN.LABELS.UNDO}
           </button>
         </div>
       )}
@@ -148,14 +157,14 @@ export default function MonitoringView({
       {/* SOSボタン（長押し） */}
       <LongPressButton
         onLongPress={onSos}
-        ariaLabel="緊急SOS（長押し）"
+        ariaLabel={WORKER.SOS.ARIA.LONG_PRESS}
         loading={sosLoading}
         disabled={sosLoading}
         className="w-full rounded-lg bg-red-500/80 hover:bg-red-600 text-white py-4 px-4 text-base font-bold shadow-md shadow-red-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >
         <span className="flex items-center justify-center gap-2">
           <AppIcon name="warning" className="text-xl" />
-          <span>緊急事態 / SOS（長押し）</span>
+          <span>{WORKER.SOS.LABELS.BUTTON}</span>
         </span>
       </LongPressButton>
 
@@ -167,7 +176,7 @@ export default function MonitoringView({
         >
           <span className="flex items-center gap-1.5 text-sm">
             <AppIcon name="stop_circle" className="text-base" />
-            <span>見守りを終了</span>
+            <span>{WORKER.MONITORING.LABELS.FINISH}</span>
           </span>
         </PrimaryButton>
       </div>

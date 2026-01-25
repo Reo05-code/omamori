@@ -3,6 +3,7 @@
 import React from 'react';
 import PrimaryButton from '../ui/PrimaryButton';
 import AppIcon from '../ui/AppIcon';
+import { WORKER } from '@/constants/ui-messages';
 
 type Props = {
   onStart: () => void;
@@ -24,25 +25,25 @@ export default function StartView({ onStart, loading = false }: Props) {
             <AppIcon name="shield" className="text-warm-brown-800 text-xl" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-warm-brown-800 mb-1">見守りを開始しましょう</h2>
-            <p className="text-sm text-warm-brown-600">
-              作業を開始すると、定期的な安否確認と緊急時のSOS発信ができるようになります。
-            </p>
+            <h2 className="text-lg font-bold text-warm-brown-800 mb-1">
+              {WORKER.MONITORING.HEADINGS.START_TITLE}
+            </h2>
+            <p className="text-sm text-warm-brown-600">{WORKER.MONITORING.MESSAGES.DESCRIPTION}</p>
           </div>
         </div>
 
         <ul className="space-y-2 text-sm text-warm-brown-700">
           <li className="flex items-start gap-2">
             <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
-            <span>元気タッチで定期的に安否を報告</span>
+            <span>{WORKER.CHECK_IN.LABELS.PERIODIC}</span>
           </li>
           <li className="flex items-start gap-2">
             <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
-            <span>緊急時は長押しでSOS発信</span>
+            <span>{WORKER.SOS.LABELS.FEATURE}</span>
           </li>
           <li className="flex items-start gap-2">
             <AppIcon name="check_circle" className="text-base text-secondary mt-0.5" />
-            <span>管理者が位置情報を確認</span>
+            <span>{WORKER.MONITORING.MESSAGES.LOCATION_TRACKING}</span>
           </li>
         </ul>
       </div>
