@@ -32,7 +32,7 @@ export const AUTH = {
    */
   LOGIN: {
     HEADINGS: {
-      TITLE: 'Omamoriログイン',
+      TITLE: 'Omamori',
       DESCRIPTION: 'アカウントにログインしてください',
     },
     BUTTONS: {
