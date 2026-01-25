@@ -5,6 +5,7 @@
 import { COMMON } from './common';
 import { AUTH } from './auth';
 import { ORGANIZATION, MEMBER, INVITATION } from './organization';
+import { WORKER } from './worker';
 
 // ========================================
 // COMMON 型
@@ -44,3 +45,17 @@ export type MemberLabel = (typeof MEMBER.LABELS)[keyof typeof MEMBER.LABELS];
 export type InvitationHeading = (typeof INVITATION.HEADINGS)[keyof typeof INVITATION.HEADINGS];
 export type InvitationLabel = (typeof INVITATION.LABELS)[keyof typeof INVITATION.LABELS];
 export type InvitationButton = (typeof INVITATION.BUTTONS)[keyof typeof INVITATION.BUTTONS];
+
+// ========================================
+// WORKER 型
+// ========================================
+export type WorkerMonitoringHeading =
+  (typeof WORKER.MONITORING.HEADINGS)[keyof typeof WORKER.MONITORING.HEADINGS];
+export type WorkerMonitoringLabel =
+  (typeof WORKER.MONITORING.LABELS)[keyof typeof WORKER.MONITORING.LABELS];
+export type WorkerCheckInLabel =
+  (typeof WORKER.CHECK_IN.LABELS)[keyof typeof WORKER.CHECK_IN.LABELS];
+export type WorkerSosLabel = (typeof WORKER.SOS.LABELS)[keyof typeof WORKER.SOS.LABELS];
+export type WorkerSettingsHeading =
+  (typeof WORKER.SETTINGS.HEADINGS)[keyof typeof WORKER.SETTINGS.HEADINGS];
+export type WorkerNavigation = (typeof WORKER.NAVIGATION)[keyof typeof WORKER.NAVIGATION];

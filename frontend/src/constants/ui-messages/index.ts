@@ -13,6 +13,7 @@
 export { COMMON } from './common';
 export { AUTH } from './auth';
 export { ORGANIZATION, MEMBER, INVITATION } from './organization';
+export { WORKER } from './worker';
 export type {
   CommonButton,
   CommonStatus,
@@ -31,4 +32,10 @@ export type {
   InvitationHeading,
   InvitationLabel,
   InvitationButton,
+  WorkerMonitoringHeading,
+  WorkerMonitoringLabel,
+  WorkerCheckInLabel,
+  WorkerSosLabel,
+  WorkerSettingsHeading,
+  WorkerNavigation,
 } from './types';
