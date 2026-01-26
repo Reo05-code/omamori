@@ -22,15 +22,17 @@ RSpec.describe "Api::V1::SafetyLogs" do
           battery_level: 80,
           trigger_type: "heartbeat",
           gps_accuracy: 12.5,
-          weather_temp: 25.0,
-          weather_condition: "sunny",
           is_offline_sync: false
         }
       }
     end
 
+    before do
+      allow(WeatherService).to receive(:fetch_weather).and_return({ temp: 25.0, condition: :clear })
+    end
+
     context "WorkSession の所有者の場合" do
-      it "ログを保存してリスク判定結果を返す" do
+      it "ログを保存して成功レスポンスを返す" do
         post "/api/v1/work_sessions/#{work_session.id}/safety_logs",
              params: valid_params,
              headers: user.create_new_auth_token,
@@ -40,6 +42,26 @@ RSpec.describe "Api::V1::SafetyLogs" do
         json = response.parsed_body
         expect(json["status"]).to eq("success")
         expect(json["safety_log"]["latitude"]).to eq(35.6812362)
+      end
+
+      it "天気情報を含めてログを保存する" do
+        post "/api/v1/work_sessions/#{work_session.id}/safety_logs",
+             params: valid_params,
+             headers: user.create_new_auth_token,
+             as: :json
+
+        json = response.parsed_body
+        expect(json["safety_log"]["weather_temp"]).to eq(25.0)
+        expect(json["safety_log"]["weather_condition"]).to eq("晴れ")
+      end
+
+      it "リスク判定結果を返す" do
+        post "/api/v1/work_sessions/#{work_session.id}/safety_logs",
+             params: valid_params,
+             headers: user.create_new_auth_token,
+             as: :json
+
+        json = response.parsed_body
         expect(json["risk_level"]).to be_present
       end
 
@@ -69,6 +91,20 @@ RSpec.describe "Api::V1::SafetyLogs" do
         expect(response).to have_http_status(:created)
         json = response.parsed_body
         expect(json["safety_log"]["logged_at"]).to be_present
+      end
+
+      it "天気取得に失敗した場合もログを保存する" do
+        allow(WeatherService).to receive(:fetch_weather).and_return(nil)
+
+        post "/api/v1/work_sessions/#{work_session.id}/safety_logs",
+             params: valid_params,
+             headers: user.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["safety_log"]).not_to have_key("weather_temp")
+        expect(json["safety_log"]).not_to have_key("weather_condition")
       end
     end
 
