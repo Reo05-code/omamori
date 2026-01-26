@@ -24,7 +24,13 @@ module Api
       end
 
       def serialize_one(safety_log)
-        result = {
+        base_attributes(safety_log).tap do |result|
+          add_weather_attributes(result, safety_log)
+        end
+      end
+
+      def base_attributes(safety_log)
+        {
           id: safety_log.id,
           work_session_id: safety_log.work_session_id,
           logged_at: safety_log.logged_at&.iso8601,
@@ -35,17 +41,14 @@ module Api
           gps_accuracy: safety_log.gps_accuracy,
           is_offline_sync: safety_log.is_offline_sync
         }
+      end
 
-        # 天気データが存在する場合のみ含める
-        if safety_log.weather_temp.present?
-          result[:weather_temp] = safety_log.weather_temp
-        end
+      def add_weather_attributes(result, safety_log)
+        result[:weather_temp] = safety_log.weather_temp if safety_log.weather_temp.present?
+        return if safety_log.weather_condition.blank?
 
-        if safety_log.weather_condition.present?
-          result[:weather_condition] = weather_condition_label(safety_log.weather_condition)
-        end
-
-        result
+        result[:weather_condition] =
+          weather_condition_label(safety_log.weather_condition)
       end
     end
   end
