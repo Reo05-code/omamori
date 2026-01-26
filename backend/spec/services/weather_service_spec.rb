@@ -23,7 +23,7 @@ RSpec.describe WeatherService do
 
     after do
       # クラスインスタンス変数をリセットしてモックのリークを防ぐ
-      WeatherService.instance_variable_set(:@http_client, nil)
+      described_class.instance_variable_set(:@http_client, nil)
     end
 
     it "気温と天気を返す" do
