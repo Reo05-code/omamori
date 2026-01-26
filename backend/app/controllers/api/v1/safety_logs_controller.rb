@@ -103,8 +103,6 @@ module Api
           :battery_level,
           :trigger_type,
           :gps_accuracy,
-          :weather_temp,
-          :weather_condition,
           :is_offline_sync,
           :logged_at
         )

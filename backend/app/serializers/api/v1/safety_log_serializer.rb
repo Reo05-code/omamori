@@ -5,6 +5,8 @@ module Api
     # SafetyLog のシリアライザ（API レスポンス用）
     # lonlat（geography型）を latitude/longitude に展開して返す
     class SafetyLogSerializer
+      include WeatherHelper
+
       def initialize(safety_log_or_collection)
         @input = safety_log_or_collection
       end
@@ -22,7 +24,7 @@ module Api
       end
 
       def serialize_one(safety_log)
-        {
+        result = {
           id: safety_log.id,
           work_session_id: safety_log.work_session_id,
           logged_at: safety_log.logged_at&.iso8601,
@@ -31,10 +33,19 @@ module Api
           battery_level: safety_log.battery_level,
           trigger_type: safety_log.trigger_type,
           gps_accuracy: safety_log.gps_accuracy,
-          weather_temp: safety_log.weather_temp,
-          weather_condition: safety_log.weather_condition,
           is_offline_sync: safety_log.is_offline_sync
-        }.compact
+        }
+
+        # 天気データが存在する場合のみ含める
+        if safety_log.weather_temp.present?
+          result[:weather_temp] = safety_log.weather_temp
+        end
+
+        if safety_log.weather_condition.present?
+          result[:weather_condition] = weather_condition_label(safety_log.weather_condition)
+        end
+
+        result
       end
     end
   end
