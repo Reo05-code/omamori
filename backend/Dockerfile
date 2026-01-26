@@ -9,7 +9,9 @@ RUN apk add --no-cache \
         git \
         nodejs \
         npm \
-        yaml-dev
+        yaml-dev \
+        geos-dev \
+        proj-dev
 
 WORKDIR /app
 

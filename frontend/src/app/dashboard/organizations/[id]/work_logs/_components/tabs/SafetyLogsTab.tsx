@@ -131,6 +131,12 @@ export function SafetyLogsTab({
                     電池残量
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
+                    気温
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
+                    天気
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
                     記録理由
                   </th>
                 </tr>
@@ -148,6 +154,20 @@ export function SafetyLogsTab({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                       {log.battery_level ?? '—'}
+                    </td>
+                    <td
+                      className={`px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200 ${
+                        typeof log.weather_temp === 'number' && log.weather_temp >= 35
+                          ? 'text-red-600 font-semibold'
+                          : ''
+                      }`}
+                    >
+                      {typeof log.weather_temp === 'number'
+                        ? `${log.weather_temp}°C${log.weather_temp >= 35 ? '' : ''}`
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
+                      {log.weather_condition ?? '—'}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                       {log.trigger_type
