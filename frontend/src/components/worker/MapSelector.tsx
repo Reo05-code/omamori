@@ -6,16 +6,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getCurrentPosition } from '@/lib/geolocation';
 import { MAP_CONFIG, MAP_STYLES, MAP_ICONS } from '@/constants/map';
-
-// Leafletのデフォルトマーカーアイコンの修正（Next.jsでの問題回避）
-// _getIconUrlはLeafletの内部プロパティで型定義に存在しないため、型チェックを無効化
-// @ts-expect-error - Leaflet internal property not in type definitions
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+import { initializeLeafletIcons } from '@/lib/leaflet-init';
 
 // 選択位置用の赤いマーカーアイコン（ローカルアセット）
 const selectedIcon = new L.Icon({
@@ -83,6 +74,11 @@ export default function MapSelector({
     }),
     [],
   );
+
+  // Leafletアイコン初期化
+  useEffect(() => {
+    initializeLeafletIcons();
+  }, []);
 
   // 初回マウント時に現在地を取得
   useEffect(() => {

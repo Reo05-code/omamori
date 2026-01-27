@@ -88,9 +88,9 @@ test.describe('作業ログ（Work Logs）/タブ', () => {
             {
               id: 1,
               logged_at: new Date(0).toISOString(),
-              score: 10,
-              level: 'safe',
-              details: { reasons: [] },
+              score: 50,
+              level: 'caution',
+              details: { reasons: ['low_battery'] },
             },
           ]),
         });

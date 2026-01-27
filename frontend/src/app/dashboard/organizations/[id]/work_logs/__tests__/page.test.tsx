@@ -69,7 +69,8 @@ describe('WorkLogsPage', () => {
     });
 
     expect(screen.getByText('定期通信')).toBeInTheDocument();
-    expect(screen.getByText('35, 139')).toBeInTheDocument();
+    // 位置情報は地図ボタンで表示（数値表示ではない）
+    expect(screen.getByRole('button', { name: '地図で位置を表示' })).toBeInTheDocument();
     expect(screen.getByText('80')).toBeInTheDocument();
   });
 
@@ -95,9 +96,9 @@ describe('WorkLogsPage', () => {
         {
           id: 1,
           logged_at: '2026-01-01T00:00:00Z',
-          score: 10,
-          level: 'safe',
-          details: { reasons: ['ok'] },
+          score: 50,
+          level: 'caution',
+          details: { reasons: ['low_battery'] },
         },
       ],
       pagination: { page: 1, perPage: 100, totalCount: 1, totalPages: 1 },
@@ -109,9 +110,9 @@ describe('WorkLogsPage', () => {
       expect(fetchRiskAssessmentsWithMeta).toHaveBeenCalledWith(25, { page: 1, perPage: 100 });
     });
 
-    expect(screen.getByText('安全')).toBeInTheDocument();
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('ok')).toBeInTheDocument();
+    expect(screen.getByText('注意')).toBeInTheDocument();
+    expect(screen.getByText('50')).toBeInTheDocument();
+    expect(screen.getByText('バッテリー低下')).toBeInTheDocument();
   });
 
   it('リスク判定タブで404のとき「見つかりません」を表示する', async () => {

@@ -21,8 +21,8 @@ export default defineConfig({
   /* CI 上のみリトライを有効にする */
   retries: process.env.CI ? 2 : 0,
 
-  /* CI 上ではワーカー数を抑制する */
-  workers: process.env.CI ? 1 : undefined,
+  /* CI 上ではワーカー数を抑制する。Docker環境でも並列数を制限 */
+  workers: process.env.CI ? 1 : isRunningInDocker ? 4 : undefined,
 
   reporter: [['html', { outputFolder: htmlReportDir, open: 'never' }]],
 

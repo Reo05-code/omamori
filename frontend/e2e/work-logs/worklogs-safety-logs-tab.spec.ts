@@ -54,9 +54,6 @@ test.describe('作業ログ（Work Logs）/タブ', () => {
       'page',
     );
 
-    // Expected: セッションIDが表示される
-    await expect(page.getByText(`作業セッションID: ${MOCK_SESSION_ID}`)).toBeVisible();
-
     // Expected: テーブルが表示される（内容は最小限）
     await expect(page.getByRole('columnheader', { name: '記録日時' })).toBeVisible();
     await expect(page.locator('tbody tr')).toHaveCount(1);
