@@ -200,6 +200,18 @@ RSpec.describe "Api::V1::SafetyLogs" do
         expect(json[0]["latitude"]).to be_present
         expect(json[0]["longitude"]).to be_present
       end
+
+      it "ページネーションヘッダーを返す" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["X-Total-Count"]).to eq("3")
+        expect(response.headers["X-Total-Pages"]).to eq("1")
+        expect(response.headers["X-Per-Page"]).to eq("100")
+        expect(response.headers["X-Current-Page"]).to eq("1")
+      end
     end
 
     context "同一組織の他メンバーの場合" do
@@ -240,6 +252,93 @@ RSpec.describe "Api::V1::SafetyLogs" do
             as: :json
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "ページネーション" do
+      before do
+        # 既存の3件に加えて追加で150件作成（合計153件）
+        150.times do |i|
+          create(:safety_log, work_session: work_session, logged_at: (i + 1).minutes.ago, latitude: 35.0 + (i * 0.001), longitude: 139.0 + (i * 0.001))
+        end
+      end
+
+      it "デフォルトで1ページ目を100件返す" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json.size).to eq(100)
+        expect(response.headers["X-Total-Count"]).to eq("153")
+        expect(response.headers["X-Total-Pages"]).to eq("2")
+        expect(response.headers["X-Current-Page"]).to eq("1")
+      end
+
+      it "page パラメータで2ページ目を取得できる" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?page=2",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json.size).to eq(53)
+        expect(response.headers["X-Current-Page"]).to eq("2")
+      end
+
+      it "per_page パラメータで件数を変更できる" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?per_page=50",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json.size).to eq(50)
+        expect(response.headers["X-Per-Page"]).to eq("50")
+        expect(response.headers["X-Total-Pages"]).to eq("4")
+      end
+
+      it "per_page は最大1000件に制限される" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?per_page=5000",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["X-Per-Page"]).to eq("1000")
+      end
+
+      it "per_page が0以下の場合はデフォルト100件になる" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?per_page=-10",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["X-Per-Page"]).to eq("100")
+      end
+
+      it "page が0以下の場合は1ページ目になる" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?page=-1",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["X-Current-Page"]).to eq("1")
+      end
+
+      it "order=desc パラメータで降順取得できる" do
+        get "/api/v1/work_sessions/#{work_session.id}/safety_logs?order=desc&per_page=5",
+            headers: user.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        # 降順なので最新のログが最初に来る
+        first_log_time = Time.zone.parse(json[0]["logged_at"])
+        last_log_time  = Time.zone.parse(json[4]["logged_at"])
+
+        expect(first_log_time).to be > last_log_time
       end
     end
   end

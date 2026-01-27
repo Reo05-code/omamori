@@ -3,18 +3,14 @@
 module Api
   module V1
     class SafetyLogsController < ApplicationController
+      include SafetyLogsErrorHandler
+      include SafetyLogsPagination
+
       before_action :authenticate_user!
       before_action :set_work_session
 
-      rescue_from ActiveRecord::RecordNotFound, with: :render_record_not_found
-      rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
-      rescue_from SafetyLogs::UndoService::Forbidden, with: :render_forbidden
-      rescue_from SafetyLogs::UndoService::NotUndoable, with: :render_unprocessable
-      rescue_from SafetyLogs::UndoService::Expired, with: :render_unprocessable
-      rescue_from SafetyLogs::CreateService::Forbidden, with: :render_forbidden
-
       # GET /api/v1/work_sessions/:work_session_id/safety_logs
-      # 指定セッションの移動履歴取得
+      # 指定セッションの移動履歴取得（ページネーション対応）
       def index
         # 同一組織のメンバーのみ閲覧可能
         unless can_view_work_session?
@@ -22,10 +18,12 @@ module Api
           return
         end
 
-        # 時系列でログを取得（地図描画向け）
-        logs = @work_session.safety_logs.order(logged_at: :asc)
+        page, per_page = pagination_params
+        logs = build_safety_logs(page, per_page)
 
-        render json: Api::V1::SafetyLogSerializer.new(logs).as_json
+        add_pagination_headers(logs)
+
+        render json: logs.map { |log| Api::V1::SafetyLogSerializer.new(log).as_json }
       end
 
       # POST /api/v1/work_sessions/:work_session_id/safety_logs
@@ -64,28 +62,6 @@ module Api
 
       def set_work_session
         @work_session = WorkSession.find(params[:work_session_id])
-      end
-
-      def render_record_not_found(err)
-        if err.respond_to?(:model) && err.model == "WorkSession"
-          render json: { errors: ["作業セッションが見つかりません"] }, status: :not_found
-          return
-        end
-
-        render json: { errors: ["ログが見つかりません"] }, status: :not_found
-      end
-
-      def render_record_invalid(err)
-        record = err.record
-        render json: { errors: record.errors.full_messages }, status: :unprocessable_content
-      end
-
-      def render_forbidden(err)
-        render json: { errors: [err.message] }, status: :forbidden
-      end
-
-      def render_unprocessable(err)
-        render json: { errors: [err.message] }, status: :unprocessable_content
       end
 
       # 同一組織のメンバーかどうかを判定
