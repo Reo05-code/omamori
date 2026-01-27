@@ -9,9 +9,11 @@ import Spinner from '@/components/ui/Spinner';
 import Link from 'next/link';
 import AppIcon from '@/components/ui/AppIcon';
 import { WORKER, AUTH, COMMON } from '@/constants/ui-messages';
+import type { UserResponse } from '@/lib/api/types';
 
 export default function WorkerSettingsPage() {
-  const { user, loading } = useAuthContext();
+  const authContext = useAuthContext();
+  const { user, loading, updateUser } = authContext;
   const [notification, setNotification] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -23,6 +25,12 @@ export default function WorkerSettingsPage() {
 
   const handleDismiss = () => {
     setNotification(null);
+  };
+
+  const handleUpdateUser = (updatedUser: UserResponse) => {
+    if (updateUser) {
+      updateUser(updatedUser);
+    }
   };
 
   // 認証確認中
@@ -73,7 +81,7 @@ export default function WorkerSettingsPage() {
       </div>
 
       {/* 設定画面 */}
-      <WorkerSettingsView onNotify={handleNotify} />
+      <WorkerSettingsView onNotify={handleNotify} onUpdateUser={handleUpdateUser} />
     </WorkerShell>
   );
 }
