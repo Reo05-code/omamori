@@ -1,9 +1,16 @@
+import { useMemo, useState } from 'react';
 import type { Membership } from '@/lib/api/types';
 import type { RiskAssessmentResponse } from '@/lib/api/types';
 import Skeleton from '@/components/ui/Skeleton';
 import { RISK_ASSESSMENT_LEVEL_LABELS, RISK_REASON_LABELS } from '@/constants/labels';
 
 import { TargetUserSelect } from '../TargetUserSelect';
+
+/**
+ * リスク判定の異常検知スコア閾値
+ * 40点以上で Warning 以上（異常）と判定
+ */
+const RISK_SCORE_THRESHOLD = 40;
 
 /**
  * ISO8601形式の日時文字列を日本語フォーマット（YYYY-MM-DD HH:mm:ss）に変換。
@@ -80,6 +87,19 @@ export function RiskAssessmentsTab({
   onNext: () => void;
   onRetry: () => void;
 }) {
+  // 異常のみ表示フィルター（デフォルト: true）
+  const [showOnlyAbnormal, setShowOnlyAbnormal] = useState(true);
+
+  // フィルタリングされたリスク判定データ
+  const filteredRiskAssessments = useMemo(() => {
+    if (!riskAssessments) return null;
+    if (!showOnlyAbnormal) return riskAssessments;
+
+    // 異常検知: level が 'safe' 以外、かつ score が閾値以上
+    // (Warning: 40点以上、Emergency: 80点以上)
+    return riskAssessments.filter((ra) => ra.level !== 'safe' && ra.score >= RISK_SCORE_THRESHOLD);
+  }, [riskAssessments, showOnlyAbnormal]);
+
   return (
     <div className="bg-white dark:bg-warm-gray-800 rounded-lg shadow p-6">
       <h2 className="text-lg font-semibold mb-4 text-warm-gray-900 dark:text-warm-gray-100">
@@ -106,12 +126,6 @@ export function RiskAssessmentsTab({
         </p>
       )}
 
-      {selectedUserId !== null && activeWorkSessionId && (
-        <p className="text-warm-gray-600 dark:text-warm-gray-400">
-          作業セッションID: {activeWorkSessionId}
-        </p>
-      )}
-
       {selectedUserId !== null && activeWorkSessionId && loading && (
         <div className="mt-4">
           <Skeleton variant="table" rows={5} />
@@ -135,10 +149,12 @@ export function RiskAssessmentsTab({
         activeWorkSessionId &&
         !loading &&
         !error &&
-        riskAssessments &&
-        riskAssessments.length === 0 && (
+        filteredRiskAssessments &&
+        filteredRiskAssessments.length === 0 && (
           <p className="mt-4 text-warm-gray-600 dark:text-warm-gray-400">
-            リスク判定履歴がありません。
+            {showOnlyAbnormal
+              ? '異常なリスク判定履歴がありません。'
+              : 'リスク判定履歴がありません。'}
           </p>
         )}
 
@@ -146,9 +162,27 @@ export function RiskAssessmentsTab({
         activeWorkSessionId &&
         !loading &&
         !error &&
-        riskAssessments &&
-        riskAssessments.length > 0 && (
+        filteredRiskAssessments &&
+        filteredRiskAssessments.length > 0 && (
           <>
+            {/* 異常のみ表示フィルター */}
+            <div className="mt-4 flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-warm-gray-700 dark:text-warm-gray-300">
+                <input
+                  type="checkbox"
+                  checked={showOnlyAbnormal}
+                  onChange={(e) => setShowOnlyAbnormal(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-warm-gray-100 border-warm-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-warm-gray-800 focus:ring-2 dark:bg-warm-gray-700 dark:border-warm-gray-600"
+                />
+                <span>異常のみ表示</span>
+              </label>
+              {showOnlyAbnormal && riskAssessments && filteredRiskAssessments && (
+                <span className="text-xs text-warm-gray-500 dark:text-warm-gray-400">
+                  （{filteredRiskAssessments.length} / {riskAssessments.length} 件）
+                </span>
+              )}
+            </div>
+
             <div className="mt-4 overflow-x-auto">
               <table className="min-w-full divide-y divide-warm-gray-200 dark:divide-warm-gray-700">
                 <thead className="bg-warm-gray-50 dark:bg-warm-gray-900/30">
@@ -168,7 +202,7 @@ export function RiskAssessmentsTab({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-warm-gray-200 dark:divide-warm-gray-700">
-                  {riskAssessments.map((ra) => (
+                  {filteredRiskAssessments.map((ra) => (
                     <tr key={ra.id}>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                         {formatLoggedAt(ra.logged_at)}
