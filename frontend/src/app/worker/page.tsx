@@ -7,6 +7,8 @@ import MonitoringView from '../../components/worker/MonitoringView';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import NotificationBanner from '../../components/ui/NotificationBanner';
 import Spinner from '../../components/ui/Spinner';
+import SetHomeLocationModal from '../../components/worker/SetHomeLocationModal';
+import { useAuth } from '../../hooks/useAuth';
 import { useLatestRiskAssessment } from '../../hooks/useLatestRiskAssessment';
 import { useNotificationBanner } from '../../hooks/useNotificationBanner';
 import { usePollingWhenIdle } from '../../hooks/usePollingWhenIdle';
@@ -20,6 +22,7 @@ import { WORKER_CONFIG } from '../../config/worker';
 import { WORKER, COMMON } from '@/constants/ui-messages';
 
 export default function WorkerHomePage() {
+  const { user, refreshUser } = useAuth();
   const {
     session,
     loadingSession,
@@ -37,6 +40,8 @@ export default function WorkerHomePage() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
   const [undoLoading, setUndoLoading] = useState<boolean>(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
 
   const {
     notification,
@@ -74,6 +79,40 @@ export default function WorkerHomePage() {
       setNotification({ message: sessionError, type });
     }
   }, [sessionError, setNotification]);
+
+  // オンボーディングモーダルの表示判定
+  useEffect(() => {
+    if (user && !user.onboarded && !dismissedOnboarding) {
+      // localStorageで本日表示済みかチェック
+      const dismissedDate = localStorage.getItem('home-location-dismissed-date');
+      const today = new Date().toDateString();
+
+      if (dismissedDate !== today) {
+        setShowOnboardingModal(true);
+      }
+    }
+  }, [user, dismissedOnboarding]);
+
+  // オンボーディングモーダルのハンドラー
+  const handleOnboardingSkip = () => {
+    setShowOnboardingModal(false);
+    setDismissedOnboarding(true);
+    // 本日は表示しない
+    localStorage.setItem('home-location-dismissed-date', new Date().toDateString());
+  };
+
+  const handleOnboardingCompleted = async () => {
+    setShowOnboardingModal(false);
+    // 完了したらlocalStorageをクリア
+    localStorage.removeItem('home-location-dismissed-date');
+    // ユーザー情報を再取得して UI を更新
+    await refreshUser();
+  };
+
+  const handleReopenOnboarding = () => {
+    setShowOnboardingModal(true);
+    setDismissedOnboarding(false);
+  };
 
   // StartView 滞在中のみポーリングでセッションを検知（可視時のみ）
   usePollingWhenIdle({
@@ -256,6 +295,40 @@ export default function WorkerHomePage() {
 
   return (
     <WorkerShell>
+      {/* 拠点未設定の警告バナー */}
+      {user && !user.onboarded && dismissedOnboarding && (
+        <div className="mx-4 mt-4 mb-2 rounded-lg bg-yellow-50 p-4 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <span className="text-yellow-600 dark:text-yellow-400 text-xl">⚠️</span>
+              <div>
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  拠点が設定されていません
+                </p>
+                <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                  誤検知を防ぐために、自宅や主要な作業拠点を設定してください。
+                </p>
+                <button
+                  type="button"
+                  onClick={handleReopenOnboarding}
+                  className="mt-2 text-sm font-medium text-yellow-800 dark:text-yellow-200 underline hover:no-underline"
+                >
+                  設定する
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDismissedOnboarding(false)}
+              className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200"
+              aria-label="閉じる"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 通知バナー */}
       {notification && (
         <NotificationBanner
@@ -294,6 +367,17 @@ export default function WorkerHomePage() {
         confirmDanger={true}
         onConfirm={handleFinishConfirm}
         onCancel={() => setShowFinishModal(false)}
+      />
+
+      {/* オンボーディングモーダル */}
+      <SetHomeLocationModal
+        open={showOnboardingModal}
+        onClose={handleOnboardingSkip}
+        onCompleted={handleOnboardingCompleted}
+        onNotify={(_message, _type) => {
+          // 通知は自動的に処理（notifySuccess, notifyError で表示）
+        }}
+        forceCreate={false}
       />
     </WorkerShell>
   );
