@@ -38,6 +38,7 @@ export interface UserResponse {
   // 自宅・拠点位置情報
   home_latitude?: number | null;
   home_longitude?: number | null;
+  home_location?: string | null; // WKT format: "POINT (lon lat)"
   home_radius?: number | null;
   // オンボーディング完了フラグ
   onboarded?: boolean;
@@ -120,7 +121,6 @@ export interface UpdateUserRequest {
   home_latitude?: number | null;
   home_longitude?: number | null;
   home_radius?: number;
-  onboarded?: boolean;
 }
 
 // ユーザー情報更新レスポンス
