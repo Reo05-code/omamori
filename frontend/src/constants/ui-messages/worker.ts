@@ -118,6 +118,33 @@ export const WORKER = {
       TITLE: '設定',
       DESCRIPTION: 'アカウントの設定を管理します',
       ACCOUNT_MANAGEMENT: 'アカウント管理',
+      HOME_LOCATION: '拠点設定',
+      HOME_LOCATION_ITEM: '自宅・作業拠点',
+    },
+
+    LABELS: {
+      LOCATION_TITLE: '拠点を設定しましょう',
+      LOCATION_DESCRIPTION:
+        '自宅や主要な作業拠点を地図から選択してください。拠点内での位置情報送信は安全と判定されます。',
+      LOCATION_RANGE: '拠点の範囲',
+      RADIUS_LABEL: (radius: number) => `${radius}m`,
+    },
+
+    MESSAGES: {
+      HOME_LOCATION_SET: '設定済み',
+      HOME_LOCATION_NOT_SET: '拠点が設定されていません。誤検知を防ぐために設定してください。',
+      HOME_LOCATION_UPDATED: '拠点を更新しました',
+      HOME_LOCATION_SUCCESS: '拠点を設定しました',
+      VALIDATION_ERROR: '無効な座標です。有効な範囲で選択してください。',
+      COORDINATE_REQUIRED: '地図から拠点を選択してください',
+      LOCATION_UPDATE_FAILED: '設定に失敗しました。もう一度お試しください。',
+    },
+
+    BUTTONS: {
+      SET_HOME_LOCATION: '拠点を設定する',
+      CHANGE_HOME_LOCATION: '変更する',
+      SET: '設定する',
+      SKIP_FOR_NOW: 'あとで設定',
     },
   },
 
