@@ -98,14 +98,40 @@ export const useAuth = () => {
     setAuthErrorStatus(null);
   };
 
+  // ユーザー情報を再取得
+  const refreshUser = async () => {
+    try {
+      const validateRes = await validateToken();
+      if (!validateRes.error && validateRes.data) {
+        setUser(validateRes.data.data);
+        return validateRes.data.data;
+      }
+    } catch (e) {
+      console.error('Failed to refresh user:', e);
+    }
+    return null;
+  };
+
+  // ユーザー情報を安全に更新（IDチェック付き）
+  const updateUser = (updatedUser: UserResponse) => {
+    // 現在のユーザーIDと一致するか確認（セキュリティ対策）
+    if (user && updatedUser.id === user.id) {
+      setUser(updatedUser);
+    } else if (process.env.NODE_ENV === 'development') {
+      console.error('Cannot update user: ID mismatch or no current user');
+    }
+  };
+
   return {
     isAuthenticated,
     token,
     user,
+    updateUser,
     loading,
     authError,
     authErrorStatus,
     login,
     logout,
+    refreshUser,
   } as const;
 };
