@@ -23,6 +23,12 @@ module Api
         # DTA が自動的に Cookie をセットする処理をスキップ
         skip_after_action :update_auth_header, raise: false
 
+        def update
+          super do |resource|
+            auto_set_onboarded(resource)
+          end
+        end
+
         private
 
         # 新規登録時に許可するパラメータを返す
@@ -31,9 +37,23 @@ module Api
         end
 
         # アカウント更新時に許可するパラメータを返す
+        # セキュリティ上重要: 管理者専用フィールド（role, admin, onboarded等）は絶対にpermitしないこと
         def account_update_params
           params.permit(:email, :password, :password_confirmation, :name, :phone_number, :avatar_url,
                         :home_latitude, :home_longitude, :home_radius)
+        end
+
+        # home_latitudeとhome_longitudeが両方設定されていれば自動的にonboardedをtrueに
+        def auto_set_onboarded(resource)
+          return unless resource.persisted?
+          return if resource.onboarded
+          return unless resource.home_latitude.present? && resource.home_longitude.present?
+
+          # rubocop:disable Rails/SkipsModelValidations
+          # onboardedフラグはバリデーション不要の状態フラグであり、
+          # ここでのみ自動設定される（セキュリティ対策）
+          resource.update_column(:onboarded, true)
+          # rubocop:enable Rails/SkipsModelValidations
         end
 
         protected
@@ -45,7 +65,7 @@ module Api
           render json: {
             status: "success",
             message: I18n.t("api.v1.auth.success.registrations.create"),
-            data: resource_data(resource_json: @resource.as_json)
+            data: Api::V1::UserSerializer.new(@resource).as_json
           }
         end
 
@@ -62,7 +82,7 @@ module Api
           render json: {
             status: "success",
             message: I18n.t("api.v1.auth.success.registrations.update"),
-            data: resource_data
+            data: Api::V1::UserSerializer.new(@resource).as_json
           }
         end
 

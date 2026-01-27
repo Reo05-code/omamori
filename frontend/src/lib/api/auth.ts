@@ -15,6 +15,8 @@ import type {
   PasswordUpdateResponse,
   SignUpRequest,
   SignUpResponse,
+  UpdateUserRequest,
+  UpdateUserResponse,
   ValidateTokenResponse,
 } from './types';
 
@@ -93,4 +95,12 @@ export async function updatePassword(
     password_confirmation: passwordConfirmation,
   };
   return api.put<PasswordUpdateResponse>(API_PATHS.AUTH.PASSWORD, body, { headers });
+}
+
+/**
+ * ユーザー情報更新
+ * 拠点位置情報（home_latitude, home_longitude, home_radius）やオンボーディング状態（onboarded）の更新に使用
+ */
+export async function updateUser(params: UpdateUserRequest) {
+  return api.put<UpdateUserResponse>(API_PATHS.AUTH.ROOT, params);
 }

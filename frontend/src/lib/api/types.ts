@@ -35,6 +35,13 @@ export interface UserResponse {
     notification_enabled?: boolean;
     dark_mode?: 'on' | 'off';
   };
+  // 自宅・拠点位置情報
+  home_latitude?: number | null;
+  home_longitude?: number | null;
+  home_radius?: number | null;
+  // オンボーディング完了フラグ
+  onboarded?: boolean;
+  organizations_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +108,24 @@ export interface PasswordUpdateRequest {
 export interface PasswordUpdateResponse {
   status: 'success';
   message: string;
+  data: UserResponse;
+}
+
+// ユーザー情報更新リクエスト
+export interface UpdateUserRequest {
+  email?: string;
+  name?: string;
+  phone_number?: string;
+  avatar_url?: string | null;
+  home_latitude?: number | null;
+  home_longitude?: number | null;
+  home_radius?: number;
+  onboarded?: boolean;
+}
+
+// ユーザー情報更新レスポンス
+export interface UpdateUserResponse {
+  status: 'success';
   data: UserResponse;
 }
 

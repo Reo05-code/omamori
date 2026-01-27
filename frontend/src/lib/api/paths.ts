@@ -6,6 +6,7 @@
 export const API_PATHS = {
   // 認証
   AUTH: {
+    ROOT: '/api/v1/auth',
     SIGN_IN: '/api/v1/auth/sign_in',
     SIGN_OUT: '/api/v1/auth/sign_out',
     SIGN_UP: '/api/v1/auth',

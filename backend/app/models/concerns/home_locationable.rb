@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 # Home location に関する Concern
+# rubocop:disable Metrics/ModuleLength
 module HomeLocationable
   extend ActiveSupport::Concern
 
   included do
     validate :validate_and_compose_home_location
+    validate :validate_coordinate_ranges
   end
 
   # 緯度取得/設定
@@ -72,6 +74,34 @@ module HomeLocationable
     errors.add(:home_longitude, "数値で指定してください") if @home_longitude == :invalid
   end
 
+  # 座標の範囲バリデーション（セキュリティ対策）
+  def validate_coordinate_ranges
+    validate_latitude_range
+    validate_longitude_range
+    validate_radius_range
+  end
+
+  def validate_latitude_range
+    return unless @home_latitude.is_a?(Numeric)
+    return if @home_latitude.between?(-90, 90)
+
+    errors.add(:home_latitude, "緯度は-90から90の範囲で指定してください")
+  end
+
+  def validate_longitude_range
+    return unless @home_longitude.is_a?(Numeric)
+    return if @home_longitude.between?(-180, 180)
+
+    errors.add(:home_longitude, "経度は-180から180の範囲で指定してください")
+  end
+
+  def validate_radius_range
+    return unless home_radius.present? && home_radius.is_a?(Numeric)
+    return if home_radius.between?(1, 10_000)
+
+    errors.add(:home_radius, "半径は1メートルから10kmの範囲で指定してください")
+  end
+
   # 両方の座標が入力されているか検証
   def both_coords_present?
     if @home_latitude.nil? || @home_longitude.nil?
@@ -132,3 +162,4 @@ module HomeLocationable
     end
   end
 end
+# rubocop:enable Metrics/ModuleLength
