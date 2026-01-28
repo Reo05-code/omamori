@@ -7,9 +7,9 @@ export const DASHBOARD = {
     ITEMS: {
       DASHBOARD: 'ダッシュボード',
       MEMBERS: 'メンバー一覧',
-      ALERTS: '異常検知',
-      WORK_LOGS: '作業報告',
-      SETTINGS: '組織設定',
+      ALERTS: 'アラート',
+      WORK_LOGS: '作業ログ',
+      SETTINGS: '設定',
     },
   },
 

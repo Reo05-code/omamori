@@ -134,7 +134,7 @@ export default function Sidebar({
   const widthClassName = sidebarCollapsed ? 'w-20' : 'w-64';
   const visibilityClassName = isMobile ? 'flex' : 'hidden md:flex';
 
-  const containerClass = `${widthClassName} ${baseBackgroundClassName} border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm ${visibilityClassName}`;
+  const containerClass = `${widthClassName} ${baseBackgroundClassName} h-full border-r border-border-light dark:border-border-dark flex-col justify-between transition-all duration-200 ${zIndexClassName} shadow-sm ${visibilityClassName}`;
 
   // --------------------------------------------------------------------------
   // JSX
