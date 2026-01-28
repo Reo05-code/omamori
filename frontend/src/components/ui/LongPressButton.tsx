@@ -17,6 +17,8 @@ type Props = {
   className?: string;
   disabled?: boolean;
   loading?: boolean;
+  /** ローディング時にデフォルトのUIを表示するか */
+  showDefaultLoadingUI?: boolean;
 };
 
 /**
@@ -24,13 +26,6 @@ type Props = {
  *
  * @description
  * 誤操作を防ぐために、一定時間の長押し（ホールド）でのみアクションを発火させるボタンコンポーネント。
- * SOS送信や重要な設定変更など、不可逆または重大なアクションに使用します。
- *
- * @features
- * - Pointer Event API を使用し、マウス/タッチ/ペン操作を統一的に処理
- * - requestAnimationFrame による滑らかな進捗リングアニメーション
- * - スマホ特有の「長押しメニュー」や「テキスト選択」の防止
- * - スクリーンリーダー向けの進行状況通知 (aria-live)
  */
 export default function LongPressButton({
   onLongPress,
@@ -41,6 +36,7 @@ export default function LongPressButton({
   className = '',
   disabled = false,
   loading = false,
+  showDefaultLoadingUI = true,
 }: Props) {
   // 進捗状況 (0 ~ 100)
   const [progress, setProgress] = useState(0);
@@ -49,6 +45,7 @@ export default function LongPressButton({
   // アニメーションフレームのID管理
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
 
   const isDisabled = disabled || loading;
 
@@ -74,6 +71,7 @@ export default function LongPressButton({
       startTimeRef.current = null;
       onCancel?.();
     }
+    activePointerIdRef.current = null;
   }, [clearAnimation, onCancel, pressing]);
 
   /**
@@ -108,22 +106,72 @@ export default function LongPressButton({
     }
   }, [holdMs, handleComplete]);
 
+  const startPress = useCallback(() => {
+    setPressing(true);
+    setProgress(0);
+    startTimeRef.current = Date.now();
+    animationRef.current = window.requestAnimationFrame(updateProgress);
+  }, [updateProgress]);
+
   /**
    * 押下開始時の処理
    */
   const handleStart = useCallback(
-    (e?: React.SyntheticEvent) => {
+    (e: React.PointerEvent<HTMLButtonElement>) => {
       // 右クリックや、無効化時は無視
-      if (isDisabled || (e && 'button' in e && (e as React.PointerEvent).button !== 0)) {
-        return;
+      if (isDisabled || e.button !== 0) return;
+
+      // ポインタをキャプチャすることで、指がわずかにズレても
+      // pointerleave/cancel になりづらくし、進捗が止まる問題を防ぐ
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        activePointerIdRef.current = e.pointerId;
+      } catch {
+        // ignore
       }
 
-      setPressing(true);
-      setProgress(0);
-      startTimeRef.current = Date.now();
-      animationRef.current = window.requestAnimationFrame(updateProgress);
+      startPress();
     },
-    [isDisabled, updateProgress],
+    [isDisabled, startPress],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (activePointerIdRef.current !== null) {
+        try {
+          e.currentTarget.releasePointerCapture?.(activePointerIdRef.current);
+        } catch {
+          // ignore
+        }
+      }
+      handleCancel();
+    },
+    [handleCancel],
+  );
+
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (activePointerIdRef.current !== null) {
+        try {
+          e.currentTarget.releasePointerCapture?.(activePointerIdRef.current);
+        } catch {
+          // ignore
+        }
+      }
+      handleCancel();
+    },
+    [handleCancel],
+  );
+
+  const handlePointerLeave = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      // タッチは pointer capture で追従する前提。
+      // マウスは要素から外れたらキャンセルしたいので leave を生かす。
+      if (e.pointerType === 'mouse') {
+        handleCancel();
+      }
+    },
+    [handleCancel],
   );
 
   /**
@@ -135,10 +183,10 @@ export default function LongPressButton({
       if (isDisabled || pressing) return;
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        handleStart();
+        startPress();
       }
     },
-    [isDisabled, pressing, handleStart],
+    [isDisabled, pressing, startPress],
   );
 
   /**
@@ -177,9 +225,9 @@ export default function LongPressButton({
         // イベント処理:
         // Pointer Events API に一本化することで、マウス・タッチ・ペンの競合を防ぐ
         onPointerDown={handleStart}
-        onPointerUp={handleCancel}
-        onPointerLeave={handleCancel}
-        onPointerCancel={handleCancel} // 電話着信などで中断された場合
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
+        onPointerCancel={handlePointerCancel} // 電話着信などで中断された場合
         // 右クリックメニュー（コンテキストメニュー）を抑止
         onContextMenu={(e) => e.preventDefault()}
         // キーボード対応
@@ -187,7 +235,7 @@ export default function LongPressButton({
         onKeyUp={handleKeyUp}
       >
         {/* ボタンの中身またはローディング表示 */}
-        {loading ? (
+        {loading && showDefaultLoadingUI ? (
           <span className="flex items-center justify-center gap-2">
             <Spinner size="sm" className="text-white" />
             <span>送信中...</span>
@@ -196,10 +244,12 @@ export default function LongPressButton({
           children
         )}
 
-        {/* 進捗リングアニメーション (押下中のみ表示) */}
-        {pressing && !loading && (
+        {/* 進捗リングアニメーション (押下中またはロード中に表示) */}
+        {(pressing || loading) && (
           <svg
-            className="absolute inset-0 w-full h-full pointer-events-none transform -rotate-90"
+            className={`absolute inset-0 w-full h-full pointer-events-none transform -rotate-90 ${
+              loading ? 'animate-spin' : ''
+            }`}
             viewBox="0 0 120 120"
             aria-hidden="true"
           >
@@ -222,7 +272,7 @@ export default function LongPressButton({
               stroke="currentColor"
               strokeWidth="4"
               strokeDasharray={circumference}
-              strokeDashoffset={offset}
+              strokeDashoffset={loading ? circumference * 0.25 : offset}
               strokeLinecap="round"
               className="opacity-80 transition-all duration-75 ease-linear"
             />
