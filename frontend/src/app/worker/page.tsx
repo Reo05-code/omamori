@@ -40,6 +40,7 @@ export default function WorkerHomePage() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [lastCheckInTime, setLastCheckInTime] = useState<string | null>(null);
   const [undoLoading, setUndoLoading] = useState<boolean>(false);
+  const [preparingAction, setPreparingAction] = useState<{ checkIn?: boolean; sos?: boolean }>({});
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
 
@@ -160,41 +161,46 @@ export default function WorkerHomePage() {
       }
     }
 
-    // 位置情報とバッテリーレベルを取得
-    // NOTE: 元気タッチではバッテリー情報も重要なため getDeviceInfoWithLocation を使用
-    const deviceInfo = await getDeviceInfoWithLocation();
+    setPreparingAction((prev) => ({ ...prev, checkIn: true }));
+    try {
+      // 位置情報とバッテリーレベルを取得
+      // NOTE: 元気タッチではバッテリー情報も重要なため getDeviceInfoWithLocation を使用
+      const deviceInfo = await getDeviceInfoWithLocation();
 
-    if (!deviceInfo) {
-      notifyError(NOTIFICATION.WORKER.CHECK_IN.LOCATION_FAILED);
-      return;
+      if (!deviceInfo) {
+        notifyError(NOTIFICATION.WORKER.CHECK_IN.LOCATION_FAILED);
+        return;
+      }
+
+      // バッテリー情報が取得できない場合は0を送信（バックエンドで判断させる）
+      const batteryLevel = deviceInfo.batteryLevel ?? 0;
+
+      const params = {
+        latitude: deviceInfo.latitude,
+        longitude: deviceInfo.longitude,
+        batteryLevel,
+        triggerType: 'check_in' as const,
+        gpsAccuracy: deviceInfo.accuracy,
+        loggedAt: new Date().toISOString(),
+      };
+
+      const created = await checkIn(params);
+      if (!created) return;
+
+      setLastCheckInTime(
+        new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+      );
+      setRiskLevel(created.risk_level);
+
+      const parsedExpiresAt = created.undo_expires_at ? Date.parse(created.undo_expires_at) : NaN;
+      const expiresAt = Number.isFinite(parsedExpiresAt)
+        ? parsedExpiresAt
+        : Date.now() + WORKER_CONFIG.UNDO_WINDOW_MS;
+      startUndo({ safetyLogId: created.safety_log.id, expiresAt });
+      notifySuccess(NOTIFICATION.WORKER.CHECK_IN.SUCCESS);
+    } finally {
+      setPreparingAction((prev) => ({ ...prev, checkIn: false }));
     }
-
-    // バッテリー情報が取得できない場合は0を送信（バックエンドで判断させる）
-    const batteryLevel = deviceInfo.batteryLevel ?? 0;
-
-    const params = {
-      latitude: deviceInfo.latitude,
-      longitude: deviceInfo.longitude,
-      batteryLevel,
-      triggerType: 'check_in' as const,
-      gpsAccuracy: deviceInfo.accuracy,
-      loggedAt: new Date().toISOString(),
-    };
-
-    const created = await checkIn(params);
-    if (!created) return;
-
-    setLastCheckInTime(
-      new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-    );
-    setRiskLevel(created.risk_level);
-
-    const parsedExpiresAt = created.undo_expires_at ? Date.parse(created.undo_expires_at) : NaN;
-    const expiresAt = Number.isFinite(parsedExpiresAt)
-      ? parsedExpiresAt
-      : Date.now() + WORKER_CONFIG.UNDO_WINDOW_MS;
-    startUndo({ safetyLogId: created.safety_log.id, expiresAt });
-    notifySuccess(NOTIFICATION.WORKER.CHECK_IN.SUCCESS);
   }, [
     checkIn,
     notifyError,
@@ -232,29 +238,34 @@ export default function WorkerHomePage() {
       return;
     }
 
-    // 位置情報（ベストエフォート取得）
-    // NOTE: SOSでは「送信できないこと」が最悪のリスクなので、
-    // バッテリー情報不要かつ短時間タイムアウトの getCurrentPositionBestEffort を使用
-    const position = await getCurrentPositionBestEffort({
-      timeoutMs: WORKER_CONFIG.SOS_LOCATION_TIMEOUT_MS,
-    });
-    const coords = position
-      ? { latitude: position.latitude, longitude: position.longitude }
-      : undefined;
+    setPreparingAction((prev) => ({ ...prev, sos: true }));
+    try {
+      // 位置情報（ベストエフォート取得）
+      // NOTE: SOSでは「送信できないこと」が最悪のリスクなので、
+      // バッテリー情報不要かつ短時間タイムアウトの getCurrentPositionBestEffort を使用
+      const position = await getCurrentPositionBestEffort({
+        timeoutMs: WORKER_CONFIG.SOS_LOCATION_TIMEOUT_MS,
+      });
+      const coords = position
+        ? { latitude: position.latitude, longitude: position.longitude }
+        : undefined;
 
-    const result = await sendSos(coords);
+      const result = await sendSos(coords);
 
-    if (!result.ok) {
-      notifyError(result.message);
-      return;
+      if (!result.ok) {
+        notifyError(result.message);
+        return;
+      }
+
+      if (result.duplicate) {
+        notifyInfo(NOTIFICATION.WORKER.SOS.DUPLICATE);
+        return;
+      }
+
+      notifySuccess(NOTIFICATION.WORKER.SOS.SUCCESS);
+    } finally {
+      setPreparingAction((prev) => ({ ...prev, sos: false }));
     }
-
-    if (result.duplicate) {
-      notifyInfo(NOTIFICATION.WORKER.SOS.DUPLICATE);
-      return;
-    }
-
-    notifySuccess(NOTIFICATION.WORKER.SOS.SUCCESS);
   }, [notifyError, notifyInfo, notifySuccess, sendSos, session]);
 
   // 終了確認モーダルを開く
@@ -345,8 +356,8 @@ export default function WorkerHomePage() {
           onCheckIn={handleCheckIn}
           onSos={handleSos}
           onFinish={handleFinishRequest}
-          checkInLoading={actionLoading.checkIn}
-          sosLoading={actionLoading.sos}
+          checkInLoading={actionLoading.checkIn || preparingAction.checkIn}
+          sosLoading={actionLoading.sos || preparingAction.sos}
           riskLevel={riskLevel}
           riskLoading={riskLoading}
           undoSecondsLeft={undoSecondsLeft}
