@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/memberships';
 import { ROLE_LABELS } from '@/constants/labels';
 import { MEMBER } from '@/constants/ui-messages/organization';
+import { NOTIFICATION } from '@/constants/ui-messages/notification';
 import { COMMON } from '@/constants/ui-messages/common';
 
 type Notification = {
@@ -106,16 +107,13 @@ export function MembersList({
   // Logic Helpers
   // --------------------------------------------------------------------------
   const isLastAdmin = (m: Membership) => m.role === 'admin' && adminCount <= 1;
-  const LAST_ADMIN_MSG = MEMBER.ERRORS.LAST_ADMIN_CONSTRAINT();
-  const SELF_DEMOTE_MSG = MEMBER.ERRORS.SELF_DELETE();
-  const SELF_DELETE_MSG = MEMBER.ERRORS.SELF_DELETE();
 
   // --------------------------------------------------------------------------
   // Handlers
   // --------------------------------------------------------------------------
   const handleChangeRole = async (m: Membership, nextRole: string) => {
     if (!isMembershipRole(nextRole)) {
-      onNotify({ message: MEMBER.ERRORS.ROLE_UPDATE_FAILED(), type: 'error' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.ROLE_UPDATE_FAILED(), type: 'error' });
       return;
     }
 
@@ -125,12 +123,15 @@ export function MembersList({
 
     const isSelf = m.user_id === currentUserId;
     if (isSelf && m.role === 'admin' && role !== 'admin') {
-      onNotify({ message: SELF_DEMOTE_MSG, type: 'error' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.SELF_DELETE(), type: 'error' });
       return;
     }
 
     if (isLastAdmin(m) && role !== 'admin') {
-      onNotify({ message: LAST_ADMIN_MSG, type: 'error' });
+      onNotify({
+        message: NOTIFICATION.ORGANIZATION.MEMBER.LAST_ADMIN_CONSTRAINT(),
+        type: 'error',
+      });
       return;
     }
 
@@ -143,7 +144,7 @@ export function MembersList({
 
       const updated = await updateMembership(organizationId, m.id, body);
 
-      onNotify({ message: MEMBER.MESSAGES.DYNAMIC.ROLE_UPDATED(), type: 'success' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.ROLE_UPDATED(), type: 'success' });
 
       // ローカルstateを更新 (Optimistic UI)
       setMembers((prev) => {
@@ -152,7 +153,7 @@ export function MembersList({
       });
     } catch (e: unknown) {
       console.error('failed to update role', e);
-      onNotify({ message: MEMBER.ERRORS.ROLE_UPDATE_FAILED(), type: 'error' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.ROLE_UPDATE_FAILED(), type: 'error' });
     } finally {
       setUpdatingId(null);
     }
@@ -161,11 +162,14 @@ export function MembersList({
   const handleDeleteClick = (m: Membership) => {
     const isSelf = m.user_id === currentUserId;
     if (isSelf) {
-      onNotify({ message: SELF_DELETE_MSG, type: 'error' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.SELF_DELETE(), type: 'error' });
       return;
     }
     if (isLastAdmin(m)) {
-      onNotify({ message: LAST_ADMIN_MSG, type: 'error' });
+      onNotify({
+        message: NOTIFICATION.ORGANIZATION.MEMBER.LAST_ADMIN_CONSTRAINT(),
+        type: 'error',
+      });
       return;
     }
     setMemberToDelete(m);
@@ -183,7 +187,7 @@ export function MembersList({
     try {
       await deleteMembership(organizationId, target.id);
 
-      onNotify({ message: MEMBER.MESSAGES.DYNAMIC.DELETED(), type: 'success' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.DELETED(), type: 'success' });
 
       // 【修正】サーバーへの再取得を待たずに、即座にUIから消す
       setMembers((prev) => (prev ? prev.filter((m) => m.id !== target.id) : prev));
@@ -192,7 +196,7 @@ export function MembersList({
       fetchList().catch(console.error);
     } catch (e: unknown) {
       console.error('failed to delete membership', e);
-      onNotify({ message: MEMBER.ERRORS.DELETE_FAILED(), type: 'error' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.MEMBER.DELETE_FAILED(), type: 'error' });
     } finally {
       setIsDeleting(false);
       setMemberToDelete(null);
@@ -250,16 +254,16 @@ export function MembersList({
                     const roleDisabled = isBusy || isLast || (isSelf && m.role === 'admin');
 
                     const roleDisabledReason = isLast
-                      ? LAST_ADMIN_MSG
+                      ? NOTIFICATION.ORGANIZATION.MEMBER.LAST_ADMIN_CONSTRAINT()
                       : isSelf && m.role === 'admin'
-                        ? SELF_DEMOTE_MSG
+                        ? NOTIFICATION.ORGANIZATION.MEMBER.SELF_DELETE()
                         : undefined;
 
                     const deleteDisabled = isBusy || isLast || isSelf;
                     const deleteDisabledReason = isLast
-                      ? LAST_ADMIN_MSG
+                      ? NOTIFICATION.ORGANIZATION.MEMBER.LAST_ADMIN_CONSTRAINT()
                       : isSelf
-                        ? SELF_DELETE_MSG
+                        ? NOTIFICATION.ORGANIZATION.MEMBER.SELF_DELETE()
                         : undefined;
 
                     return (

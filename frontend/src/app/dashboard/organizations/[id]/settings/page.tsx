@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AUTH } from '@/constants/ui-messages/auth';
+import { NOTIFICATION } from '@/constants/ui-messages/notification';
 import { ORGANIZATION } from '@/constants/ui-messages/organization';
 import { useAuthContext } from '@/context/AuthContext';
 import { getUserRole } from '@/lib/permissions';
@@ -153,7 +154,10 @@ export default function OrganizationSettingsPage(): JSX.Element {
                 </p>
                 <LogoutButton
                   onSuccess={() =>
-                    setNotification({ message: AUTH.LOGOUT.MESSAGES.SUCCESS, type: 'success' })
+                    setNotification({
+                      message: NOTIFICATION.AUTH.LOGOUT_SUCCESS,
+                      type: 'success',
+                    })
                   }
                   onError={(message) => setNotification({ message, type: 'error' })}
                   variant="danger"

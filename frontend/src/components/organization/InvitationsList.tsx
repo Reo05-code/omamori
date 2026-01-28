@@ -9,6 +9,7 @@ import type { Invitation } from '@/lib/api/types';
 import { deleteInvitation, fetchInvitations } from '@/lib/api/invitations';
 import { COMMON } from '@/constants/ui-messages/common';
 import { INVITATION } from '@/constants/ui-messages/organization';
+import { NOTIFICATION } from '@/constants/ui-messages/notification';
 
 type Notification = {
   message: string;
@@ -118,7 +119,7 @@ export function InvitationsList({
     try {
       await deleteInvitation(organizationId, target.id);
 
-      onNotify({ message: INVITATION.MESSAGES.DYNAMIC.DELETED(), type: 'success' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.INVITATION.DELETED(), type: 'success' });
 
       // UX向上: サーバーへの再取得を待たずに、UIから即座に消す
       setInvitations((prev) => (prev ? prev.filter((i) => i.id !== target.id) : prev));
@@ -127,7 +128,8 @@ export function InvitationsList({
       fetchList().catch(console.error);
     } catch (e: unknown) {
       console.error('failed to delete invitation', e);
-      const message = e instanceof Error ? e.message : INVITATION.MESSAGES.DYNAMIC.DELETE_FAILED();
+      const message =
+        e instanceof Error ? e.message : NOTIFICATION.ORGANIZATION.INVITATION.DELETE_FAILED();
       onNotify({ message, type: 'error' });
     } finally {
       setDeletingId(null);
@@ -215,7 +217,7 @@ export function InvitationsList({
         onClose={() => setIsInviteModalOpen(false)}
         organizationId={organizationId}
         onSuccess={() => {
-          onNotify({ message: INVITATION.MESSAGES.DYNAMIC.SENT(), type: 'success' });
+          onNotify({ message: NOTIFICATION.ORGANIZATION.INVITATION.SENT(), type: 'success' });
           // 新規作成時はリストの順序が変わる可能性があるため、正直にリロードする
           fetchList().catch(console.error);
         }}
