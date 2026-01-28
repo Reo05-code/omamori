@@ -12,6 +12,14 @@ type Props = {
 
 export function MemberActionToggle({ member, name, isProcessing, onToggle }: Props): JSX.Element {
   const isActive = !!member.active_work_session?.active;
+  const isAdmin = member.role === 'admin';
+  const isDisabled = isProcessing || isAdmin;
+
+  const ariaLabel = isAdmin
+    ? MEMBER.MODAL.REMOTE_TOGGLE.ARIA_LABEL_ADMIN_DISABLED(name)
+    : MEMBER.MODAL.REMOTE_TOGGLE.ARIA_LABEL(name, isActive);
+
+  const tooltipTitle = isAdmin ? MEMBER.MODAL.REMOTE_TOGGLE.ADMIN_DISABLED_TOOLTIP : undefined;
 
   return (
     <div className="flex items-center">
@@ -19,13 +27,14 @@ export function MemberActionToggle({ member, name, isProcessing, onToggle }: Pro
         type="button"
         role="switch"
         aria-checked={isActive}
-        aria-label={MEMBER.MODAL.REMOTE_TOGGLE.ARIA_LABEL(name, isActive)}
+        aria-label={ariaLabel}
+        title={tooltipTitle}
         data-testid={`remote-toggle-${member.id}`}
-        disabled={isProcessing}
+        disabled={isDisabled}
         onClick={() => onToggle(member)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
           isActive ? 'bg-green-600' : 'bg-gray-300'
-        } ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
+        } ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         <span
           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

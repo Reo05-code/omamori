@@ -184,14 +184,18 @@ export default function MembersPage(): JSX.Element {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      <WorkStatusBadge
-                        label={
-                          m.active_work_session?.active
-                            ? WORK_STATUS_LABELS.active
-                            : WORK_STATUS_LABELS.inactive
-                        }
-                        variant={m.active_work_session?.active ? 'active' : 'inactive'}
-                      />
+                      {m.role === 'admin' ? (
+                        <span className="text-gray-400"></span>
+                      ) : (
+                        <WorkStatusBadge
+                          label={
+                            m.active_work_session?.active
+                              ? WORK_STATUS_LABELS.active
+                              : WORK_STATUS_LABELS.inactive
+                          }
+                          variant={m.active_work_session?.active ? 'active' : 'inactive'}
+                        />
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex flex-col gap-2">

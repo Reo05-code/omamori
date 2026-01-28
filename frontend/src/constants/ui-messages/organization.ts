@@ -114,6 +114,9 @@ export const MEMBER = {
       FINISHING: '終了中...',
       ARIA_LABEL: (name: string, isActive: boolean) =>
         `${name}の見守りを${isActive ? '終了' : '開始'}`,
+      ARIA_LABEL_ADMIN_DISABLED: (name: string) =>
+        `${name}（管理者は作業セッション機能を使用できません）`,
+      ADMIN_DISABLED_TOOLTIP: '管理者は作業セッション機能を使用できません',
       START_SUCCESS: '見守りを開始しました',
       FINISH_SUCCESS: '見守りを終了しました',
       START_FAILED: '開始に失敗しました。時間をおいて再度お試しください。',
