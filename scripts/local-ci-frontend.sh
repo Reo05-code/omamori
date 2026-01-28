@@ -7,6 +7,9 @@ echo "Running frontend CI checks..."
 echo "--- Installing dependencies ---"
 docker compose exec frontend npm install
 
+echo "--- Installing Playwright browsers (if needed) ---"
+docker compose exec frontend npx playwright install --with-deps
+
 echo "--- Running Prettier check ---"
 docker compose exec frontend sh -lc "cd /app && npm run format:check"
 

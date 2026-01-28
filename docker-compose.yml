@@ -91,11 +91,13 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+      - playwright_browsers:/ms-playwright
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
       - WATCHPACK_POLLING=true
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
     depends_on:
       - backend
     stdin_open: true
@@ -105,3 +107,4 @@ volumes:
   postgres_data:
   backend_bundle:
   redis_data:
+  playwright_browsers:
