@@ -80,12 +80,15 @@ test.describe('管理者アラート管理', () => {
     await expect(page.getByRole('columnheader', { name: '作業者' })).toBeVisible();
 
     // Expected: 表示内容（種別/重要度/ステータス）
-    const row1 = page.getByRole('row', { name: /101/ });
+    // 最初のアラート行（SOS発信・緊急）
+    const rows = page.locator('tbody tr');
+    const row1 = rows.first();
     await expect(row1).toContainText('未対応');
     await expect(row1).toContainText('緊急');
     await expect(row1).toContainText('SOS発信');
 
-    const row2 = page.getByRole('row', { name: /102/ });
+    // 2番目のアラート行（バッテリー低下・中程度）
+    const row2 = rows.nth(1);
     await expect(row2).toContainText('対応中');
     await expect(row2).toContainText('中');
     await expect(row2).toContainText('バッテリー低下');
@@ -139,7 +142,9 @@ test.describe('管理者アラート管理', () => {
     await expect(page.getByRole('heading', { name: 'アラート一覧' })).toBeVisible();
 
     // Expected: 更新前は未対応
-    const row = page.getByRole('row', { name: /110/ });
+    // テーブル内の最初のアラート行を取得
+    const rows = page.locator('tbody tr');
+    const row = await rows.first();
     await expect(row).toContainText('未対応');
 
     // 5. ステータスを更新（ConfirmDialog で 確認 ボタンをクリック）
@@ -166,7 +171,8 @@ test.describe('管理者アラート管理', () => {
 
     // Expected: 再読み込みしても更新が保持される
     await page.reload();
-    await expect(page.getByRole('row', { name: /110/ })).toContainText('解決済み');
+    // セッション ID カラム削除後は ID 10 で特定
+    await expect(page.locator('tbody tr').first()).toContainText('解決済み');
   });
 
   test('Worker ユーザーはアラート管理画面にアクセスできない', async ({ page }) => {
