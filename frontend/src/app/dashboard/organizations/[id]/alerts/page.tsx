@@ -14,6 +14,9 @@ import {
 import { getUserRole } from '@/lib/permissions';
 import { useAuthContext } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
+import NotificationBanner from '@/components/ui/NotificationBanner';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
+import { useNotificationBanner } from '@/hooks/useNotificationBanner';
 import { AlertFilters } from './_components/AlertFilters';
 import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
 import { ALERT, DASHBOARD, COMMON, AUTH } from '@/constants/ui-messages';
@@ -105,6 +108,8 @@ export default function OrganizationAlertsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<AlertResponse | null>(null);
+  const { notification, dismissNotification, notifyError } = useNotificationBanner();
 
   const canView = role === 'admin';
 
@@ -139,20 +144,29 @@ export default function OrganizationAlertsPage() {
   }, [orgId, canView, authLoading, filters]);
 
   // アラート解決ボタンのハンドラ。確認ダイアログを表示後、APIで status を 'resolved' に更新する。
-  const onResolve = async (alert: AlertResponse) => {
+  const onResolveRequest = (alert: AlertResponse) => {
     if (!orgId) return;
-    if (!window.confirm(resolveConfirmMessage(alert))) return;
+    setConfirmTarget(alert);
+  };
 
-    setUpdatingId(alert.id);
+  const onConfirmResolve = async () => {
+    if (!orgId || !confirmTarget) {
+      setConfirmTarget(null);
+      return;
+    }
+
+    const target = confirmTarget;
+    setConfirmTarget(null);
+    setUpdatingId(target.id);
     try {
-      const updated = await updateOrganizationAlertStatus(orgId, alert.id, 'resolved');
+      const updated = await updateOrganizationAlertStatus(orgId, target.id, 'resolved');
       setAlerts((prev) => {
         if (!prev) return prev;
         return prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a));
       });
     } catch (e) {
       console.error('failed to resolve alert', e);
-      window.alert('更新に失敗しました。時間をおいて再度お試しください。');
+      notifyError(COMMON.FALLBACK_ERRORS.UPDATE_FAILED);
     } finally {
       setUpdatingId(null);
     }
@@ -180,6 +194,24 @@ export default function OrganizationAlertsPage() {
 
   return (
     <div className="px-6 pt-2 pb-6">
+      {notification && (
+        <NotificationBanner
+          message={notification.message}
+          type={notification.type}
+          onDismiss={dismissNotification}
+        />
+      )}
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmTarget)}
+        title="アラート解決の確認"
+        message={confirmTarget ? resolveConfirmMessage(confirmTarget) : ''}
+        confirmLabel={COMMON.BUTTONS.CONFIRM}
+        cancelLabel={COMMON.BUTTONS.CANCEL}
+        onConfirm={onConfirmResolve}
+        onCancel={() => setConfirmTarget(null)}
+      />
+
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-warm-gray-900 dark:text-warm-gray-100">
           {ALERT.PAGE.TITLE}
@@ -289,7 +321,7 @@ export default function OrganizationAlertsPage() {
                       <button
                         type="button"
                         disabled={updatingId === a.id}
-                        onClick={() => onResolve(a)}
+                        onClick={() => onResolveRequest(a)}
                         className="inline-flex items-center px-3 py-2 text-sm font-medium rounded bg-warm-orange text-white hover:bg-warm-orange/90 disabled:opacity-50"
                       >
                         対応済にする

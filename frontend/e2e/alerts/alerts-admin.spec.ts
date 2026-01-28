@@ -142,18 +142,18 @@ test.describe('管理者アラート管理', () => {
     const row = page.getByRole('row', { name: /110/ });
     await expect(row).toContainText('未対応');
 
-    // 5. ステータスを更新（確認ダイアログを許可）
-    page.once('dialog', async (dialog) => {
-      await dialog.accept();
-    });
-
+    // 5. ステータスを更新（ConfirmDialog で 確認 ボタンをクリック）
     const [patchResponse] = await Promise.all([
       page.waitForResponse(
         (resp) =>
           resp.url().includes(`/api/v1/organizations/${MOCK_ORG_ID}/alerts/`) &&
           resp.request().method() === 'PATCH',
       ),
-      page.getByRole('button', { name: '対応済にする' }).click(),
+      (async () => {
+        await page.getByRole('button', { name: '対応済にする' }).click();
+        // ConfirmDialog が表示されるので「確認」をクリック（COMMON.BUTTONS.CONFIRM）
+        await page.getByRole('button', { name: '確認', exact: true }).click();
+      })(),
     ]);
 
     expect(patchResponse.status()).toBe(200);
