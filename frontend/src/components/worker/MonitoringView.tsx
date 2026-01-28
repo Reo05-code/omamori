@@ -103,7 +103,8 @@ export default function MonitoringView({
           holdMs={1400}
           loading={checkInLoading}
           disabled={disableCheckIn}
-          className={`w-full rounded-full bg-warm-surface/80 backdrop-blur-sm shadow-soft ring-1 ${checkInRingClass} aspect-square flex flex-col items-center justify-center text-center transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed`}
+          showDefaultLoadingUI={false}
+          className={`w-full rounded-full bg-warm-surface/80 backdrop-blur-sm shadow-soft ring-1 ${checkInRingClass} aspect-square flex flex-col items-center justify-center text-center transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${checkInIconColor}`}
         >
           {checkInLoading ? (
             <div className="flex flex-col items-center gap-3">
