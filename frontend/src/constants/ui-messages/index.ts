@@ -17,6 +17,7 @@ export { WORKER } from './worker';
 export { DASHBOARD } from './dashboard';
 export { ALERT } from './alert';
 export { WORK_LOG } from './work-log';
+export { NOTIFICATION } from './notification';
 export type {
   CommonButton,
   CommonStatus,
@@ -49,4 +50,5 @@ export type {
   WorkLogPageHeading,
   WorkLogTab,
   WorkLogBasicInfoField,
+  NotificationMessage,
 } from './types';

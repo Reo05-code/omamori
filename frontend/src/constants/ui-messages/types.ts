@@ -9,6 +9,13 @@ import { WORKER } from './worker';
 import { DASHBOARD } from './dashboard';
 import { ALERT } from './alert';
 import { WORK_LOG } from './work-log';
+import { NOTIFICATION } from './notification';
+
+type DeepValueOf<T> = T extends (...args: any[]) => any
+  ? T
+  : T extends object
+    ? DeepValueOf<T[keyof T]>
+    : T;
 
 // ========================================
 // COMMON 型
@@ -88,3 +95,8 @@ export type WorkLogPageHeading = (typeof WORK_LOG.PAGE)[keyof typeof WORK_LOG.PA
 export type WorkLogTab = (typeof WORK_LOG.TABS)[keyof typeof WORK_LOG.TABS];
 export type WorkLogBasicInfoField =
   (typeof WORK_LOG.BASIC_INFO.FIELDS)[keyof typeof WORK_LOG.BASIC_INFO.FIELDS];
+
+// ========================================
+// NOTIFICATION 型
+// ========================================
+export type NotificationMessage = DeepValueOf<typeof NOTIFICATION>;
