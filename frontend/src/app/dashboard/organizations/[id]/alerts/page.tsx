@@ -283,9 +283,6 @@ export default function OrganizationAlertsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
                   作業者
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-warm-gray-500 dark:text-warm-gray-400 uppercase tracking-wider">
-                  作業セッション
-                </th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -312,9 +309,6 @@ export default function OrganizationAlertsPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
                     {a.work_session?.user?.name ?? '—'}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-warm-gray-700 dark:text-warm-gray-200">
-                    {a.work_session_id}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-right">
                     {a.status !== 'resolved' ? (
