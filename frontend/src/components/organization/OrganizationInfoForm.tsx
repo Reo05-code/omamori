@@ -7,6 +7,7 @@ import type { Organization } from '@/lib/api/types';
 import { fetchOrganization, updateOrganization } from '@/lib/api/organizations';
 import { COMMON } from '@/constants/ui-messages/common';
 import { ORGANIZATION } from '@/constants/ui-messages/organization';
+import { NOTIFICATION } from '@/constants/ui-messages/notification';
 
 export type Notification = {
   message: string;
@@ -23,10 +24,10 @@ function validateOrganizationName(name: string): string | null {
   const trimmed = name.trim();
 
   if (!trimmed) {
-    return ORGANIZATION.ERRORS.NAME_REQUIRED;
+    return NOTIFICATION.ORGANIZATION.VALIDATION.NAME_REQUIRED;
   }
   if (trimmed.length > 100) {
-    return ORGANIZATION.ERRORS.NAME_TOO_LONG;
+    return NOTIFICATION.ORGANIZATION.VALIDATION.NAME_TOO_LONG;
   }
 
   return null;
@@ -146,11 +147,11 @@ export function OrganizationInfoForm({
       setName(updated.name ?? trimmedName);
       setIsDirty(false);
 
-      onNotify({ message: ORGANIZATION.MESSAGES.DYNAMIC.NAME_UPDATED(), type: 'success' });
+      onNotify({ message: NOTIFICATION.ORGANIZATION.NAME_UPDATED(), type: 'success' });
     } catch (e: unknown) {
       console.error('OrganizationInfoForm: failed to update', e);
 
-      const message = e instanceof Error ? e.message : '更新に失敗しました';
+      const message = e instanceof Error ? e.message : NOTIFICATION.ORGANIZATION.UPDATE_FAILED;
       onNotify({ message, type: 'error' });
     } finally {
       setIsSaving(false);
