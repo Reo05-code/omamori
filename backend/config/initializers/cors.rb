@@ -20,6 +20,9 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
       credentials: true,
-      expose: ["access-token", "client", "uid", "expiry", "token-type"]
+      expose: [
+        "access-token", "client", "uid", "expiry", "token-type",
+        "X-Total-Count", "X-Total-Pages", "X-Per-Page", "X-Current-Page"
+      ]
   end
 end
