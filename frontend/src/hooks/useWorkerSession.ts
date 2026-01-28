@@ -11,6 +11,7 @@ import type {
 } from '../lib/api/types';
 import { ApiError } from '../lib/api/client';
 import { normalizeErrorMessage } from '../lib/api/error-utils';
+import { COMMON } from '@/constants/ui-messages/common';
 
 type ActionLoading = {
   start?: boolean;
@@ -86,8 +87,10 @@ export function useWorkerSession() {
       setSession(current);
     } catch (err) {
       if (!mountedRef.current) return;
-      const { message } = normalizeErrorMessage(err);
-      setError(message);
+      const normalized = normalizeErrorMessage(err);
+      if (normalized.shouldNotify) {
+        setError(normalized.message);
+      }
     } finally {
       if (mountedRef.current) setLoadingSession(false);
       inflightRefreshRef.current = false;
@@ -102,17 +105,19 @@ export function useWorkerSession() {
       try {
         const ws = await startSession(organizationId);
         if (!mountedRef.current) {
-          return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+          return { ok: false, message: COMMON.FALLBACK_ERRORS.SCREEN_CLOSED };
         }
         setSession(ws);
         return { ok: true, session: ws };
       } catch (err) {
         if (!mountedRef.current) {
-          return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+          return { ok: false, message: COMMON.FALLBACK_ERRORS.SCREEN_CLOSED };
         }
-        const { message, status } = normalizeErrorMessage(err);
-        setError(message);
-        return { ok: false, message, status };
+        const normalized = normalizeErrorMessage(err);
+        if (normalized.shouldNotify) {
+          setError(normalized.message);
+        }
+        return { ok: false, message: normalized.message, status: normalized.status };
       } finally {
         if (mountedRef.current) setAction('start', false);
       }
@@ -122,7 +127,7 @@ export function useWorkerSession() {
 
   const finish = useCallback(async (): Promise<FinishResult> => {
     if (!session) {
-      const message = '作業セッションが開始されていません';
+      const message = COMMON.FALLBACK_ERRORS.SESSION_NOT_STARTED;
       setError(message);
       return { ok: false, message };
     }
@@ -133,13 +138,13 @@ export function useWorkerSession() {
     try {
       await finishSession(session.id);
       if (!mountedRef.current) {
-        return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+        return { ok: false, message: COMMON.FALLBACK_ERRORS.SCREEN_CLOSED };
       }
       setSession(null);
       return { ok: true };
     } catch (err) {
       if (!mountedRef.current) {
-        return { ok: false, message: '画面が閉じられたため処理を中断しました' };
+        return { ok: false, message: COMMON.FALLBACK_ERRORS.SCREEN_CLOSED };
       }
 
       // Admin が先に終了させた等: 404 は「既に終了」扱いでホームに戻す
@@ -149,9 +154,11 @@ export function useWorkerSession() {
         return { ok: true, alreadyFinished: true };
       }
 
-      const { message, status } = normalizeErrorMessage(err);
-      setError(message);
-      return { ok: false, message, status };
+      const normalized = normalizeErrorMessage(err);
+      if (normalized.shouldNotify) {
+        setError(normalized.message);
+      }
+      return { ok: false, message: normalized.message, status: normalized.status };
     } finally {
       if (mountedRef.current) setAction('finish', false);
     }
@@ -160,7 +167,7 @@ export function useWorkerSession() {
   const sendSos = useCallback(
     async (coords?: { latitude: number; longitude: number }): Promise<SosSendResult> => {
       if (!session) {
-        const message = '作業セッションが開始されていません';
+        const message = COMMON.FALLBACK_ERRORS.SESSION_NOT_STARTED;
         setError(message);
         return { ok: false, message };
       }
@@ -173,7 +180,7 @@ export function useWorkerSession() {
         return { ok: true, duplicate: result.duplicate };
       } catch (err) {
         const normalized = normalizeErrorMessage(err);
-        if (mountedRef.current) {
+        if (mountedRef.current && normalized.shouldNotify) {
           setError(normalized.message);
         }
         return { ok: false, message: normalized.message, status: normalized.status };
@@ -187,7 +194,7 @@ export function useWorkerSession() {
   const checkIn = useCallback(
     async (params: CheckInParams): Promise<CreateSafetyLogResponse | null> => {
       if (!session) {
-        setError('作業セッションが開始されていません');
+        setError(COMMON.FALLBACK_ERRORS.SESSION_NOT_STARTED);
         return null;
       }
 
@@ -200,8 +207,10 @@ export function useWorkerSession() {
         return created;
       } catch (err) {
         if (!mountedRef.current) return null;
-        const { message } = normalizeErrorMessage(err);
-        setError(message);
+        const normalized = normalizeErrorMessage(err);
+        if (normalized.shouldNotify) {
+          setError(normalized.message);
+        }
         return null;
       } finally {
         if (mountedRef.current) setAction('checkIn', false);

@@ -128,6 +128,8 @@ export const WORKER = {
         '自宅や主要な作業拠点を地図から選択してください。拠点内での位置情報送信は安全と判定されます。',
       LOCATION_RANGE: '拠点の範囲',
       RADIUS_LABEL: (radius: number) => `${radius}m`,
+      HOME_LOCATION_NOT_SET: '拠点が設定されていません',
+      HOME_LOCATION_RECOMMENDATION: '誤検知を防ぐために、自宅や主要な作業拠点を設定してください。',
     },
 
     MESSAGES: {

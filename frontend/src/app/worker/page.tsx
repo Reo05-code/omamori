@@ -19,7 +19,7 @@ import { usePageVisibility } from '../../hooks/usePageVisibility';
 import { getCurrentPositionBestEffort, getDeviceInfoWithLocation } from '../../lib/geolocation';
 import { deleteSafetyLog } from '../../lib/api/safety_logs';
 import { WORKER_CONFIG } from '../../config/worker';
-import { WORKER, COMMON } from '@/constants/ui-messages';
+import { WORKER, COMMON, NOTIFICATION } from '@/constants/ui-messages';
 
 export default function WorkerHomePage() {
   const { user, refreshUser } = useAuth();
@@ -124,30 +124,30 @@ export default function WorkerHomePage() {
   // 見守り開始
   const handleStart = useCallback(async () => {
     if (!organizationId) {
-      notifyError(WORKER.MONITORING.ERRORS.ORG_ID_MISSING);
+      notifyError(NOTIFICATION.WORKER.MONITORING.ORG_ID_MISSING);
       return;
     }
 
     const result = await start(organizationId);
 
     if (result.ok) {
-      notifySuccess(WORKER.MONITORING.MESSAGES.START_SUCCESS);
+      notifySuccess(NOTIFICATION.WORKER.MONITORING.START_SUCCESS);
     }
   }, [organizationId, start, notifyError, notifySuccess]);
 
   const handleCheckIn = useCallback(async () => {
     if (undoInfo) {
-      notifyInfo(WORKER.CHECK_IN.MESSAGES.WAIT_UNDO);
+      notifyInfo(NOTIFICATION.WORKER.CHECK_IN.WAIT_UNDO);
       return;
     }
 
     if (riskLoading) {
-      notifyInfo(WORKER.CHECK_IN.MESSAGES.RISK_LOADING);
+      notifyInfo(NOTIFICATION.WORKER.CHECK_IN.RISK_LOADING);
       return;
     }
 
     if (riskLevel === 'safe') {
-      notifyInfo(WORKER.CHECK_IN.MESSAGES.NOT_NEEDED);
+      notifyInfo(NOTIFICATION.WORKER.CHECK_IN.NOT_NEEDED);
       return;
     }
 
@@ -165,7 +165,7 @@ export default function WorkerHomePage() {
     const deviceInfo = await getDeviceInfoWithLocation();
 
     if (!deviceInfo) {
-      notifyError(WORKER.CHECK_IN.ERRORS.LOCATION_FAILED);
+      notifyError(NOTIFICATION.WORKER.CHECK_IN.LOCATION_FAILED);
       return;
     }
 
@@ -194,7 +194,7 @@ export default function WorkerHomePage() {
       ? parsedExpiresAt
       : Date.now() + WORKER_CONFIG.UNDO_WINDOW_MS;
     startUndo({ safetyLogId: created.safety_log.id, expiresAt });
-    notifySuccess(WORKER.CHECK_IN.MESSAGES.SUCCESS);
+    notifySuccess(NOTIFICATION.WORKER.CHECK_IN.SUCCESS);
   }, [
     checkIn,
     notifyError,
@@ -214,11 +214,11 @@ export default function WorkerHomePage() {
     try {
       await deleteSafetyLog(session.id, undoInfo.safetyLogId);
       clearUndo();
-      notifySuccess(WORKER.CHECK_IN.MESSAGES.UNDO_SUCCESS);
+      notifySuccess(NOTIFICATION.WORKER.CHECK_IN.UNDO_SUCCESS);
       await refreshLatestRisk();
     } catch (e: any) {
       console.error('failed to undo safety log', e);
-      const message = e?.message ? String(e.message) : WORKER.CHECK_IN.ERRORS.UNDO_FAILED;
+      const message = e?.message ? String(e.message) : NOTIFICATION.WORKER.CHECK_IN.UNDO_FAILED;
       notifyError(message);
     } finally {
       setUndoLoading(false);
@@ -228,7 +228,7 @@ export default function WorkerHomePage() {
   // SOS送信
   const handleSos = useCallback(async () => {
     if (!session) {
-      notifyInfo(WORKER.SOS.MESSAGES.NEED_SESSION);
+      notifyInfo(NOTIFICATION.WORKER.SOS.NEED_SESSION);
       return;
     }
 
@@ -250,11 +250,11 @@ export default function WorkerHomePage() {
     }
 
     if (result.duplicate) {
-      notifyInfo(WORKER.SOS.MESSAGES.DUPLICATE);
+      notifyInfo(NOTIFICATION.WORKER.SOS.DUPLICATE);
       return;
     }
 
-    notifySuccess(WORKER.SOS.MESSAGES.SUCCESS);
+    notifySuccess(NOTIFICATION.WORKER.SOS.SUCCESS);
   }, [notifyError, notifyInfo, notifySuccess, sendSos, session]);
 
   // 終了確認モーダルを開く
@@ -268,14 +268,14 @@ export default function WorkerHomePage() {
     const result = await finish();
 
     if (result.ok && result.alreadyFinished) {
-      notifyInfo(WORKER.MONITORING.MESSAGES.ALREADY_FINISHED);
+      notifyInfo(NOTIFICATION.WORKER.MONITORING.ALREADY_FINISHED);
       // refreshCurrent で session=null にする
       await refreshCurrent();
       return;
     }
 
     if (result.ok) {
-      notifySuccess(WORKER.MONITORING.MESSAGES.FINISH_SUCCESS);
+      notifySuccess(NOTIFICATION.WORKER.MONITORING.FINISH_SUCCESS);
     }
   }, [finish, notifyInfo, notifySuccess, refreshCurrent]);
 
@@ -303,17 +303,17 @@ export default function WorkerHomePage() {
               <span className="text-yellow-600 dark:text-yellow-400 text-xl">⚠️</span>
               <div>
                 <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                  拠点が設定されていません
+                  {WORKER.SETTINGS.LABELS.HOME_LOCATION_NOT_SET}
                 </p>
                 <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                  誤検知を防ぐために、自宅や主要な作業拠点を設定してください。
+                  {WORKER.SETTINGS.LABELS.HOME_LOCATION_RECOMMENDATION}
                 </p>
                 <button
                   type="button"
                   onClick={handleReopenOnboarding}
                   className="mt-2 text-sm font-medium text-yellow-800 dark:text-yellow-200 underline hover:no-underline"
                 >
-                  設定する
+                  {WORKER.SETTINGS.BUTTONS.SET_HOME_LOCATION}
                 </button>
               </div>
             </div>

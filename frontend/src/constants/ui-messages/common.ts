@@ -66,10 +66,15 @@ export const COMMON = {
     SAVE_FAILED: '保存に失敗しました',
     DELETE_FAILED: '削除に失敗しました',
     UPDATE_FAILED: '更新に失敗しました',
+    GENERIC_ERROR: 'エラーが発生しました',
 
     // 権限
     FORBIDDEN: '権限がありません',
     LOGIN_REQUIRED: 'ログインしてください',
+
+    // セッション・通信
+    SCREEN_CLOSED: '画面が閉じられたため処理を中断しました',
+    SESSION_NOT_STARTED: '作業セッションが開始されていません',
   },
 
   /**
