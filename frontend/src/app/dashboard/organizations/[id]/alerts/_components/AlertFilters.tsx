@@ -62,7 +62,7 @@ export function AlertFilters() {
   const hasActiveFilters = currentStatuses.length > 0 || isUrgentOnly;
 
   return (
-    <div className="mt-4 rounded border border-warm-gray-200 dark:border-warm-gray-700 bg-warm-gray-50 dark:bg-warm-gray-900/30 px-4 py-4">
+    <div className="mt-4 rounded bg-warm-gray-50 dark:bg-warm-gray-900/30 px-4 py-4">
       <div className="flex flex-wrap items-center gap-3">
         {(['open', 'resolved'] as AlertStatus[]).map((status) => (
           <label key={status} className="flex items-center space-x-2 cursor-pointer">
