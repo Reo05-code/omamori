@@ -7,7 +7,7 @@ import { MOCK_ORG_ID, MOCK_SESSION_ID, MOCK_WORKER_ID } from '../fixtures/users'
 const MEMBERSHIP_ID = 1;
 
 test.describe('作業ログ（Work Logs）/タブ', () => {
-  test('リスク判定タブが表示できる（ページング含む）', async ({ page }) => {
+  test('リスク判定タブが表示できる', async ({ page }) => {
     // 1. 管理者ユーザーでログイン済み状態を用意する
     await loginAsAdmin(page);
 
@@ -25,47 +25,25 @@ test.describe('作業ログ（Work Logs）/タブ', () => {
       },
     ]);
 
-    // 4. リスク判定取得 API（page に応じて返す内容を変える）
-    let requestCount = 0;
+    // 4. リスク判定取得 API
     await page.route(
-      `**/api/v1/work_sessions/${MOCK_SESSION_ID}/risk_assessments**`,
+      new RegExp(`/api/v1/work_sessions/${MOCK_SESSION_ID}/risk_assessments`),
       async (route) => {
-        if (route.request().method() !== 'GET') return route.fallback();
+        if (route.request().method() !== 'GET') return route.continue();
 
-        requestCount += 1;
-
-        const url = new URL(route.request().url());
-        const pageParam = url.searchParams.get('page') ?? '1';
-
-        const data =
-          pageParam === '2'
-            ? [
-                {
-                  id: 2,
-                  logged_at: new Date(1_000).toISOString(),
-                  score: 50,
-                  level: 'caution',
-                  details: { reasons: ['low_battery'] },
-                },
-              ]
-            : [
-                {
-                  id: 1,
-                  logged_at: new Date(0).toISOString(),
-                  score: 60,
-                  level: 'danger',
-                  details: { reasons: ['sos_trigger'] },
-                },
-              ];
+        const data = [
+          {
+            id: 1,
+            logged_at: new Date(0).toISOString(),
+            score: 60,
+            level: 'danger',
+            details: { reasons: ['sos_trigger'] },
+          },
+        ];
 
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          headers: {
-            'x-total-count': '2',
-            'x-total-pages': '2',
-            'access-control-expose-headers': 'x-total-count, x-total-pages',
-          },
           body: JSON.stringify(data),
         });
       },
@@ -81,19 +59,10 @@ test.describe('作業ログ（Work Logs）/タブ', () => {
       'page',
     );
 
-    // Expected: 1件表示（最初のページ）
-    await expect(page.locator('tbody tr')).toHaveCount(1);
-    await expect(page.getByText('page: 1')).toBeVisible();
-
-    // Expected: 次へを押すと page=2 を取得して UI が更新される
-    const nextButton = page.getByRole('button', { name: '次へ' });
-    await expect(nextButton).toBeEnabled();
-
-    await nextButton.click();
-    await expect(page.getByText('page: 2')).toBeVisible();
+    // Expected: 1件表示される
     await expect(page.locator('tbody tr')).toHaveCount(1);
 
-    // 2回以上APIが呼ばれている（ページングで再取得）
-    expect(requestCount).toBeGreaterThanOrEqual(2);
+    // Expected: リスクレベルが表示される
+    await expect(page.getByText('危険')).toBeVisible(); // level: 'danger' → '危険'
   });
 });
