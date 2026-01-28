@@ -19,7 +19,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { useNotificationBanner } from '@/hooks/useNotificationBanner';
 import { AlertFilters } from './_components/AlertFilters';
 import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
-import { ALERT, DASHBOARD, COMMON, AUTH } from '@/constants/ui-messages';
+import { ALERT, AUTH, COMMON, DASHBOARD, NOTIFICATION } from '@/constants/ui-messages';
 
 // ISO形式の日時文字列を「YYYY-MM-DD HH:mm:ss」の日本語表記に変換する。
 function formatDateTime(raw: string | null | undefined): string {
@@ -166,7 +166,7 @@ export default function OrganizationAlertsPage() {
       });
     } catch (e) {
       console.error('failed to resolve alert', e);
-      notifyError(COMMON.FALLBACK_ERRORS.UPDATE_FAILED);
+      notifyError(NOTIFICATION.ALERT.UPDATE_FAILED);
     } finally {
       setUpdatingId(null);
     }

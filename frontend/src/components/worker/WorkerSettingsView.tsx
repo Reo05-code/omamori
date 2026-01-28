@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import { AUTH } from '@/constants/ui-messages/auth';
-import { WORKER } from '@/constants/ui-messages';
+import { WORKER, NOTIFICATION } from '@/constants/ui-messages';
 import LogoutButton from '../ui/LogoutButton';
 import AppIcon from '../ui/AppIcon';
 import SetHomeLocationModal from './SetHomeLocationModal';
@@ -103,7 +103,7 @@ export default function WorkerSettingsView({ onNotify, onUpdateUser }: Props) {
             </h3>
             <p className="text-sm text-warm-brown-600 mb-4">{AUTH.LOGOUT.MESSAGES.DESCRIPTION}</p>
             <LogoutButton
-              onSuccess={() => onNotify(AUTH.LOGOUT.MESSAGES.SUCCESS, 'success')}
+              onSuccess={() => onNotify(NOTIFICATION.AUTH.LOGOUT_SUCCESS, 'success')}
               onError={(message) => onNotify(message, 'error')}
               variant="danger"
               className="w-full sm:w-auto"
@@ -124,7 +124,7 @@ export default function WorkerSettingsView({ onNotify, onUpdateUser }: Props) {
             onUpdateUser?.(updatedUser);
           }
           setShowLocationModal(false);
-          onNotify(WORKER.SETTINGS.MESSAGES.HOME_LOCATION_UPDATED, 'success');
+          onNotify(NOTIFICATION.WORKER.SETTINGS.HOME_LOCATION_UPDATED, 'success');
         }}
       />
     </div>
