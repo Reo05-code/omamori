@@ -28,20 +28,6 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             >
               <AppIcon name="menu" className="text-xl" />
             </button>
-            <div className="flex-1 flex justify-center lg:justify-start lg:ml-6">
-              <div className="w-full max-w-lg lg:max-w-xs relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <AppIcon name="search" className="text-warm-brown-600 text-lg" />
-                </div>
-                <input
-                  id="search"
-                  name="search"
-                  placeholder="作業員や現場を検索..."
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary sm:text-sm text-gray-900 dark:text-gray-100 transition duration-150 ease-in-out shadow-inner-soft"
-                />
-              </div>
-            </div>
           </header>
 
           <main className="flex-1 overflow-y-auto focus:outline-none p-4 sm:p-6 lg:p-8">
