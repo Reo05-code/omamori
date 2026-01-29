@@ -63,7 +63,7 @@ export default function DashboardCard({
     </>
   );
 
-  const cardClasses = `relative bg-white overflow-hidden shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6 ${href ? 'hover:shadow-md transition-shadow' : ''}`;
+  const cardClasses = `relative bg-white overflow-hidden shadow-sm rounded-xl border border-border-light dark:border-border-dark flex flex-col p-6 ${href ? 'hover:translate-x-1 transition-transform' : ''}`;
 
   if (href) {
     return (
