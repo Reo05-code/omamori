@@ -54,7 +54,7 @@ class ApplicationController < ActionController::API
 
   def allowed_origins
     [
-      "https://omamori-three.vercel.app",
+      "https://omamoriworker.com",
       "http://localhost:3000",
       "http://localhost:3001"
     ]
