@@ -18,6 +18,10 @@ module Api
         return if norm_role.blank?
 
         invitation = create_invitation(norm_role)
+
+        # 招待メールを送信（非同期）
+        InvitationMailer.invite(invitation).deliver_later
+
         render json: Api::V1::InvitationSerializer.new(invitation).as_json,
                status: :created,
                # show がルーティングにないため一覧パスを location に設定
