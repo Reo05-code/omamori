@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import AppIcon from '@/components/ui/AppIcon';
+import { ORGANIZATION } from '@/constants/ui-messages';
 
 import { BasicInfoTab } from './_components/tabs/BasicInfoTab';
 import { RiskAssessmentsTab } from './_components/tabs/RiskAssessmentsTab';
@@ -100,6 +103,18 @@ export default function WorkLogsPage() {
 
   return (
     <div className="px-6 pt-2 pb-6">
+      {/* Page Header with Back Link */}
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700 mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">作業ログ</h1>
+        <Link
+          href={`/dashboard/organizations/${orgId}`}
+          className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors flex items-center"
+        >
+          <AppIcon name="chevron_left" className="mr-1 text-lg" />
+          {ORGANIZATION.HEADINGS.BACK_TO_DASHBOARD}
+        </Link>
+      </div>
+
       {/* Tab Navigation */}
       <div className="border-b border-warm-gray-200 dark:border-warm-gray-700 mb-6">
         <nav className="flex space-x-8" aria-label="Tabs">

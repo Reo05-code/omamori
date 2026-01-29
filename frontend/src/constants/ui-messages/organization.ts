@@ -11,7 +11,7 @@ export const ORGANIZATION = {
     CREATE: '組織を作成',
     SETTINGS: '組織設定',
     BASIC_INFO: '基本情報',
-    BACK_TO_DASHBOARD: '組織ダッシュボードへ戻る',
+    BACK_TO_DASHBOARD: 'ダッシュボードへ戻る',
     BACK_TO_TOP: '組織トップへ戻る',
   },
 

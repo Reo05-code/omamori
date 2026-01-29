@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import AppIcon from '@/components/ui/AppIcon';
 import type { Membership } from '@/lib/api/types';
 import { fetchMemberships } from '@/lib/api/memberships';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -10,6 +11,7 @@ import { finishSession, startRemoteSession } from '@/lib/api/work_sessions';
 import { MemberActionToggle } from '@/components/organization/MemberActionToggle';
 import { WorkStatusBadge } from '@/components/organization/WorkStatusBadge';
 import { ROLE_LABELS, WORK_STATUS_LABELS } from '@/constants/labels';
+import { ORGANIZATION } from '@/constants/ui-messages';
 
 type PendingAction =
   | {
@@ -136,8 +138,15 @@ export default function MembersPage(): JSX.Element {
 
   return (
     <div className="p-6">
-      <div className="flex items-center mb-6">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700 mb-6">
         <h1 className="text-2xl font-semibold">メンバー一覧</h1>
+        <Link
+          href={`/dashboard/organizations/${orgId}`}
+          className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors flex items-center"
+        >
+          <AppIcon name="chevron_left" className="mr-1 text-lg" />
+          {ORGANIZATION.HEADINGS.BACK_TO_DASHBOARD}
+        </Link>
       </div>
 
       <p className="text-sm text-gray-500 mb-4">操作結果の反映に数秒かかる場合があります。</p>

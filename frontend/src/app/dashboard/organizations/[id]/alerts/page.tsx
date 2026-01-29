@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import AppIcon from '@/components/ui/AppIcon';
 
 import type { AlertResponse, AlertStatus } from '@/lib/api/types';
 
@@ -19,7 +20,14 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useNotificationBanner } from '@/hooks/useNotificationBanner';
 import { AlertFilters } from './_components/AlertFilters';
 import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
-import { ALERT, AUTH, COMMON, DASHBOARD, NOTIFICATION } from '@/constants/ui-messages';
+import {
+  ALERT,
+  AUTH,
+  COMMON,
+  DASHBOARD,
+  NOTIFICATION,
+  ORGANIZATION,
+} from '@/constants/ui-messages';
 
 // ISO形式の日時文字列を「YYYY-MM-DD HH:mm:ss」の日本語表記に変換する。
 function formatDateTime(raw: string | null | undefined): string {
@@ -213,16 +221,15 @@ export default function OrganizationAlertsPage() {
         loading={Boolean(updatingId)}
       />
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-warm-gray-900 dark:text-warm-gray-100">
-          {ALERT.PAGE.TITLE}
-        </h1>
-        {/* <Link
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700 mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{ALERT.PAGE.TITLE}</h1>
+        <Link
           href={`/dashboard/organizations/${orgId}`}
-          className="text-sm text-warm-orange hover:underline"
+          className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors flex items-center"
         >
-          組織トップへ
-        </Link> */}
+          <AppIcon name="chevron_left" className="mr-1 text-lg" />
+          {ORGANIZATION.HEADINGS.BACK_TO_DASHBOARD}
+        </Link>
       </div>
 
       {/* フィルタUI */}
