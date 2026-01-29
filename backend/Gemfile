@@ -31,6 +31,9 @@ gem "rexml", "~> 3.3"
 gem "cgi", "~> 0.4.0"
 gem "faraday", "~> 2.9"
 
+# Email delivery
+gem "resend"
+
 # Authentication
 gem "devise"
 gem "devise_token_auth"
@@ -62,6 +65,7 @@ group :development do
   gem "brakeman", require: false
   gem "bundler-audit", require: false
   gem "letter_opener"
+  gem "letter_opener_web"
 end
 
 group :test do
