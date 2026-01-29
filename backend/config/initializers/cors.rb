@@ -5,7 +5,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # 許可するオリジンを厳密に定義（スキーム補完禁止）
     allowed = [
       "http://localhost:3000",
-      "https://omamori-three.vercel.app"
+      "https://omamoriworker.com"
     ]
 
     # 末尾スラッシュのみ削除
