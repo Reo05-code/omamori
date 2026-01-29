@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   # Health check endpoint
   get "health", to: "health#index"
 
+  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       mount_devise_token_auth_for "User", at: "auth",
