@@ -54,6 +54,12 @@ Rails.application.configure do
   # Disable caching for Action Mailer templates even if Action Mailer is configured.
   # config.action_mailer.perform_caching = false
 
+  # Action Mailer configuration for Resend
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.default_url_options = { host: 'omamoriworker.com', protocol: 'https' }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
   config.i18n.fallbacks = true
