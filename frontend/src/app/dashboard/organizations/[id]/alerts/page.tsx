@@ -15,7 +15,7 @@ import { getUserRole } from '@/lib/permissions';
 import { useAuthContext } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
 import NotificationBanner from '@/components/ui/NotificationBanner';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useNotificationBanner } from '@/hooks/useNotificationBanner';
 import { AlertFilters } from './_components/AlertFilters';
 import { ALERT_SEVERITY_LABELS, ALERT_TYPE_LABELS, ALERT_STATUS_LABELS } from '@/constants/labels';
@@ -202,14 +202,15 @@ export default function OrganizationAlertsPage() {
         />
       )}
 
-      <ConfirmDialog
-        isOpen={Boolean(confirmTarget)}
+      <ConfirmModal
+        open={Boolean(confirmTarget)}
         title="アラート解決の確認"
-        message={confirmTarget ? resolveConfirmMessage(confirmTarget) : ''}
-        confirmLabel={COMMON.BUTTONS.CONFIRM}
-        cancelLabel={COMMON.BUTTONS.CANCEL}
+        description={confirmTarget ? resolveConfirmMessage(confirmTarget) : ''}
+        confirmText={COMMON.BUTTONS.CONFIRM}
+        cancelText={COMMON.BUTTONS.CANCEL}
         onConfirm={onConfirmResolve}
         onCancel={() => setConfirmTarget(null)}
+        loading={Boolean(updatingId)}
       />
 
       <div className="flex items-center justify-between">
