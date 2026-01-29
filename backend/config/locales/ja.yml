@@ -1,4 +1,9 @@
 ja:
+  time:
+    formats:
+      long: "%Y年%m月%d日 %H:%M"
+      short: "%m/%d %H:%M"
+
   # Devise 標準メッセージ（必要に応じて Devise 側で参照されます）
   devise:
     failure:

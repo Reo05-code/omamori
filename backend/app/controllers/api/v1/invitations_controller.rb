@@ -18,9 +18,10 @@ module Api
         return if norm_role.blank?
 
         invitation = create_invitation(norm_role)
+        send_invitation_email(invitation)
+
         render json: Api::V1::InvitationSerializer.new(invitation).as_json,
                status: :created,
-               # show がルーティングにないため一覧パスを location に設定
                location: api_v1_organization_invitations_path(@organization)
       rescue ActiveRecord::RecordInvalid => e
         render json: { errors: e.record.errors.full_messages.presence || [I18n.t("api.v1.invitations.error.create")] },
@@ -80,6 +81,10 @@ module Api
 
       def create_invitation(norm_role)
         @organization.invitations.create!(invitation_params.merge(inviter: current_user, role: norm_role))
+      end
+
+      def send_invitation_email(invitation)
+        InvitationMailer.invite(invitation).deliver_later
       end
 
       def handle_accept_result(result)

@@ -53,8 +53,11 @@ RSpec.describe "Api::V1::Auth::Passwords" do
 
         expect(response).to have_http_status(:ok)
         mail = ActionMailer::Base.deliveries.last
-        body = mail.body.raw_source
+
+        # メール本体から href を抽出
+        body = mail.parts.find { |p| p.content_type.match?(%r{text/html}) }&.body&.raw_source || mail.body.raw_source
         url = body[/href="([^"]+)"/, 1]
+
         expect(url).to be_present
         expect(URI.parse(url).host).to eq(URI.parse(allowed).host)
       end
@@ -67,8 +70,11 @@ RSpec.describe "Api::V1::Auth::Passwords" do
 
         expect(response).to have_http_status(:ok)
         mail = ActionMailer::Base.deliveries.last
-        body = mail.body.raw_source
+
+        # メール本体から href を抽出
+        body = mail.parts.find { |p| p.content_type.match?(%r{text/html}) }&.body&.raw_source || mail.body.raw_source
         url = body[/href="([^"]+)"/, 1]
+
         expect(url).to be_present
         expect(URI.parse(url).host).to eq(URI.parse(fallback).host)
       end

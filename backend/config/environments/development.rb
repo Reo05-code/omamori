@@ -69,24 +69,10 @@ Rails.application.configure do
     config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
   end
 
-  # 開発メール送信: letter_opener を使ってブラウザでメールを開く
-  config.action_mailer.delivery_method = :letter_opener
-
-  # 開発では配信とエラーを有効にしてデバッグしやすくする
+  # 開発メール送信用設定: letter_opener_web を使用
+  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-
-    # 開発メール送信: 通常は `letter_opener` を使ってブラウザでメールを開く。
-    # ただし Docker コンテナ内では Launchy がブラウザを見つけられず例外になるため、
-    # コンテナ検出時はファイル書き出しモードにフォールバック。
-    if File.exist?("/.dockerenv")
-      # コンテナ内ではメールを HTML ファイルとして出力する（tmp/letter_opener に保存）
-      config.action_mailer.delivery_method = :file
-      config.action_mailer.file_settings = { location: Rails.root.join('tmp', 'letter_opener').to_s }
-    else
-      # ローカル開発環境では letter_opener を使用してブラウザで開く
-      config.action_mailer.delivery_method = :letter_opener
-    end
 
   # Bullet (N+1 検出) の設定
   config.after_initialize do
