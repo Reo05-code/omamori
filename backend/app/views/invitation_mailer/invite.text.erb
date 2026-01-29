@@ -1,0 +1,14 @@
+組織への招待
+
+<%= @inviter.name || @inviter.email %> さんから、<%= @organization.name %> への招待が届いています
+
+あなたは <%= @role_name %> として招待されています
+
+以下のURLにアクセスして招待を承認してください：
+<%= @accept_url %>
+
+<% if @invitation.expires_at.present? %>
+※ この招待は <%= l(@invitation.expires_at, format: :long) %> まで有効です
+<% end %>
+
+ご不明な点がございましたら、組織の管理者にお問い合わせください。
