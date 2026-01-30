@@ -84,7 +84,12 @@ module Api
       end
 
       def send_invitation_email(invitation)
-        InvitationMailer.invite(invitation).deliver_later
+        # Render 無料枠では Redis が使えないため、本番環境では同期送信
+        if Rails.env.production?
+          InvitationMailer.invite(invitation).deliver_now
+        else
+          InvitationMailer.invite(invitation).deliver_later
+        end
       end
 
       def handle_accept_result(result)
