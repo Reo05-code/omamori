@@ -48,7 +48,8 @@ Rails.application.configure do
   # config.cache_store = :mem_cache_store
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter = :resque
+  # Render 無料枠では Redis が使えないため、同期実行（:inline）を使用
+  config.active_job.queue_adapter = :inline
   # config.active_job.queue_name_prefix = "app_production"
 
   # Disable caching for Action Mailer templates even if Action Mailer is configured.
