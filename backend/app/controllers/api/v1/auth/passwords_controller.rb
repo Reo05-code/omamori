@@ -18,18 +18,7 @@ module Api
         # `update` は DeviseTokenAuth のスーパークラスで定義されるため
         # RuboCop の LexicallyScopedActionFilter が誤検知する。
         # 明示的に抑制する。
-        # rubocop:disable Rails/LexicallyScopedActionFilter
         before_action :authenticate_api_v1_user!, only: [:update]
-        # rubocop:enable Rails/LexicallyScopedActionFilter
-
-        # パスワード再設定メール送信成功レスポンスを返す
-        def render_create_success
-          render json: {
-            status: "success",
-            message: I18n.t("api.v1.auth.success.passwords.create")
-          }
-        end
-
         # redirect_urlを検証してパスワード再設定メール送信処理を実行する
         def create
           # permit で明示的に受け付けるキーを制限しておく
@@ -42,6 +31,30 @@ module Api
 
           # DTA の create を呼び出す
           super
+        end
+
+        # パスワード変更完了後、古いトークンをリセット（ログイン状態を無効化）
+        def update
+          super
+
+          # 成功時（HTTPレスポンスステータスが 200 または 204）のみトークンをリセット
+          return unless [200, 204].include?(response.status)
+
+          # 現在の認証ユーザーの全トークンをクリア（新たにログインする必要があるようにする）
+          # devise_token_auth では tokens は Hash 形式なので、空にリセット
+          user = current_api_v1_user
+          return unless user
+
+          user.update(tokens: {})
+          Rails.logger.info "[PasswordsController] Tokens cleared for user #{user.email} after password update"
+        end
+
+        # パスワード再設定メール送信成功レスポンスを返す
+        def render_create_success
+          render json: {
+            status: "success",
+            message: I18n.t("api.v1.auth.success.passwords.create")
+          }
         end
 
         # パスワード再設定メール送信失敗レスポンスを返す

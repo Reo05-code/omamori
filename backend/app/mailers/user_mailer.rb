@@ -7,13 +7,26 @@ class UserMailer < Devise::Mailer
 
   # パスワードリセット案内メール
   def reset_password_instructions(record, token, opts = {})
-    @token = token
     @resource = record
 
-    # FRONTEND_BASE_URL を使用（PasswordsController で sanitize された redirect_url ベース）
-    @reset_url = "#{ENV.fetch('FRONTEND_BASE_URL', 'http://localhost:3000')}/password/reset?reset_password_token=#{token}"
+    # devise_token_auth では reset_password_token が渡される
+    # フロントエンドは access-token, client, uid の3つのパラメータを期待している
 
-    Rails.logger.info "[UserMailer] Sending password reset email to #{record.email}"
+    # 新しいトークンセットを生成（パスワードリセット用）
+    token_data = record.create_token
+    access_token = token_data.token
+    client_id = token_data.client
+
+    record.save!
+
+    base_url = ENV.fetch("FRONTEND_BASE_URL", "http://localhost:3000")
+
+    # フロントエンド ResetForm.tsx が期待する形式でURLを生成
+    # ?access-token=<token>&client=<client_id>&uid=<email>
+    @reset_url = "#{base_url}/password/reset?access-token=#{access_token}&client=#{client_id}&uid=#{ERB::Util.url_encode(record.email)}"
+    @token = access_token
+
+    Rails.logger.info "[UserMailer] Sending password reset email to #{record.email} with client=#{client_id}"
 
     opts[:subject] = "【OmamoriWorker】パスワードリセット"
     super
