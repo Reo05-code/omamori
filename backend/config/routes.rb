@@ -38,7 +38,9 @@ Rails.application.routes.draw do
         end
       end
 
-      # 未ログインユーザが招待を受け入れるためのエンドポイント
+      # 招待のプレビュー（未認証）
+      get "invitations/:token/preview", to: "invitations#preview"
+      # 招待の受諾（認証必須）
       post "invitations/accept", to: "invitations#accept"
 
       # WorkSession（作業セッション）
