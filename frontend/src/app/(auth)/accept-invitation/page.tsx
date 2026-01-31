@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { AUTH } from '@/constants/ui-messages/auth';
 import { COMMON } from '@/constants/ui-messages/common';
+import Logo from '@/components/ui/Logo';
 import AcceptInvitationForm from './AcceptInvitationForm';
 
 export default function AcceptInvitationPage() {
@@ -10,6 +11,9 @@ export default function AcceptInvitationPage() {
     <main className="font-display bg-gradient-to-br from-warm-bg to-warm-brown-100 text-warm-brown-800 antialiased min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         <div>
+          <div className="flex justify-center mb-4">
+            <Logo variant="small" />
+          </div>
           <h1 className="text-center text-3xl font-bold text-warm-brown-800">
             {AUTH.INVITATION_ACCEPT.HEADINGS.TITLE}
           </h1>
