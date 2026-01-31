@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoginForm from './LoginForm';
 import { useAuthContext } from '@/context/AuthContext';
@@ -32,7 +32,7 @@ function decideRedirectPath(user: UserResponse, redirectParam: string | null): s
   return APP_ROUTES.DASHBOARD;
 }
 
-export default function Page() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated, user, loading: authLoading } = useAuthContext();
@@ -87,4 +87,20 @@ export default function Page() {
   }
 
   return <LoginForm onSubmit={handleLogin} loading={loading} error={error} />;
+}
+
+function LoginPageFallback() {
+  return (
+    <div className="p-6" role="status" aria-label="読み込み中">
+      認証状態を確認中...
+    </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoginPageFallback />}>
+      <LoginPageContent />
+    </Suspense>
+  );
 }

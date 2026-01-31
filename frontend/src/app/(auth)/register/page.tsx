@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import RegisterForm from './RegisterForm';
@@ -9,7 +9,7 @@ import Logo from '@/components/ui/Logo';
 import { COMMON } from '@/constants/ui-messages/common';
 import { isValidRedirectPath } from '@/lib/utils/redirects';
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -67,5 +67,23 @@ export default function RegisterPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function RegisterPageFallback() {
+  return (
+    <main className="font-display bg-gradient-to-br from-warm-bg to-warm-brown-100 text-warm-brown-800 antialiased min-h-screen flex items-center justify-center p-4">
+      <div className="text-center">
+        <p className="text-sm text-warm-brown-700">{COMMON.STATUS.AUTHENTICATING}</p>
+      </div>
+    </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterPageFallback />}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }
