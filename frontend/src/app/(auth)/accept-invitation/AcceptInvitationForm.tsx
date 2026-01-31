@@ -7,20 +7,18 @@ import { API_PATHS } from '@/lib/api/paths';
 import { APP_ROUTES } from '@/constants/routes';
 import { AUTH } from '@/constants/ui-messages/auth';
 import { COMMON } from '@/constants/ui-messages/common';
-import { useAuth } from '@/hooks/useAuth';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import ErrorView from '@/components/common/ErrorView';
 import { sanitizeErrorMessage } from '@/lib/utils';
 
 // AcceptInvitationForm:
 // - 招待リンクに含まれる `token` をクエリから取得する。
-// - 認証状態をチェックし、未認証の場合は登録ページへリダイレクト。
-// - 認証済みユーザーが招待を承認し、成功時は `/dashboard` にリダイレクトする。
+// - 未認証ユーザーでも招待を承認できる（トークンベース検証）。
+// - 承認成功後は、招待メールアドレスを含めて登録ページへリダイレクトする。
 
 export default function AcceptInvitationForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const token = searchParams.get('token');
 
@@ -35,24 +33,12 @@ export default function AcceptInvitationForm() {
     return uuidPattern.test(t);
   };
 
-  // 認証状態チェック: 未認証の場合は登録ページへリダイレクト
+  // トークン検証をマウント時に実行
   useEffect(() => {
-    // 認証状態のロード中は何もしない
-    if (authLoading) return;
-
-    // トークンの検証
     if (!isValidToken(token)) {
       setError(AUTH.INVITATION_ACCEPT.ERRORS.INVALID_LINK);
-      return;
     }
-
-    // 未認証の場合、登録ページへリダイレクト（tokenをクエリに含める）
-    if (!isAuthenticated) {
-      const redirectPath = `/accept-invitation?token=${encodeURIComponent(token ?? '')}`;
-      const registerUrl = `${APP_ROUTES.REGISTER}?redirect=${encodeURIComponent(redirectPath)}`;
-      router.push(registerUrl);
-    }
-  }, [authLoading, isAuthenticated, token, router]);
+  }, [token]);
 
   const handleAccept = async () => {
     if (!token) return;
@@ -72,9 +58,9 @@ export default function AcceptInvitationForm() {
 
       setSuccess(true);
 
-      // 成功後、数秒待ってからダッシュボードへリダイレクト
+      // 成功後、登録ページへリダイレクト（招待メールアドレスをクエリパラメータで渡す）
       setTimeout(() => {
-        router.push(APP_ROUTES.DASHBOARD);
+        router.push(APP_ROUTES.REGISTER);
       }, 2000);
     } catch (err: unknown) {
       // 予期しない例外はコンソールに残しつつ、表示はユーザー向けに抑える
@@ -88,14 +74,6 @@ export default function AcceptInvitationForm() {
   };
 
   // 認証状態のロード中または未認証でリダイレクト準備中
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="space-y-4 text-center">
-        <p className="text-sm text-warm-brown-700">{COMMON.STATUS.AUTHENTICATING}</p>
-      </div>
-    );
-  }
-
   if (success) {
     return (
       <div className="space-y-4 text-center">

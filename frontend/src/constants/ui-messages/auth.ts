@@ -142,7 +142,7 @@ export const AUTH = {
     MESSAGES: {
       CONFIRM: '組織への招待を承認しますか？',
       SUCCESS_TITLE: '招待を承認しました',
-      SUCCESS_DESCRIPTION: 'ダッシュボードへリダイレクトしています...',
+      SUCCESS_DESCRIPTION: '登録ページへリダイレクトしています...',
       UNAUTHENTICATED: '招待を受け入れるにはログインまたは登録が必要です。',
       REDIRECTING_TO_REGISTER: '登録ページへリダイレクトしています...',
     },
