@@ -3,6 +3,7 @@ module Api
     class InvitationsController < ApplicationController
       before_action :set_organization, only: %i[index create destroy]
       before_action :require_admin!, only: %i[index create destroy]
+      before_action :authenticate_user!, only: %i[accept]
 
       def index
         invitations = @organization.invitations.where(accepted_at: nil).includes(:inviter)
@@ -36,11 +37,22 @@ module Api
         render json: { error: I18n.t("api.v1.invitations.error.not_found") }, status: :not_found
       end
 
+      def preview
+        invitation = Invitation.pending.find_by!(token: params[:token])
+
+        render json: {
+          organization_name: invitation.organization.name,
+          role: invitation.role,
+          invited_email: invitation.invited_email
+        }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
+      end
+
       def accept
         invitation = Invitation.pending.find_by!(token: params[:token])
 
-        # 未認証ユーザーでも承認可能（トークンのみで検証）
-        result = invitation.accept!
+        result = invitation.accept_by(current_user)
 
         handle_accept_result(result)
       rescue ActiveRecord::RecordNotFound
@@ -111,12 +123,10 @@ module Api
       end
 
       def render_accept_success(membership)
-        # membership が nil の場合（未認証での承認）はメッセージのみ返す
-        if membership.nil?
-          render json: { message: I18n.t("api.v1.invitations.accepted") }, status: :ok
-        else
-          render json: { message: I18n.t("api.v1.invitations.accepted"), membership: Api::V1::MembershipSerializer.new(membership).as_json }
-        end
+        render json: {
+          message: I18n.t("api.v1.invitations.accepted"),
+          membership: Api::V1::MembershipSerializer.new(membership).as_json
+        }, status: :ok
       end
     end
   end

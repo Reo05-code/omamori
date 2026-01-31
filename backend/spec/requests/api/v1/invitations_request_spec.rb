@@ -25,23 +25,41 @@ RSpec.describe "Api::V1::Invitations" do
 
   describe "POST /api/v1/invitations/accept (招待受諾)" do
     let(:inviter) { create(:user) }
+    let(:invitee) { create(:user, email: "invitee@example.com") }
     let(:org) { create(:organization) }
-    let(:invitation) { create(:invitation, inviter: inviter, organization: org, invited_email: "invitee@example.com") }
+    let(:invitation) { create(:invitation, inviter: inviter, organization: org, invited_email: invitee.email) }
 
     before { create(:membership, organization: org, user: inviter, role: :admin) }
 
-    it "未認証ユーザーでもトークンで招待を承認できる" do
+    it "認証済みユーザーが招待を承認できる" do
       post "/api/v1/invitations/accept",
            params: { token: invitation.token },
+           headers: invitee.create_new_auth_token,
            as: :json
 
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json["message"]).to be_present
 
-      # 招待が承認されたことを確認（accepted_at が更新される）
-      invitation.reload
-      expect(invitation.accepted_at).not_to be_nil
+      expect(org.memberships.exists?(user: invitee)).to be true
+    end
+  end
+
+  describe "GET /api/v1/invitations/:token/preview (招待プレビュー)" do
+    let(:inviter) { create(:user) }
+    let(:org) { create(:organization) }
+    let(:invitation) { create(:invitation, inviter: inviter, organization: org, invited_email: "invitee@example.com", role: :worker) }
+
+    before { create(:membership, organization: org, user: inviter, role: :admin) }
+
+    it "未認証ユーザーでも招待プレビューを取得できる" do
+      get "/api/v1/invitations/#{invitation.token}/preview"
+
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["organization_name"]).to eq(org.name)
+      expect(json["role"]).to eq("worker")
+      expect(json["invited_email"]).to eq("invitee@example.com")
     end
   end
 

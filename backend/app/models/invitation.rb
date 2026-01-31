@@ -37,21 +37,7 @@ class Invitation < ApplicationRecord
     accepted_at.nil? && (expires_at.nil? || expires_at > Time.current)
   end
 
-  # pending な招待を承認する処理（未認証ユーザーでも呼び出し可能）
-  # トークンの検証のみで承認を完了し、accepted_at を更新する
-  def accept!
-    # pending でなければ拒否
-    return Result.new(false, :invalid_token, nil, []) unless pending?
-
-    begin
-      update!(accepted_at: Time.current)
-      Result.new(true, nil, nil, [])
-    rescue ActiveRecord::RecordInvalid => e
-      Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
-    end
-  end
-
-  # 既存の accept_by メソッド（認証済みユーザーがメンバーシップを作成する場合に使用）
+  # pending な招待を承認する処理
   def accept_by(user)
     # pending でなければ拒否
     return Result.new(false, :invalid_token, nil, []) unless pending?
