@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import LoginForm from './LoginForm';
 import { useAuthContext } from '@/context/AuthContext';
 import { APP_ROUTES } from '@/constants/routes';
 import { USER_ROLES } from '@/constants/roles';
+import { isValidRedirectPath } from '@/lib/utils/redirects';
 import type { UserResponse } from '@/lib/api/types';
 
-function decideRedirectPath(user: UserResponse): string {
+function decideRedirectPath(user: UserResponse, redirectParam: string | null): string {
+  // リダイレクトパラメータが有効な場合はそちらを優先
+  if (isValidRedirectPath(redirectParam) && redirectParam) {
+    return redirectParam;
+  }
+
   const memberships = user.memberships ?? [];
 
   const adminMembership = memberships.find((m) => m.role === USER_ROLES.ADMIN);
@@ -28,7 +34,10 @@ function decideRedirectPath(user: UserResponse): string {
 
 export default function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isAuthenticated, user, loading: authLoading } = useAuthContext();
+
+  const redirectParam = searchParams.get('redirect');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +47,8 @@ export default function Page() {
     if (authLoading) return;
     if (!isAuthenticated || !user) return;
 
-    router.replace(decideRedirectPath(user));
-  }, [authLoading, isAuthenticated, user, router]);
+    router.replace(decideRedirectPath(user, redirectParam));
+  }, [authLoading, isAuthenticated, user, redirectParam, router]);
 
   const handleLogin = async (email: string, password: string) => {
     setError(null);
