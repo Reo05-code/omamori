@@ -3,7 +3,6 @@ module Api
     class InvitationsController < ApplicationController
       before_action :set_organization, only: %i[index create destroy]
       before_action :require_admin!, only: %i[index create destroy]
-      before_action :authenticate_user!, only: %i[accept]
 
       def index
         invitations = @organization.invitations.where(accepted_at: nil).includes(:inviter)
@@ -40,7 +39,8 @@ module Api
       def accept
         invitation = Invitation.pending.find_by!(token: params[:token])
 
-        result = invitation.accept_by(current_user)
+        # 未認証ユーザーでも承認可能（トークンのみで検証）
+        result = invitation.accept!
 
         handle_accept_result(result)
       rescue ActiveRecord::RecordNotFound
@@ -111,7 +111,12 @@ module Api
       end
 
       def render_accept_success(membership)
-        render json: { message: I18n.t("api.v1.invitations.accepted"), membership: Api::V1::MembershipSerializer.new(membership).as_json }
+        # membership が nil の場合（未認証での承認）はメッセージのみ返す
+        if membership.nil?
+          render json: { message: I18n.t("api.v1.invitations.accepted") }, status: :ok
+        else
+          render json: { message: I18n.t("api.v1.invitations.accepted"), membership: Api::V1::MembershipSerializer.new(membership).as_json }
+        end
       end
     end
   end
