@@ -132,6 +132,32 @@ export const AUTH = {
   },
 
   /**
+   * 招待受諾
+   */
+  INVITATION_ACCEPT: {
+    HEADINGS: {
+      TITLE: '招待を承認',
+      DESCRIPTION: '組織への招待を確認して承認してください。',
+    },
+    MESSAGES: {
+      CONFIRM: '組織への招待を承認しますか？',
+      SUCCESS_TITLE: '招待を承認しました',
+      SUCCESS_DESCRIPTION: 'ダッシュボードへリダイレクトしています...',
+    },
+    BUTTONS: {
+      ACCEPT: '招待を承認する',
+      ACCEPTING: '承認中...',
+    },
+    ERRORS: {
+      INVALID_LINK: '招待リンクが無効です。URLを確認してください。',
+      ACCEPT_FAILED: '招待の承認に失敗しました',
+    },
+    LINKS: {
+      TO_DASHBOARD: 'ダッシュボードに戻る',
+    },
+  },
+
+  /**
    * 認証共通
    */
   COMMON: {
