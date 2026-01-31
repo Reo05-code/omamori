@@ -34,6 +34,7 @@ export const API_PATHS = {
   },
   // 招待受諾
   INVITATIONS: {
+    PREVIEW: (token: string) => `/api/v1/invitations/${token}/preview`,
     ACCEPT: '/api/v1/invitations/accept',
   },
 
