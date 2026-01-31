@@ -136,23 +136,27 @@ export const AUTH = {
    */
   INVITATION_ACCEPT: {
     HEADINGS: {
-      TITLE: '招待を承認',
+      TITLE: '組織への招待',
       DESCRIPTION: '組織への招待を確認して承認してください。',
     },
     MESSAGES: {
-      CONFIRM: '組織への招待を承認しますか？',
-      SUCCESS_TITLE: '招待を承認しました',
-      SUCCESS_DESCRIPTION: '登録ページへリダイレクトしています...',
-      UNAUTHENTICATED: '招待を受け入れるにはログインまたは登録が必要です。',
-      REDIRECTING_TO_REGISTER: '登録ページへリダイレクトしています...',
+      LOADING_PREVIEW: '招待を確認中...',
+      PREVIEW_INFO: (orgName: string, role: string) =>
+        `${orgName} から ${role === 'worker' ? '作業者' : '管理者'} として招待されています。`,
+      CONFIRM: '招待を受け入れますか？',
+      SUCCESS_TITLE: '招待を承認しました！',
+      SUCCESS_DESCRIPTION: 'リダイレクト中...',
+      NEED_REGISTER: 'この招待を受け入れるには、まず新規登録してください。',
     },
     BUTTONS: {
-      ACCEPT: '招待を承認する',
+      ACCEPT: '招待を受け入れる',
       ACCEPTING: '承認中...',
+      GO_TO_REGISTER: '新規登録へ進む',
     },
     ERRORS: {
       INVALID_LINK: '招待リンクが無効です。URLを確認してください。',
       ACCEPT_FAILED: '招待の承認に失敗しました',
+      PREVIEW_FAILED: '招待情報の取得に失敗しました',
     },
   },
 
