@@ -143,6 +143,8 @@ export const AUTH = {
       CONFIRM: '組織への招待を承認しますか？',
       SUCCESS_TITLE: '招待を承認しました',
       SUCCESS_DESCRIPTION: 'ダッシュボードへリダイレクトしています...',
+      UNAUTHENTICATED: '招待を受け入れるにはログインまたは登録が必要です。',
+      REDIRECTING_TO_REGISTER: '登録ページへリダイレクトしています...',
     },
     BUTTONS: {
       ACCEPT: '招待を承認する',
@@ -151,9 +153,6 @@ export const AUTH = {
     ERRORS: {
       INVALID_LINK: '招待リンクが無効です。URLを確認してください。',
       ACCEPT_FAILED: '招待の承認に失敗しました',
-    },
-    LINKS: {
-      TO_DASHBOARD: 'ダッシュボードに戻る',
     },
   },
 
