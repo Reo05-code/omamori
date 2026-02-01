@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { signUp } from '@/lib/api/auth';
 import { isStrongPassword, isEmail, isPhoneNumber, isRequired } from '@/lib/utils';
 import Input from '@/components/ui/Input';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import ErrorView from '@/components/common/ErrorView';
+import { APP_ROUTES } from '@/constants/routes';
 
 interface RegisterFormProps {
   onRegisterSuccess?: () => void;
@@ -15,6 +17,7 @@ interface RegisterFormProps {
 export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
+  const redirectParam = searchParams.get('redirect');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(emailParam ?? '');
@@ -25,6 +28,10 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const shouldShowLoginHint = Boolean(error && /(既に|already)/i.test(error));
+  const loginUrl = redirectParam
+    ? `${APP_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectParam)}`
+    : APP_ROUTES.LOGIN;
 
   // URLパラメータからemailをプリフィル
   useEffect(() => {
@@ -101,6 +108,15 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6" aria-label="register-form">
       <ErrorView message={error} />
       {success && <div className="text-sm text-green-600">{success}</div>}
+      {shouldShowLoginHint && (
+        <div className="text-sm text-warm-brown-700">
+          既に登録済みの方は
+          <Link href={loginUrl} className="ml-1 text-warm-orange hover:underline font-medium">
+            ログインへ
+          </Link>
+          進んでください。
+        </div>
+      )}
 
       <div>
         <Input
