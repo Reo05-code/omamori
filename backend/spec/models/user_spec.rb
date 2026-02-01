@@ -51,7 +51,50 @@ RSpec.describe User do
 
     # --- password ---
     it { is_expected.to validate_presence_of(:password) }
-    it { is_expected.to validate_length_of(:password).is_at_least(6) }
+    it { is_expected.to validate_length_of(:password).is_at_least(8) }
+
+    # パスワード強度検証（8文字以上 + 大文字・小文字・数字必須）
+    describe "password strength validation" do
+      it "8文字以上で大文字・小文字・数字を含むパスワードは有効" do
+        user.password = "Password123"
+        user.password_confirmation = "Password123"
+        expect(user).to be_valid
+      end
+
+      it "7文字（8文字未満）のパスワードは無効" do
+        user.password = "Pass123"
+        user.password_confirmation = "Pass123"
+        expect(user).not_to be_valid
+        expect(user.errors[:password]).to include("は8文字以上で入力してください")
+      end
+
+      it "大文字を含まないパスワードは無効" do
+        user.password = "password123"
+        user.password_confirmation = "password123"
+        expect(user).not_to be_valid
+        expect(user.errors[:password]).to include("は大文字・小文字・数字を含む必要があります")
+      end
+
+      it "小文字を含まないパスワードは無効" do
+        user.password = "PASSWORD123"
+        user.password_confirmation = "PASSWORD123"
+        expect(user).not_to be_valid
+        expect(user.errors[:password]).to include("は大文字・小文字・数字を含む必要があります")
+      end
+
+      it "数字を含まないパスワードは無効" do
+        user.password = "PasswordABC"
+        user.password_confirmation = "PasswordABC"
+        expect(user).not_to be_valid
+        expect(user.errors[:password]).to include("は大文字・小文字・数字を含む必要があります")
+      end
+
+      it "空白のパスワードは無効" do
+        user.password = ""
+        user.password_confirmation = ""
+        expect(user).not_to be_valid
+      end
+    end
 
     # --- settings store_accessor ---
     it { is_expected.to validate_inclusion_of(:notification_enabled).in_array([true, false]).allow_nil }
