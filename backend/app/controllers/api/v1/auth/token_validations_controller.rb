@@ -49,8 +49,17 @@ module Api
         end
 
         # リクエストから認証ヘッダ(uid, client, access-token)を抽出する
+        # Cookie 優先、なければヘッダーから取得
         def extract_auth_headers
-          [request.headers["uid"], request.headers["client"], request.headers["access-token"]]
+          [
+            extract_from_cookie_or_header("uid"),
+            extract_from_cookie_or_header("client"),
+            extract_from_cookie_or_header("access_token", "access-token")
+          ]
+        end
+
+        def extract_from_cookie_or_header(cookie_name, header_name = nil)
+          request.cookies[cookie_name] || request.headers[header_name || cookie_name]
         end
 
         # uidからユーザーを検索して返す
@@ -84,14 +93,7 @@ module Api
         def render_validate_token_success
           render json: {
             status: "success",
-            data: @resource.as_json(
-              except: [:tokens],
-              include: {
-                memberships: {
-                  only: %i[id organization_id role]
-                }
-              }
-            )
+            data: Api::V1::UserSerializer.new(@resource).as_json
           }, status: :ok
         end
 
