@@ -6,8 +6,8 @@ RSpec.describe "Api::V1::Auth::Registrations" do
   let(:valid_attributes) do
     {
       email: "newuser@example.com",
-      password: "password123",
-      password_confirmation: "password123",
+      password: "Password123",
+      password_confirmation: "Password123",
       name: "New User",
       phone_number: "09012345678"
     }

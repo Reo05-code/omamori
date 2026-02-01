@@ -3,12 +3,12 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Auth::Sessions" do
-  let(:user) { create(:user, email: "test@example.com", password: "password123") }
+  let(:user) { create(:user, email: "test@example.com", password: "Password123", password_confirmation: "Password123") }
 
   describe "POST /api/v1/auth/sign_in (ログイン)" do
     context "有効な認証情報の場合" do
       it "ログインに成功する" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+        post "/api/v1/auth/sign_in", params: { email: user.email, password: "Password123" }, as: :json
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
@@ -17,7 +17,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       end
 
       it "認証情報を返す（ヘッダーは公開せずクッキーに設定する）" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+        post "/api/v1/auth/sign_in", params: { email: user.email, password: "Password123" }, as: :json
 
         # サーバ側でヘッダーはクッキーへ移し、ヘッダー露出を消しているため
         # テストでは httpOnly クッキーが設定されていることを確認する
@@ -29,7 +29,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       end
 
       it "ユーザー情報を返す" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "password123" }, as: :json
+        post "/api/v1/auth/sign_in", params: { email: user.email, password: "Password123" }, as: :json
 
         json = response.parsed_body
         expect(json["data"]["id"]).to eq(user.id)
@@ -40,7 +40,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
 
     context "無効な認証情報の場合" do
       it "パスワードが間違っている場合、401エラーを返す" do
-        post "/api/v1/auth/sign_in", params: { email: user.email, password: "wrongpassword" }, as: :json
+        post "/api/v1/auth/sign_in", params: { email: user.email, password: "WrongPassword" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
         json = response.parsed_body
@@ -49,7 +49,7 @@ RSpec.describe "Api::V1::Auth::Sessions" do
       end
 
       it "メールアドレスが存在しない場合、401エラーを返す" do
-        post "/api/v1/auth/sign_in", params: { email: "nonexistent@example.com", password: "password123" }, as: :json
+        post "/api/v1/auth/sign_in", params: { email: "nonexistent@example.com", password: "Password123" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
         json = response.parsed_body
