@@ -48,6 +48,16 @@ export default function AcceptInvitationForm() {
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [accepting, setAccepting] = useState(false);
 
+  const resolveErrorMessage = (res: {
+    error: string | null;
+    errorBody?: unknown | null;
+  }): string | null => {
+    const errorBody = res.errorBody as { error?: string; errors?: string[] } | null | undefined;
+    if (errorBody?.error) return errorBody.error;
+    if (Array.isArray(errorBody?.errors) && errorBody?.errors[0]) return errorBody.errors[0];
+    return res.error;
+  };
+
   // トークン検証
   const isValidToken = (t: string | null): boolean => {
     if (!t) return false;
@@ -104,7 +114,32 @@ export default function AcceptInvitationForm() {
       const res = await api.post<AcceptResponse>(API_PATHS.INVITATIONS.ACCEPT, { token });
 
       if (res.error || res.status !== 200 || !res.data) {
-        const msg = res.error ?? AUTH.INVITATION_ACCEPT.ERRORS.ACCEPT_FAILED;
+        const rawMessage = resolveErrorMessage(res);
+
+        if (res.status === 404) {
+          setError('この招待は既に使用されているか、無効です。');
+          setAccepting(false);
+          return;
+        }
+
+        if (res.status === 403) {
+          setError('この招待は別のメールアドレス宛です。');
+          setAccepting(false);
+          return;
+        }
+
+        if (res.status === 409) {
+          setError('あなたは既にこの組織のメンバーです。ダッシュボードへ遷移します。');
+          setAccepting(false);
+          const destination =
+            previewData?.role === 'worker' ? APP_ROUTES.WORKER : APP_ROUTES.DASHBOARD;
+          setTimeout(() => {
+            router.push(destination);
+          }, 1500);
+          return;
+        }
+
+        const msg = rawMessage ?? AUTH.INVITATION_ACCEPT.ERRORS.ACCEPT_FAILED;
         setError(sanitizeErrorMessage(msg));
         setAccepting(false);
         return;
