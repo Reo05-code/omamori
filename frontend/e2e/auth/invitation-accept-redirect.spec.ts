@@ -9,7 +9,9 @@ test('招待受諾の既存メンバー時にメッセージ表示とリダイ�
 
   await page.route('**/api/v1/invitations/*/preview', async (route) => {
     await fulfillJson(route, 200, {
+      status: 'pending',
       organization_name: 'テスト組織',
+      organization_id: 1,
       role: 'worker',
       invited_email: 'worker@example.com',
     });
