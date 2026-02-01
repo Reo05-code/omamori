@@ -13,6 +13,15 @@ class User < ApplicationRecord
   # モバイルアプリや SPA との連携で使う
   include DeviseTokenAuth::Concerns::User
 
+  # パスワード強度要件: 8文字以上 + 大文字・小文字・数字を全て含む
+  validates :password,
+            length: { minimum: 8, message: "は8文字以上で入力してください" },
+            format: {
+              with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+              message: "は大文字・小文字・数字を含む必要があります"
+            },
+            if: :password_required?
+
   has_many :memberships, dependent: :destroy
   has_many :organizations, through: :memberships
   has_many :work_sessions, dependent: :destroy
