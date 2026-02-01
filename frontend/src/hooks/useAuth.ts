@@ -122,6 +122,25 @@ export const useAuth = () => {
     }
   };
 
+  // 登録成功後に呼び出され、Cookie から認証状態を再取得
+  const revalidate = async () => {
+    setLoading(true);
+    try {
+      const validateRes = await validateToken();
+      if (validateRes.error || !validateRes.data) {
+        setIsAuthenticated(false);
+        setUser(null);
+        setAuthError(validateRes.error ?? AUTH.COMMON.ERRORS.VALIDATION_FAILED);
+        return;
+      }
+      setIsAuthenticated(true);
+      setUser(validateRes.data.data);
+      setAuthError(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     isAuthenticated,
     token,
@@ -133,5 +152,6 @@ export const useAuth = () => {
     login,
     logout,
     refreshUser,
+    revalidate,
   } as const;
 };

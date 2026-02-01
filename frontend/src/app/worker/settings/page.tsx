@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import WorkerShell from '@/components/worker/WorkerShell';
 import WorkerSettingsView from '@/components/worker/WorkerSettingsView';
@@ -13,11 +13,12 @@ import type { UserResponse } from '@/lib/api/types';
 
 export default function WorkerSettingsPage() {
   const authContext = useAuthContext();
-  const { user, loading, updateUser } = authContext;
+  const { user, loading, updateUser, refreshUser } = authContext;
   const [notification, setNotification] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
+  const [initializing, setInitializing] = useState(true);
 
   const handleNotify = (message: string, type: 'success' | 'error' | 'info') => {
     setNotification({ message, type });
@@ -33,8 +34,20 @@ export default function WorkerSettingsPage() {
     }
   };
 
-  // 認証確認中
-  if (loading) {
+  // 認証状態の初期化を待つ
+  useEffect(() => {
+    if (loading) return;
+    if (!user && refreshUser) {
+      refreshUser().finally(() => {
+        setInitializing(false);
+      });
+    } else {
+      setInitializing(false);
+    }
+  }, [loading, user, refreshUser]);
+
+  // 認証確認中、または初期化中
+  if (loading || initializing) {
     return (
       <WorkerShell>
         <div className="flex items-center justify-center py-12">

@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signUp } from '@/lib/api/auth';
 import { isStrongPassword, isEmail, isPhoneNumber, isRequired } from '@/lib/utils';
 import Input from '@/components/ui/Input';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import ErrorView from '@/components/common/ErrorView';
 
-export default function RegisterForm() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface RegisterFormProps {
+  onRegisterSuccess?: () => void;
+}
 
+export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
+  const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
-  const redirectParam = searchParams.get('redirect');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(emailParam ?? '');
@@ -76,22 +77,18 @@ export default function RegisterForm() {
       if (result.error) {
         setError(result.error);
       } else {
-        setSuccess('登録が完了しました。ログインしてください。');
+        setSuccess('登録が完了しました。');
 
-        // リダイレクトパラメータがある場合は、そのページへ遷移（招待受け入れフローなど）
-        if (redirectParam) {
-          setTimeout(() => {
-            router.push(redirectParam);
-          }, 1500);
-        } else {
-          // 通常のフローではフォームをクリア
-          setFullName('');
-          setEmail('');
-          setPassword('');
-          setPasswordConfirm('');
-          setPhoneNumber('');
-          setAgree(false);
-        }
+        // 登録成功を親コンポーネントに通知
+        onRegisterSuccess?.();
+
+        // 通常のフローではフォームをクリア
+        setFullName('');
+        setEmail('');
+        setPassword('');
+        setPasswordConfirm('');
+        setPhoneNumber('');
+        setAgree(false);
       }
     } catch (err) {
       setError('通信エラーが発生しました。');
