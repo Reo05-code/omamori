@@ -108,8 +108,8 @@ RSpec.describe "Api::V1::Auth::Passwords" do
     context "認証済みの場合" do
       it "パスワードを変更できる" do
         put "/api/v1/auth/password", params: {
-          password: "newpassword123",
-          password_confirmation: "newpassword123"
+          password: "NewPassword123",
+          password_confirmation: "NewPassword123"
         }, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:ok)
@@ -119,14 +119,14 @@ RSpec.describe "Api::V1::Auth::Passwords" do
 
       it "新しいパスワードでログインできる" do
         put "/api/v1/auth/password", params: {
-          password: "newpassword123",
-          password_confirmation: "newpassword123"
+          password: "NewPassword123",
+          password_confirmation: "NewPassword123"
         }, headers: auth_headers, as: :json
 
         # 新しいパスワードでログイン
         post "/api/v1/auth/sign_in", params: {
           email: user.email,
-          password: "newpassword123"
+          password: "NewPassword123"
         }, as: :json
 
         expect(response).to have_http_status(:ok)
@@ -136,8 +136,8 @@ RSpec.describe "Api::V1::Auth::Passwords" do
     context "パスワードが一致しない場合" do
       it "エラーレスポンスを返す" do
         put "/api/v1/auth/password", params: {
-          password: "newpassword123",
-          password_confirmation: "differentpassword"
+          password: "NewPassword123",
+          password_confirmation: "DifferentPassword"
         }, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
