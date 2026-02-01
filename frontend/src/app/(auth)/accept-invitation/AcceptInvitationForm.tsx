@@ -11,6 +11,7 @@ import { COMMON } from '@/constants/ui-messages/common';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import ErrorView from '@/components/common/ErrorView';
 import { sanitizeErrorMessage } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 // AcceptInvitationForm:
 // - 新しいフロー: Preview -> Auth -> Accept
@@ -18,10 +19,12 @@ import { sanitizeErrorMessage } from '@/lib/utils';
 // - 認証済みユーザーは直接受け入れができる
 // - 受け入れ成功後、ロールに基づいてリダイレクト（worker -> /worker, admin -> /dashboard/organizations/:id）
 
+type PreviewStatus = 'pending' | 'accepted' | 'expired';
+
 interface PreviewData {
-  invitation_id: number;
-  organization_name: string;
-  organization_id: number;
+  status: PreviewStatus;
+  organization_name: string | null;
+  organization_id: number | null;
   role: 'worker' | 'admin';
   invited_email: string;
 }
@@ -43,10 +46,12 @@ export default function AcceptInvitationForm() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorContext, setErrorContext] = useState<'email_mismatch' | 'invalid' | null>(null);
   const [success, setSuccess] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const { logout } = useAuth();
 
   const resolveErrorMessage = (res: {
     error: string | null;
@@ -71,6 +76,7 @@ export default function AcceptInvitationForm() {
       // トークンバリデーション
       if (!isValidToken(token)) {
         setError(AUTH.INVITATION_ACCEPT.ERRORS.INVALID_LINK);
+        setErrorContext('invalid');
         setLoading(false);
         return;
       }
@@ -87,6 +93,7 @@ export default function AcceptInvitationForm() {
           setError(
             sanitizeErrorMessage(previewRes.error) ?? AUTH.INVITATION_ACCEPT.ERRORS.PREVIEW_FAILED,
           );
+          setErrorContext('invalid');
           setLoading(false);
           return;
         }
@@ -96,6 +103,7 @@ export default function AcceptInvitationForm() {
       } catch (err) {
         console.error('Preview initialization error:', err);
         setError(COMMON.FALLBACK_ERRORS.NETWORK_ERROR);
+        setErrorContext('invalid');
         setLoading(false);
       }
     };
@@ -109,6 +117,7 @@ export default function AcceptInvitationForm() {
 
     setAccepting(true);
     setError(null);
+    setErrorContext(null);
 
     try {
       const res = await api.post<AcceptResponse>(API_PATHS.INVITATIONS.ACCEPT, { token });
@@ -118,12 +127,14 @@ export default function AcceptInvitationForm() {
 
         if (res.status === 404) {
           setError('この招待は既に使用されているか、無効です。');
+          setErrorContext('invalid');
           setAccepting(false);
           return;
         }
 
         if (res.status === 403) {
           setError('この招待は別のメールアドレス宛です。');
+          setErrorContext('email_mismatch');
           setAccepting(false);
           return;
         }
@@ -141,6 +152,7 @@ export default function AcceptInvitationForm() {
 
         const msg = rawMessage ?? AUTH.INVITATION_ACCEPT.ERRORS.ACCEPT_FAILED;
         setError(sanitizeErrorMessage(msg));
+        setErrorContext(null);
         setAccepting(false);
         return;
       }
@@ -162,6 +174,7 @@ export default function AcceptInvitationForm() {
       if (err instanceof Error)
         setError(sanitizeErrorMessage(err.message) ?? COMMON.FALLBACK_ERRORS.NETWORK_ERROR);
       else setError(COMMON.FALLBACK_ERRORS.NETWORK_ERROR);
+      setErrorContext(null);
       setAccepting(false);
     }
   };
@@ -173,6 +186,16 @@ export default function AcceptInvitationForm() {
     router.push(
       `${APP_ROUTES.REGISTER}?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectUrl)}`,
     );
+  };
+
+  const handleGoToLogin = () => {
+    const redirectUrl = `${APP_ROUTES.ACCEPT_INVITATION}?token=${token}`;
+    router.push(`${APP_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`);
+  };
+
+  const handleLogoutAndLogin = async () => {
+    await logout();
+    handleGoToLogin();
   };
 
   // ローディング中
@@ -204,6 +227,16 @@ export default function AcceptInvitationForm() {
     return (
       <div className="space-y-4">
         <ErrorView message={error} />
+        {errorContext === 'email_mismatch' && (
+          <div className="space-y-2">
+            <p className="text-sm text-warm-brown-700 text-center">
+              {AUTH.INVITATION_ACCEPT.MESSAGES.EMAIL_MISMATCH}
+            </p>
+            <PrimaryButton type="button" onClick={handleLogoutAndLogin}>
+              {AUTH.INVITATION_ACCEPT.BUTTONS.LOGOUT_AND_LOGIN}
+            </PrimaryButton>
+          </div>
+        )}
       </div>
     );
   }
@@ -211,24 +244,64 @@ export default function AcceptInvitationForm() {
   // プレビュー表示
   if (previewData) {
     const roleLabel = previewData.role === 'worker' ? '作業者' : '管理者';
+    const isPending = previewData.status === 'pending';
+    const isAccepted = previewData.status === 'accepted';
+    const isExpired = previewData.status === 'expired';
 
     return (
       <div className="space-y-6">
         <div className="bg-warm-brown-50 p-4 rounded-lg border border-warm-brown-200">
           <p className="text-sm text-warm-brown-700 mb-2">
             {AUTH.INVITATION_ACCEPT.MESSAGES.PREVIEW_INFO(
-              previewData.organization_name,
+              previewData.organization_name ?? '組織',
               previewData.role,
             )}
           </p>
           <div className="text-xs text-warm-brown-600 space-y-1">
-            <p>組織: {previewData.organization_name}</p>
+            <p>組織: {previewData.organization_name ?? '—'}</p>
             <p>役割: {roleLabel}</p>
             <p>招待先メール: {previewData.invited_email}</p>
           </div>
         </div>
 
-        {isAuthenticated ? (
+        {isAccepted && (
+          <div className="space-y-3">
+            <p className="text-sm text-warm-brown-700 text-center">
+              {AUTH.INVITATION_ACCEPT.MESSAGES.ALREADY_ACCEPTED}
+            </p>
+            {!isAuthenticated ? (
+              <PrimaryButton type="button" onClick={handleGoToLogin}>
+                {AUTH.INVITATION_ACCEPT.BUTTONS.GO_TO_LOGIN}
+              </PrimaryButton>
+            ) : (
+              <PrimaryButton
+                type="button"
+                onClick={() =>
+                  router.push(
+                    previewData.role === 'worker' ? APP_ROUTES.WORKER : APP_ROUTES.DASHBOARD,
+                  )
+                }
+              >
+                {AUTH.INVITATION_ACCEPT.BUTTONS.GO_TO_APP}
+              </PrimaryButton>
+            )}
+          </div>
+        )}
+
+        {isExpired && (
+          <div className="space-y-3">
+            <p className="text-sm text-warm-brown-700 text-center">
+              {AUTH.INVITATION_ACCEPT.MESSAGES.EXPIRED}
+            </p>
+            {!isAuthenticated && (
+              <PrimaryButton type="button" onClick={handleGoToLogin}>
+                {AUTH.INVITATION_ACCEPT.BUTTONS.GO_TO_LOGIN}
+              </PrimaryButton>
+            )}
+          </div>
+        )}
+
+        {isPending && isAuthenticated ? (
           // 認証済み: 受け入れボタン
           <>
             <p className="text-sm text-warm-brown-700 text-center">
@@ -246,17 +319,27 @@ export default function AcceptInvitationForm() {
                 : AUTH.INVITATION_ACCEPT.BUTTONS.ACCEPT}
             </PrimaryButton>
           </>
-        ) : (
-          // 未認証: 登録への案内
+        ) : isPending ? (
+          // 未認証: 登録/ログインへの案内
           <>
             <p className="text-sm text-warm-brown-700 text-center">
               {AUTH.INVITATION_ACCEPT.MESSAGES.NEED_REGISTER}
             </p>
+            <p className="text-xs text-warm-brown-600 text-center">
+              {AUTH.INVITATION_ACCEPT.MESSAGES.NEED_LOGIN}
+            </p>
             <PrimaryButton type="button" onClick={handleGoToRegister} className="w-full">
               {AUTH.INVITATION_ACCEPT.BUTTONS.GO_TO_REGISTER}
             </PrimaryButton>
+            <PrimaryButton
+              type="button"
+              onClick={handleGoToLogin}
+              className="bg-warm-brown-200 text-warm-brown-700 hover:bg-warm-brown-300"
+            >
+              {AUTH.INVITATION_ACCEPT.BUTTONS.GO_TO_LOGIN}
+            </PrimaryButton>
           </>
-        )}
+        ) : null}
       </div>
     );
   }
