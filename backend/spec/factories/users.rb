@@ -9,9 +9,9 @@ FactoryBot.define do
     # 重複不可な email 用
     sequence(:email) { |n| "user#{n}@example.com" }
 
-    # Devise 用の基本パスワード
-    password { "password123" }
-    password_confirmation { "password123" }
+    # パスワード強度要件を満たすパスワード（8文字以上 + 大文字・小文字・数字）
+    password { "Password123" }
+    password_confirmation { "Password123" }
 
     # DB 制約に合わせてユニーク番号を生成
     sequence(:phone_number) { |n| format("090%08d", n) }
