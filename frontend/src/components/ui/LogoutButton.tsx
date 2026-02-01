@@ -50,7 +50,7 @@ export default function LogoutButton({
       await logout();
       setShowConfirmModal(false);
       onSuccess?.();
-      router.push('/');
+      window.location.href = '/login';
     } catch (error) {
       const { message } = normalizeErrorMessage(error);
       onError?.(message);
