@@ -39,22 +39,34 @@ class Invitation < ApplicationRecord
 
   # pending な招待を承認する処理
   def accept_by(user)
-    # pending でなければ拒否
+    return handle_already_accepted(user) if accepted_at.present?
     return Result.new(false, :invalid_token, nil, []) unless pending?
 
-    check_email_mismatch(user) || check_already_member(user) || begin
-      membership = nil
-      begin
-        membership = create_membership_for(user)
-      rescue ActiveRecord::RecordInvalid => e
-        # 例外を Result に変換して返す（設計を Result ベースに統一）
-        return Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
-      rescue ActiveRecord::RecordNotUnique
-        return Result.new(false, :already_member, nil, [])
-      end
+    error_result = check_email_mismatch(user) || check_already_member(user)
+    return error_result if error_result
 
+    perform_accept(user)
+  end
+
+  private
+
+  def handle_already_accepted(user)
+    membership = organization.memberships.find_by(user: user)
+    if membership
       Result.new(true, nil, membership, [])
+    else
+      Result.new(false, :invalid_token, nil, [])
     end
+  end
+
+  def perform_accept(user)
+    membership = create_membership_for(user)
+    Result.new(true, nil, membership, [])
+  rescue ActiveRecord::RecordInvalid => e
+    # 例外を Result に変換して返す（設計を Result ベースに統一）
+    Result.new(false, :validation_errors, nil, e.record.errors.full_messages)
+  rescue ActiveRecord::RecordNotUnique
+    Result.new(false, :already_member, nil, [])
   end
 
   def create_membership_for(user)
@@ -66,20 +78,15 @@ class Invitation < ApplicationRecord
   end
 
   def check_email_mismatch(user)
-    if invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
-      return Result.new(false, :email_mismatch, nil, [])
-    end
+    return unless invited_email.present? && user.email.to_s.downcase != invited_email.to_s.downcase
 
-    nil
+    Result.new(false, :email_mismatch, nil,
+               [])
   end
 
   def check_already_member(user)
-    return Result.new(false, :already_member, nil, []) if organization.memberships.exists?(user: user)
-
-    nil
+    Result.new(false, :already_member, nil, []) if organization.memberships.exists?(user: user)
   end
-
-  private
 
   # role は画面制御用だが、Invitation 発行権限の条件として admin を要求する
   def inviter_must_be_admin
