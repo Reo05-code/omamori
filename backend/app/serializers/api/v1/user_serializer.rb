@@ -19,7 +19,18 @@ module Api
           home_longitude: @user.home_longitude,
           home_radius: @user.home_radius,
           created_at: @user.created_at,
-          updated_at: @user.updated_at
+          updated_at: @user.updated_at,
+          memberships: @user.memberships.map { |m| membership_hash(m) }
+        }
+      end
+
+      private
+
+      def membership_hash(membership)
+        {
+          id: membership.id,
+          organization_id: membership.organization_id,
+          role: membership.role
         }
       end
     end

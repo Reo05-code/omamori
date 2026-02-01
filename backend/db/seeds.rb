@@ -75,7 +75,7 @@ Rails.logger.debug "✅ Worker2 membership created"
 Rails.logger.debug "\n📍 Creating work session and safety logs..."
 
 # worker1の稼働中セッション
-ws = WorkSession.find_or_initialize_by(user: worker1, ended_at: nil)
+ws = WorkSession.find_or_initialize_by(user: worker1, organization: org1, ended_at: nil)
 if ws.new_record?
   ws.started_at = 2.hours.ago
   ws.save!

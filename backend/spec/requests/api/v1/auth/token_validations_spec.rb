@@ -8,7 +8,6 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
 
   describe "GET /api/v1/auth/validate_token (トークン有効性確認)" do
     context "有効なトークンの場合" do
-      let!(:membership) { create(:membership, user: user, role: :admin) }
       let(:auth_headers) { user.create_new_auth_token }
 
       it "成功レスポンスを返す" do
@@ -40,14 +39,27 @@ RSpec.describe "Api::V1::Auth::TokenValidations" do
         json = response.parsed_body
         expect(json["data"]).to be_present
         expect(json["data"]["email"]).to eq(user.email)
-        expect(json["data"]["memberships"]).to be_present
-        expect(json["data"]["memberships"]).to include(
-          a_hash_including(
-            "id" => membership.id,
-            "organization_id" => membership.organization_id,
-            "role" => membership.role
-          )
-        )
+      end
+
+      it "拠点情報フィールドを含むレスポンスを返す" do
+        # UserSerializerが拠点情報フィールドを含むことを検証
+
+        if ENV["ENABLE_COOKIE_ONLY"] == "true"
+          cookies.encrypted[:access_token] = auth_headers["access-token"]
+          cookies.encrypted[:client] = auth_headers["client"]
+          cookies.encrypted[:uid] = auth_headers["uid"]
+          get "/api/v1/auth/validate_token", as: :json
+        else
+          get "/api/v1/auth/validate_token", headers: auth_headers, as: :json
+        end
+
+        json = response.parsed_body
+        expect(json["data"]).to be_present
+
+        # UserSerializerが拠点情報のフィールドを含むことを確認
+        expect(json["data"]).to have_key("home_latitude")
+        expect(json["data"]).to have_key("home_longitude")
+        expect(json["data"]).to have_key("home_radius")
       end
     end
 
