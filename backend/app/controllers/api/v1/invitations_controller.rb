@@ -50,7 +50,7 @@ module Api
       end
 
       def accept
-        invitation = Invitation.pending.find_by!(token: params[:token])
+        invitation = Invitation.find_by!(token: params[:token])
 
         result = invitation.accept_by(current_user)
 
