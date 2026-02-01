@@ -1,6 +1,8 @@
 module Api
   module V1
     class InvitationsController < ApplicationController
+      include InvitationRendering
+
       before_action :set_organization, only: %i[index create destroy]
       before_action :require_admin!, only: %i[index create destroy]
       before_action :authenticate_user!, only: %i[accept]
@@ -38,15 +40,10 @@ module Api
       end
 
       def preview
-        invitation = Invitation.pending.find_by!(token: params[:token])
-
-        render json: {
-          organization_name: invitation.organization.name,
-          role: invitation.role,
-          invited_email: invitation.invited_email
-        }, status: :ok
+        invitation = Invitation.find_by!(token: params[:token])
+        render_invitation_preview(invitation)
       rescue ActiveRecord::RecordNotFound
-        render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
+        render_invitation_not_found
       end
 
       def accept
@@ -56,7 +53,7 @@ module Api
 
         handle_accept_result(result)
       rescue ActiveRecord::RecordNotFound
-        render json: { error: I18n.t("api.v1.invitations.error.invalid_token") }, status: :not_found
+        render_invitation_not_found
       end
 
       private
