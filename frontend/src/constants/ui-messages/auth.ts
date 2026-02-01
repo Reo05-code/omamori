@@ -147,11 +147,18 @@ export const AUTH = {
       SUCCESS_TITLE: '招待を承認しました！',
       SUCCESS_DESCRIPTION: 'リダイレクト中...',
       NEED_REGISTER: 'この招待を受け入れるには、まず新規登録してください。',
+      NEED_LOGIN: '既存アカウントをお持ちの方はログインしてください。',
+      ALREADY_ACCEPTED: 'この招待は既に受諾されています。',
+      EXPIRED: 'この招待の有効期限が切れています。',
+      EMAIL_MISMATCH: '現在ログイン中のメールアドレスでは受け入れできません。',
     },
     BUTTONS: {
       ACCEPT: '招待を受け入れる',
       ACCEPTING: '承認中...',
       GO_TO_REGISTER: '新規登録へ進む',
+      GO_TO_LOGIN: 'ログインへ進む',
+      GO_TO_APP: 'アプリへ進む',
+      LOGOUT_AND_LOGIN: 'ログアウトしてログインする',
     },
     ERRORS: {
       INVALID_LINK: '招待リンクが無効です。URLを確認してください。',
