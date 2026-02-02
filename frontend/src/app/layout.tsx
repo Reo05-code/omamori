@@ -19,9 +19,42 @@ const mPlusRounded = M_PLUS_Rounded_1c({
   variable: '--font-display',
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
-  title: 'Omamori',
-  description: '高齢者・一人作業者見守りアプリケーション',
+  title: {
+    default: 'Omamori - 高齢者・一人作業者見守りアプリ',
+    template: '%s | Omamori',
+  },
+  description:
+    '高齢者・一人作業者を見守るための総合プラットフォーム。位置情報、生存報告、リスク評価、アラート機能で安全を実現。',
+  metadataBase: new URL(siteUrl),
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: ['/favicon.svg'],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    url: siteUrl,
+    title: 'Omamori - 高齢者・一人作業者見守りアプリ',
+    description: '安全・安心を実現する見守りプラットフォーム。',
+    siteName: 'Omamori',
+    images: [
+      {
+        url: '/images/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Omamori ロゴ',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Omamori - 高齢者・一人作業者見守りアプリ',
+    description: '安全・安心を実現する見守りプラットフォーム。',
+    images: ['/images/og-image.png'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

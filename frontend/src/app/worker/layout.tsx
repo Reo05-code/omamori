@@ -1,4 +1,10 @@
 import React from 'react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '見守りワーカー',
+  description: '作業者向けの見守り画面です。',
+};
 
 export default function WorkerLayout({ children }: { children: React.ReactNode }) {
   return (
