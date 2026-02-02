@@ -51,7 +51,7 @@ export default function NotificationBanner({
 
   return (
     <div
-      className="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-60 max-w-md"
+      className="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-[60] max-w-md"
       role="alert"
       aria-live="polite"
       aria-atomic="true"
