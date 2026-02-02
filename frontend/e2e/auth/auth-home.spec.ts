@@ -3,20 +3,14 @@ import { test, expect } from '@playwright/test';
 import { fulfillJson } from '../helpers';
 
 test.describe('認証・ナビゲーション', () => {
-  test('ホームが表示される', async ({ page }) => {
-    await page.route('**/health', async (route) => {
-      if (route.request().method() !== 'GET') return route.fallback();
-
-      await fulfillJson(route, 200, {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        environment: 'test',
-      });
+  test('未認証でルートにアクセスするとログインへ遷移する', async ({ page }) => {
+    await page.route('**/api/v1/auth/validate_token', async (route) => {
+      await fulfillJson(route, 401, { status: 'error', errors: ['Unauthorized'] });
     });
 
     await page.goto('/');
 
-    await expect(page).toHaveTitle(/Omamori/);
-    await expect(page.getByRole('heading', { name: 'Rails + Next.js' })).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole('heading', { name: 'Omamori' })).toBeVisible();
   });
 });
