@@ -114,7 +114,7 @@ temps = [22.5, 23.0, 24.5, 36.0, 25.0, 26.5, 21.0, 37.5]
 
 total_logs = 250
 
-risk_level_for = lambda do |trigger, battery, temp|
+risk_level_for = lambda do |trigger, battery, _temp|
   if trigger == "sos" || battery < 65
     "danger"
   elsif battery >= 80
