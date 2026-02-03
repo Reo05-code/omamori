@@ -2,14 +2,20 @@
 Rails.logger.debug "🌱 Creating seed data..."
 
 # 組織1: テスト組織
-org1 = Organization.find_or_create_by!(name: "テスト組織")
+org1 = Organization.find_or_create_by!(name: "チーム見守り")
 Rails.logger.debug { "✅ Organization: #{org1.name}" }
+
+names = %w[
+  佐藤太郎 鈴木花子 高橋健太 田中愛子 伊藤翔太 渡辺優子
+  山本大輔 中村美咲 小林隼人 加藤結衣 吉田悠真 山田さくら
+  佐々木颯太 松本彩乃 井上陽菜 木村直樹 斎藤美優 森田拓海
+].freeze
 
 # 管理者ユーザー
 admin = User.find_or_initialize_by(email: "admin@example.com")
 if admin.new_record?
   admin.assign_attributes(
-    name: "管理者太郎",
+    name: names.sample,
     password: "Password123",
     password_confirmation: "Password123",
     onboarded: true
@@ -30,7 +36,7 @@ Rails.logger.debug "✅ Admin membership created"
 worker1 = User.find_or_initialize_by(email: "worker@example.com")
 if worker1.new_record?
   worker1.assign_attributes(
-    name: "作業者花子",
+    name: names.sample,
     password: "Password123",
     password_confirmation: "Password123",
     onboarded: true,
@@ -54,7 +60,7 @@ Rails.logger.debug "✅ Worker membership created"
 worker2 = User.find_or_initialize_by(email: "worker2@example.com")
 if worker2.new_record?
   worker2.assign_attributes(
-    name: "作業者次郎",
+    name: names.sample,
     password: "Password123",
     password_confirmation: "Password123",
     onboarded: true
@@ -108,6 +114,41 @@ temps = [22.5, 23.0, 24.5, 36.0, 25.0, 26.5, 21.0, 37.5]
 
 total_logs = 250
 
+risk_level_for = lambda do |trigger, battery, temp|
+  if trigger == "sos" || battery < 65
+    "danger"
+  elsif battery >= 80
+    "safe"
+  else
+    "caution"
+  end
+end
+
+poll_interval_for = lambda do |risk_level|
+  case risk_level
+  when "danger" then 15
+  when "caution" then 45
+  else 60
+  end
+end
+
+intervals = Array.new(total_logs) do |idx|
+  battery_idx = idx % batteries.length
+  trigger_idx = idx % triggers.length
+  temp_idx = idx % temps.length
+
+  current_trigger = triggers[trigger_idx]
+  current_battery = batteries[battery_idx]
+  current_temp = temps[temp_idx]
+
+  risk_level = risk_level_for.call(current_trigger, current_battery, current_temp)
+  poll_interval_for.call(risk_level)
+end
+
+total_duration_seconds = intervals.sum
+start_time = total_duration_seconds.seconds.ago
+elapsed_seconds = 0
+
 # rubocop:disable Metrics/BlockLength
 total_logs.times do |idx|
   loc_idx = idx % locations.length
@@ -117,8 +158,16 @@ total_logs.times do |idx|
   condition_idx = idx % conditions.length
   temp_idx = idx % temps.length
 
+  current_trigger = triggers[trigger_idx]
+  current_battery = batteries[battery_idx]
+  current_temp = temps[temp_idx]
+
+  risk_level = risk_level_for.call(current_trigger, current_battery, current_temp)
+  interval_seconds = poll_interval_for.call(risk_level)
+
   # 古いログから順に作成（最新が最後）
-  logged_at = ((total_logs * 15) - (idx * 15)).minutes.ago
+  logged_at = start_time + elapsed_seconds
+  elapsed_seconds += interval_seconds
 
   log = SafetyLog.create!(
     work_session: ws,
@@ -130,18 +179,6 @@ total_logs.times do |idx|
     weather_temp: temps[temp_idx],
     weather_condition: conditions[condition_idx]
   )
-
-  current_trigger = triggers[trigger_idx]
-  current_battery = batteries[battery_idx]
-  current_temp = temps[temp_idx]
-
-  risk_level = if current_trigger == "sos" || current_battery < 65
-                 "danger"
-               elsif current_battery >= 80
-                 "safe"
-               else
-                 "caution"
-               end
 
   score = case risk_level
           when "safe" then rand(0..30)
