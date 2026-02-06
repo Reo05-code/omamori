@@ -54,7 +54,7 @@ https://omamoriworker.com/
 </details>
 
 ## ER図
-![ER図](frontend/public/images/ER.jpg)
+![ER図](frontend/public/images/ER図.png)
 <details>
 <summary>ER図の設計意図</summary>
 
