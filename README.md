@@ -55,32 +55,7 @@ https://omamoriworker.com/
 
 ## ER図
 ![ER図](frontend/public/images/ER図.png)
-<details>
-<summary>ER図の設計意図</summary>
 
-### users が複数の外部キーを持つ理由
-users テーブルは以下の役割を担います。
-
-- 作業者（work_sessions.user_id）
-- セッション作成者（work_sessions.created_by_user_id）
-- 招待者（invitations.inviter_id）
-- アラート対応者（alerts.handled_by_user_id）
-
-役割が異なるため、意味ごとに外部キーを分けています
-
----
-
-### アラートと安全ログの関係
-alerts は必ず work_session に紐づきますが、
-タイムアウトや手動発報など、直接の safety_log が存在しないケースを考慮し、
-safety_log_id は Optional としています
-
----
-
-### 作業セッション中心の設計
-本システムでは work_sessions を業務の中心エンティティとし、
-safety_logs → risk_assessments → alerts が派生する構造としています。
-</details>
 
 ## 技術スタック
 
