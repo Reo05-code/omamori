@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Skeleton from '@/components/ui/Skeleton';
 import { fetchOrganizationLatestLocations } from '@/lib/api/active_work_sessions';
 import type { LatestLocationPin } from '@/lib/api/types';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
+import { usePollingWhenIdle } from '@/hooks/usePollingWhenIdle';
+import { DASHBOARD_POLLING } from '@/config/dashboard';
 
 // MapViewの動的インポート
 const MapView = dynamic(() => import('./MapView'), {
@@ -23,6 +26,7 @@ export default function MapCard({ organizationId }: MapCardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
+  const isVisible = usePageVisibility();
 
   // 最終更新日時の計算
   const latestLoggedAt = useMemo(() => {
@@ -34,42 +38,59 @@ export default function MapCard({ organizationId }: MapCardProps) {
     }, null);
   }, [locations]);
 
-  useEffect(() => {
-    const numericId = Number(organizationId);
+  const fetchLocations = useCallback(
+    async ({ signal, background = false }: { signal?: AbortSignal; background?: boolean }) => {
+      const numericId = Number(organizationId);
 
-    if (isNaN(numericId)) {
-      console.error(`Invalid organizationId: ${organizationId}`);
-      setError('組織IDが無効です');
-      setLoading(false);
-      return;
-    }
+      if (isNaN(numericId)) {
+        console.error(`Invalid organizationId: ${organizationId}`);
+        if (!background) {
+          setError('組織IDが無効です');
+          setLoading(false);
+        }
+        return;
+      }
 
-    const controller = new AbortController();
-
-    const fetchLocations = async () => {
-      setLoading(true);
-      setError(null);
+      if (!background) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         // ここで numericId (number) を渡すことで型整合性が保たれる
-        const data = await fetchOrganizationLatestLocations(numericId, controller.signal);
+        const data = await fetchOrganizationLatestLocations(numericId, signal);
         setLocations(data);
       } catch (e) {
         if (e instanceof Error && e.name === 'AbortError') return;
 
-        // ログは出すが、ユーザーには「再試行」を促す
+        // ポーリング時はエラーをUIに出さず、ログのみ
         console.error('Failed to fetch latest locations', e);
-        setError('位置情報の取得に失敗しました');
-        setLocations([]);
+        if (!background) {
+          setError('位置情報の取得に失敗しました');
+          setLocations([]);
+        }
       } finally {
-        setLoading(false);
+        if (!background) {
+          setLoading(false);
+        }
       }
-    };
+    },
+    [organizationId],
+  );
 
-    fetchLocations();
-
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchLocations({ signal: controller.signal });
     return () => controller.abort();
-  }, [organizationId, retryTrigger]);
+  }, [fetchLocations, retryTrigger]);
+
+  usePollingWhenIdle({
+    enabled: Boolean(isVisible),
+    intervalMs: DASHBOARD_POLLING.MAP_POLL_INTERVAL_MS,
+    onTick: () => {
+      fetchLocations({ background: true });
+    },
+  });
 
   // Loading表示：カードの外枠は維持し、中身だけスケルトンにする
   const renderContent = () => {

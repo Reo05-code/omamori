@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState, ComponentProps } from 'react';
+import { useCallback, useEffect, useState, ComponentProps } from 'react';
 import Link from 'next/link';
 import { fetchOrganizationAlerts } from '@/lib/api/alerts';
 import type { AlertResponse } from '@/lib/api/types';
 import AlertItem from '@/components/common/AlertItem';
 import Skeleton from '@/components/ui/Skeleton';
 import { ALERT_TYPE_LABELS, ALERT_SEVERITY_LABELS } from '@/constants/labels';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
+import { usePollingWhenIdle } from '@/hooks/usePollingWhenIdle';
+import { DASHBOARD_POLLING } from '@/config/dashboard';
 
 // AlertItemからProps型を抽出（保守性の確保）
 type AlertItemProps = ComponentProps<typeof AlertItem>;
@@ -70,16 +73,17 @@ export function RecentAlertsWidget({ organizationId }: RecentAlertsWidgetProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
+  const isVisible = usePageVisibility();
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchAlerts = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchAlerts = useCallback(
+    async ({ signal, background = false }: { signal?: AbortSignal; background?: boolean }) => {
+      if (!background) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
-        const data = await fetchOrganizationAlerts(organizationId, { limit: 5 }, controller.signal);
+        const data = await fetchOrganizationAlerts(organizationId, { limit: 5 }, signal);
         console.log(
           'Recent alerts with variants:',
           data.map((a) => ({
@@ -95,18 +99,34 @@ export function RecentAlertsWidget({ organizationId }: RecentAlertsWidgetProps) 
         // AbortError の場合はエラー表示しない
         if (e instanceof Error && e.name === 'AbortError') return;
 
+        // ポーリング時はエラーをUIに出さず、ログのみ
         console.error('Failed to fetch recent alerts', e);
-        setError('アラート情報の取得に失敗しました');
-        setAlerts(null);
+        if (!background) {
+          setError('アラート情報の取得に失敗しました');
+          setAlerts(null);
+        }
       } finally {
-        setLoading(false);
+        if (!background) {
+          setLoading(false);
+        }
       }
-    };
+    },
+    [organizationId],
+  );
 
-    fetchAlerts();
-
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchAlerts({ signal: controller.signal });
     return () => controller.abort();
-  }, [organizationId, retryTrigger]);
+  }, [fetchAlerts, retryTrigger]);
+
+  usePollingWhenIdle({
+    enabled: Boolean(isVisible),
+    intervalMs: DASHBOARD_POLLING.ALERTS_POLL_INTERVAL_MS,
+    onTick: () => {
+      fetchAlerts({ background: true });
+    },
+  });
 
   return (
     <div className="rounded-xl bg-white dark:bg-warm-gray-800 shadow-sm p-6 flex flex-col h-full">
