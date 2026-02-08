@@ -29,22 +29,10 @@ module Api
       # POST /api/v1/work_sessions/:work_session_id/safety_logs
       # ログ受信とリスク判定(同期)
       def create
-        result = SafetyLogs::CreateService.new(
-          work_session: @work_session,
-          actor: current_user,
-          attributes: safety_log_params.to_h
-        ).call!
+        return render_demo_user_forbidden if current_user.demo_user?
 
-        assessment = result[:assessment]
-
-        render json: {
-          status: "success",
-          safety_log: Api::V1::SafetyLogSerializer.new(result[:safety_log]).as_json,
-          risk_level: assessment[:risk_level],
-          risk_reasons: assessment[:risk_reasons],
-          next_poll_interval: assessment[:next_poll_interval],
-          undo_expires_at: result[:undo_expires_at]
-        }, status: :created
+        result = create_safety_log
+        render_safety_log_created(result)
       end
 
       # DELETE /api/v1/work_sessions/:work_session_id/safety_logs/:id
@@ -62,6 +50,31 @@ module Api
 
       def set_work_session
         @work_session = WorkSession.find(params[:work_session_id])
+      end
+
+      def render_demo_user_forbidden
+        render json: { error: "デモユーザーはログを生成できません" }, status: :forbidden
+      end
+
+      def create_safety_log
+        SafetyLogs::CreateService.new(
+          work_session: @work_session,
+          actor: current_user,
+          attributes: safety_log_params.to_h
+        ).call!
+      end
+
+      def render_safety_log_created(result)
+        assessment = result[:assessment]
+
+        render json: {
+          status: "success",
+          safety_log: Api::V1::SafetyLogSerializer.new(result[:safety_log]).as_json,
+          risk_level: assessment[:risk_level],
+          risk_reasons: assessment[:risk_reasons],
+          next_poll_interval: assessment[:next_poll_interval],
+          undo_expires_at: result[:undo_expires_at]
+        }, status: :created
       end
 
       # 同一組織のメンバーかどうかを判定
