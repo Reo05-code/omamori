@@ -7,6 +7,11 @@ module Api
 
       # POST /api/v1/work_sessions/:work_session_id/alerts
       def create
+        if current_user.demo_user?
+          render json: { error: "デモユーザーはSOS送信できません" }, status: :forbidden
+          return
+        end
+
         work_session = find_work_session
         result = create_alert_for(work_session)
         render_alert_result(result)

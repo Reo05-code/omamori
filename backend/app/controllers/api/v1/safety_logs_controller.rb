@@ -29,6 +29,11 @@ module Api
       # POST /api/v1/work_sessions/:work_session_id/safety_logs
       # ログ受信とリスク判定(同期)
       def create
+        if current_user.demo_user?
+          render json: { error: "デモユーザーはログを生成できません" }, status: :forbidden
+          return
+        end
+
         result = SafetyLogs::CreateService.new(
           work_session: @work_session,
           actor: current_user,

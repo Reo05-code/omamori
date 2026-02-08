@@ -43,4 +43,14 @@ class User < ApplicationRecord
   validates :notification_enabled, inclusion: { in: [true, false], allow_nil: true }
   validates :dark_mode, inclusion: { in: %w[on off], allow_nil: true }
   validates :home_radius, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
+  DEMO_USER_EMAILS = ENV.fetch("DEMO_USER_EMAILS", "admin@example.com,worker@example.com,worker2@example.com")
+                        .split(",")
+                        .map(&:strip)
+                        .reject(&:empty?)
+                        .freeze
+
+  def demo_user?
+    DEMO_USER_EMAILS.include?(email)
+  end
 end
