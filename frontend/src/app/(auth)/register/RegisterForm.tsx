@@ -146,18 +146,6 @@ export default function RegisterForm({ onRegisterSuccess }: RegisterFormProps) {
 
       <div>
         <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          label="電話番号（任意）"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          placeholder="090-1234-5678"
-        />
-      </div>
-
-      <div>
-        <Input
           id="password"
           name="password"
           type="password"
